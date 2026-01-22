@@ -125,16 +125,16 @@ async function carregarProdutos() {
         const data = await res.json();
 
         const burgersEl = document.getElementById("burgers");
-        const bebidasEl = document.getElementById("bebidas");
 
-        // evita duplicação ao recarregar
-        if (burgersEl) burgersEl.innerHTML = "";
-        if (bebidasEl) bebidasEl.innerHTML = "";
+        // se não existir container de burger, não faz nada
+        if (!burgersEl) return;
+
+        burgersEl.innerHTML = ""; // evita duplicação
 
         data.produtos.forEach(prod => {
 
-            // segurança: só burger e bebida
-            if (prod.categoria !== "burger" && prod.categoria !== "bebida") return;
+            // 🔥 SOMENTE BURGERS
+            if (prod.categoria !== "burger") return;
 
             const card = document.createElement("div");
             card.className = "product-card";
@@ -150,13 +150,7 @@ async function carregarProdutos() {
                 </button>
             `;
 
-            if (prod.categoria === "burger" && burgersEl) {
-                burgersEl.appendChild(card);
-            }
-
-            if (prod.categoria === "bebida" && bebidasEl) {
-                bebidasEl.appendChild(card);
-            }
+            burgersEl.appendChild(card);
         });
 
     } catch (e) {
@@ -200,4 +194,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+
 
