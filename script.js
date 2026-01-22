@@ -125,17 +125,9 @@ async function carregarProdutos() {
         const data = await res.json();
 
         const burgersEl = document.getElementById("burgers");
-
-        // se não existir container de burger, não faz nada
-        if (!burgersEl) return;
-
-        burgersEl.innerHTML = ""; // evita duplicação
+        const bebidasEl = document.getElementById("bebidas");
 
         data.produtos.forEach(prod => {
-
-            // 🔥 SOMENTE BURGERS
-            if (prod.categoria !== "burger") return;
-
             const card = document.createElement("div");
             card.className = "product-card";
 
@@ -150,7 +142,15 @@ async function carregarProdutos() {
                 </button>
             `;
 
-            burgersEl.appendChild(card);
+            // 🍔 SOMENTE BURGERS NA HOME
+            if (prod.categoria === "burger" && burgersEl) {
+                burgersEl.appendChild(card);
+            }
+
+            // 🥤 SOMENTE BEBIDAS NA PAGINA DE BEBIDAS
+            if (prod.categoria === "bebida" && bebidasEl) {
+                bebidasEl.appendChild(card);
+            }
         });
 
     } catch (e) {
@@ -194,5 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+
 
 
