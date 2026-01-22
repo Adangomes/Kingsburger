@@ -101,19 +101,20 @@ body {
 
 /* LISTA DE PRODUTOS */
 /* GRID DE PRODUTOS */
+/* GRID DE PRODUTOS - mais compacto */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* menor no celular */
+    gap: 10px;
 }
 
-/* CARD DO PRODUTO */
+/* CARD DO PRODUTO - compacto */
 .product-card {
     background: #fff;
     border: 1px solid #eee;
-    border-radius: 8px;  /* menor */
-    padding: 8px;         /* menor */
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    border-radius: 8px;
+    padding: 6px; /* menor */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
@@ -122,27 +123,27 @@ body {
 
 .product-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* IMAGEM DO PRODUTO */
+/* IMAGEM DO PRODUTO - container */
 .product-image {
     width: 100%;
-    height: 80px; /* mais compacto no celular */
+    height: 60px; /* mais compacto */
     overflow: hidden;
     border-radius: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-/*  DAQUI PRA BAIXO, EU SÓ MECHO NO TAMANHO DA IMAGEM DENTRO DO CARD*/
+/* IMAGEM DO PRODUTO - interna */
 .product-image img {
     width: 100%;
-    height: 100%; /* ocupa o container, sem exagerar */
+    height: 100%;
     object-fit: cover;
     object-position: center;
     border-radius: 12px;
     border: 2px solid #e50914;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
 }
 
@@ -150,23 +151,21 @@ body {
     transform: scale(1.05);
 }
 
-
-
 /* TEXTOS DO CARD */
 .product-card h3 {
-    font-size: 13px;   /* título menor */
+    font-size: 12px;   /* menor */
     font-weight: 600;
     margin-bottom: 2px;
 }
 
 .product-card h4 {
-    font-size: 10px;   /* categoria menor */
+    font-size: 9px;    /* menor */
     color: #777;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 
 .price {
-    font-size: 12px;   /* preço menor */
+    font-size: 11px;   /* menor */
     font-weight: bold;
     color: #e50914;
     margin-bottom: 4px;
@@ -176,18 +175,41 @@ body {
 .btn {
     background: #e50914;
     color: #fff;
-    padding: 4px 8px;    /* botão menor */
+    padding: 3px 6px;    /* menor */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 10px;
     transition: background 0.2s;
 }
 
 .btn:hover {
     background: #b00610;
 }
+
+/* RESPONSIVO PARA CELULAR */
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+    }
+
+    .product-card {
+        padding: 5px;
+    }
+
+    .product-image {
+        height: 50px;
+        margin-bottom: 5px;
+    }
+
+    .product-card h3 { font-size: 11px; }
+    .product-card h4 { font-size: 8px; }
+    .price { font-size: 10px; }
+    .btn { padding: 2px 5px; font-size: 9px; }
+}
+
 
 
 /* FOOTER */
@@ -267,6 +289,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
