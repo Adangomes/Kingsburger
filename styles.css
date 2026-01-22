@@ -115,7 +115,8 @@ body {
     box-shadow: 0 3px 8px rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: center;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -124,28 +125,15 @@ body {
     box-shadow: 0 6px 16px rgba(0,0,0,0.1);
 }
 
-/* IMAGEM DO PRODUTO - FIXA */
-.product-image {
-    width: 80px;
-    height: 50px;        /* tamanho fixo */
-    overflow: hidden;
-    border-radius: 12px;
-    margin-bottom: 8px;
-}
-
-.product-image img {
-    width: 50px;
-    height: 50px;         
-    object-fit: cover;    
-    object-position: center;
-    border-radius: 12px;
+/* IMAGEM DO PRODUTO - tamanho fixo e arredondada */
+.product-card img {
+    width: 100px;       /* largura fixa */
+    height: 100px;      /* altura fixa */
+    object-fit: cover;
+    border-radius: 12px;  /* arredondada */
     border: 2px solid #e50914;
     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-
-.product-image img:hover {
-    transform: scale(1.05);
+    margin-bottom: 8px;
 }
 
 /* TEXTOS DO CARD */
@@ -153,26 +141,28 @@ body {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 3px;
+    text-align: center;
 }
 
-.product-card h4 {
+.product-card p.desc {
     font-size: 11px;
-    color: #777;
+    color: #555;
     margin-bottom: 4px;
+    text-align: center;
 }
 
 .price {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #e50914;
     margin-bottom: 6px;
 }
 
-/* BOTÃO ADICIONAR - MAIOR */
+/* BOTÃO ADICIONAR - maior e legível */
 .btn {
     background: #e50914;
     color: #fff;
-    padding: 8px 14px;
+    padding: 8px 16px;
     font-size: 13px;
     border: none;
     border-radius: 6px;
@@ -192,22 +182,20 @@ body {
         gap: 10px;
     }
 
-    .product-card {
-        padding: 8px;
-    }
-
-    .product-image {
-        height: 80px; /* menor mas proporcional */
+    .product-card img {
+        width: 80px;
+        height: 80px;
     }
 
     .product-card h3 { font-size: 12px; }
-    .product-card h4 { font-size: 10px; }
+    .product-card p.desc { font-size: 10px; }
     .price { font-size: 12px; }
     .btn { padding: 6px 12px; font-size: 12px; }
 }
 
 /* MODAL CARRINHO */
-#cart-modal {
+#cart-modal,
+#delivery-modal {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.6);
@@ -218,7 +206,8 @@ body {
     padding: 15px;
 }
 
-.cart-box {
+.cart-box,
+.delivery-box {
     background: #fff;
     padding: 20px;
     border-radius: 16px;
@@ -232,7 +221,8 @@ body {
     gap: 15px;
 }
 
-.cart-box h3 {
+.cart-box h3,
+.delivery-box h2 {
     font-size: 18px;
     margin-bottom: 10px;
     color: #333;
@@ -280,5 +270,3 @@ body {
         opacity: 1;
     }
 }
-
-
