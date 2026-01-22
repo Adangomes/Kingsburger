@@ -130,7 +130,7 @@ body {
 /* IMAGEM DO PRODUTO - container */
 /* CONTAINER DA IMAGEM */
 .product-image {
-    width: 100%;           /* ocupa todo o card */
+    width: 100px;           /* ocupa todo o card */
     height: 100px;         /* tamanho fixo */
     overflow: hidden;
     border-radius: 12px;   /* cantos arredondados */
@@ -285,6 +285,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
