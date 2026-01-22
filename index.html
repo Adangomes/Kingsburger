@@ -141,26 +141,28 @@
                 <button onclick="mostrarResumo()">Próximo</button>
             </div>
 
-            <!-- Etapa 2: Resumo -->
-            <div id="resumo-pedido" style="display:none; margin-top:20px;">
-                <h3>Resumo do Pedido</h3>
-                <div id="resumo-itens"></div>
-                <p id="resumo-taxa"></p>
-                <p><strong>Tempo de entrega: 30 a 45 minutos</strong></p>
-                <p id="resumo-total"></p>
+              <!-- Etapa 2: Resumo -->
+    <div id="resumo-pedido" style="display:none; margin-top:20px;">
+        <h3>Resumo do Pedido</h3>
+        <div id="resumo-itens"></div>
+        <p id="resumo-taxa"></p>
+        <p><strong>Tempo de entrega: 30 a 45 minutos</strong></p>
+        <p id="resumo-total"></p>
 
-                <div class="buttons">
-                    <button onclick="voltarFormulario()">Voltar</button>
-                    <button onclick="finalizarEntrega()">Finalizar Pedido</button>
-                </div>
-            </div>
+        <div class="buttons">
+            <button onclick="voltarFormulario()">Voltar</button>
+            <button onclick="finalizarEntrega()">Finalizar Pedido</button>
         </div>
     </div>
-</body>
-        <!-- SEU SCRIPT -->
-    <script src="script.js"></script>
+</div> <!-- fecha delivery-box -->
+</div> <!-- fecha delivery-modal -->
+
+<!-- SCRIPT SEMPRE ANTES DO BODY FECHAR -->
+<script src="script.js"></script>
+
 </body>
 </html>
+
 
 
 
