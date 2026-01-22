@@ -96,38 +96,40 @@ body {
 .destaques h2 {
     font-size: 22px;
     font-weight: 700;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 /* LISTA DE PRODUTOS */
 .products-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
 }
 
 /* CARD DO PRODUTO */
 .product-card {
     background: #fff;
-    border: 1px solid #ddd;
-    border-left: 6px solid #e50914;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .product-card:hover {
-    transform: translateX(5px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
-/* IMAGEM PROFISSIONAL */
-/* IMAGEM DO PRODUTO – PADRÃO IFOOD */
+/* IMAGEM DO PRODUTO */
 .product-image {
     width: 100%;
     height: 120px;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 10px;
 }
 
@@ -139,20 +141,20 @@ body {
     display: block;
 }
 
-
 .product-card h3 {
-    font-size: 18px;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
 }
 
 .product-card h4 {
-    font-size: 13px;
+    font-size: 12px;
     color: #777;
     margin-bottom: 6px;
 }
 
 .price {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     color: #e50914;
     margin-bottom: 8px;
@@ -161,11 +163,16 @@ body {
 .btn {
     background: #e50914;
     color: #fff;
-    padding: 8px 14px;
+    padding: 6px 12px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: #b00610;
 }
 
 /* FOOTER */
@@ -187,47 +194,54 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    padding: 10px;
 }
 
 .cart-box,
 .delivery-box {
     background: #fff;
     padding: 20px;
-    border-radius: 12px;
-    width: 90%;
+    border-radius: 16px;
+    width: 100%;
     max-width: 400px;
-    max-height: 90vh;
+    max-height: 80vh;
     overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-/* SPLASH */
-/* SPLASH */
+.cart-box h3,
+.delivery-box h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #333;
+}
+
 /* SPLASH */
 #splash {
     position: fixed;
     inset: 0;
-    background: #000; /* FUNDO PRETO */
+    background: #000;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 3000;
-    transition: opacity 0.8s ease; /* fade-out */
+    transition: opacity 0.8s ease;
 }
 
-/* quando for esconder */
 #splash.hide {
     opacity: 0;
     pointer-events: none;
 }
 
-/* LOGO NO SPLASH */
 .splash-logo {
-    width: 280px;          /* LOGO MAIOR */
+    width: 220px;
     max-width: 85%;
     animation: softPulse 2.8s ease-in-out infinite;
 }
 
-/* ANIMAÇÃO SUAVE */
 @keyframes softPulse {
     0%, 100% {
         transform: scale(1);
@@ -238,15 +252,3 @@ body {
         opacity: 1;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
