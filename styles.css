@@ -122,13 +122,23 @@ body {
 }
 
 /* IMAGEM PROFISSIONAL */
-.product-card img {
+/* IMAGEM DO PRODUTO – PADRÃO IFOOD */
+.product-image {
     width: 100%;
-    height: 100px;
-    object-fit: cover;
-     border-radius: 14px;   /* arredonda */
-     display: block;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 14px;
+    margin-bottom: 10px;
 }
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
 
 .product-card h3 {
     font-size: 18px;
@@ -228,6 +238,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
