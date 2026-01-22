@@ -75,29 +75,47 @@
 </div>
 
 <!-- SCRIPT PARA CARREGAR PRODUTOS DO JSON -->
+...
+<div id="produtos" class="cards"></div>
+<!-- ↑ os cards entram AQUI -->
+
 <script>
-fetch('content/produtos.json')
-.then(res => res.json())
-.then(data => {
-    const container = document.getElementById('bebidas');
-    // Filtra só os produtos de bebida
-    data.produtos
-        .filter(prod => prod.categoria === 'bebida')
-        .forEach(prod => {
-            const card = document.createElement('div');
-            card.classList.add('product-card');
-            card.innerHTML = `
-                <h3>${prod.title}</h3>
-                <p class="desc">${prod.description}</p>
-                <h4>cod: ${prod.codigo}</h4>
-                <p class="price">R$${prod.price.toFixed(2)}</p>
-                <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', '${prod.codigo}', 'R$${prod.price.toFixed(2)}')">Adicionar</button>
-            `;
-            container.appendChild(card);
-        });
-});
+fetch("produtos.json")
+  .then(response => response.json())
+  .then(data => {
+    const container = document.getElementById("produtos");
+
+    // LIMPA o container antes (evita duplicação)
+    container.innerHTML = "";
+
+    data.produtos.forEach(produto => {
+
+      // SOMENTE HAMBURGUERIA + BEBIDAS
+      if (produto.categoria !== "burger" && produto.categoria !== "bebida") {
+        return;
+      }
+
+      const card = document.createElement("div");
+      card.classList.add("card");
+
+      card.innerHTML = `
+        <img src="${produto.image}" alt="${produto.title}">
+        <h3>${produto.title}</h3>
+        <p>${produto.ingredientes}</p>
+        <strong>R$ ${produto.price.toFixed(2)}</strong>
+      `;
+
+      container.appendChild(card);
+    });
+  })
+  .catch(error => console.error("Erro ao carregar produtos:", error));
 </script>
+
+</body>
+</html>
+
 
 <script src="script.js"></script>
 </body>
 </html>
+
