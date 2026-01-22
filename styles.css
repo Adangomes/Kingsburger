@@ -100,19 +100,20 @@ body {
 }
 
 /* LISTA DE PRODUTOS */
+/* GRID DE PRODUTOS */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
 }
 
 /* CARD DO PRODUTO */
 .product-card {
     background: #fff;
     border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 8px;  /* menor */
+    padding: 8px;         /* menor */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
@@ -120,17 +121,17 @@ body {
 }
 
 .product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
 }
 
 /* IMAGEM DO PRODUTO */
 .product-image {
     width: 100%;
-    height: 90px;  /* altura menor */
+    height: 70px;        /* imagem menor */
     overflow: hidden;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    border-radius: 5px;  /* borda menor */
+    margin-bottom: 6px;
 }
 
 .product-image img {
@@ -143,39 +144,41 @@ body {
 
 /* TEXTOS DO CARD */
 .product-card h3 {
-    font-size: 14px;  /* menor */
+    font-size: 13px;   /* título menor */
     font-weight: 600;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 
 .product-card h4 {
-    font-size: 11px;
+    font-size: 10px;   /* categoria menor */
     color: #777;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .price {
-    font-size: 13px;
+    font-size: 12px;   /* preço menor */
     font-weight: bold;
     color: #e50914;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
+/* BOTÃO */
 .btn {
     background: #e50914;
     color: #fff;
-    padding: 5px 10px;
+    padding: 4px 8px;    /* botão menor */
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
     transition: background 0.2s;
 }
 
 .btn:hover {
     background: #b00610;
 }
+
 
 /* FOOTER */
 .footer {
@@ -254,4 +257,5 @@ body {
         opacity: 1;
     }
 }
+
 
