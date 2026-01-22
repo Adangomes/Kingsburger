@@ -130,17 +130,27 @@ body {
     width: 100%;
     height: 70px;        /* imagem menor */
     overflow: hidden;
-    border-radius: 12px;  /* borda menor */
+    border-radius: 10px;  /* borda menor */
     margin-bottom: 12px;
 }
-
+/*  DAQUI PRA BAIXO, EU SÓ MECHO NO TAMANHO DA IMAGEM DENTRO DO CARD*/
 .product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
+    width: 100%;              /* mantém largura do card */
+    height: 120px;            /* altura menor, proporcional */
+    object-fit: cover;        /* mantém proporção e preenche o container */
+    object-position: center;  /* centraliza a parte importante da imagem */
     display: block;
+
+    border-radius: 12px;      /* cantos arredondados */
+    border: 2px solid #e50914; /* borda fina vermelha, elegante */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* sombra sutil */
+    transition: transform 0.3s ease; /* efeito hover suave */
 }
+
+.product-image img:hover {
+    transform: scale(1.05);   /* leve zoom ao passar o mouse */
+}
+
 
 /* TEXTOS DO CARD */
 .product-card h3 {
@@ -257,6 +267,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
