@@ -127,8 +127,8 @@ body {
 
 /* IMAGEM DO PRODUTO - PADRÃO */
 .product-card img {
-    width: 120px;
-    height: 120px;
+    width: 300px;
+    height: 320px;
     object-fit: cover;
     border-radius: 12px;
     border: 2px solid #e50914;
@@ -183,8 +183,8 @@ body {
     }
 
     .product-card img {
-        width: 100px;
-        height: 100px;
+        width: 400px;
+        height: 400px;
     }
 
     .product-card h3 { font-size: 13px; }
@@ -264,3 +264,4 @@ body {
     0%, 100% { transform: scale(1); opacity: 0.9; }
     50% { transform: scale(1.05); opacity: 1; }
 }
+
