@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BEBIDAS</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+<!-- CONTEÚDO PRINCIPAL -->
+<div id="menu">
+    <header class="header">
+        <div class="logo">KINGS BURGUER</div>
+         <div id="status-loja" class="status"></div>
+
+        <!-- Botão menu hamburguer -->
+        <button class="hamburger" id="hamburger">&#9776;</button>
+
+        <!-- Menu mobile -->
+        <nav class="menu" id="mobile-menu">
+            <a href="bebidas.html">Bebidas</a>
+            <a href="contato.html">Contato</a>
+            <a href="index.html">Hambúrgueres</a>
+            <a href=""></a>
+            <a href=""></a>
+            <a href="n"></a>
+        </nav>
+
+        <!-- Carrinho -->
+        <div class="cart" title="Ver carrinho" onclick="abrirCarrinho()">🛒</div>
+    </header>
+
+    
+
+    <!-- Bebidas -->
+    <section class="destaques">
+        <h2>BEBIDAS</h2>
+        <!-- Aqui os produtos do JSON vão aparecer -->
+        <div class="products-grid" id="bebidas"></div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <p>Sistema Desenvolvido por Adan Gomes</p>
+    </footer>
+</div>
+
+<!-- MODAL DO CARRINHO -->
+<div id="cart-modal" style="display:none;">
+    <div class="cart-box">
+        <div class="cart-header">
+            <h2>Meu Carrinho</h2>
+            <button onclick="fecharCarrinho()">X</button>
+        </div>
+        <div id="cart-items"></div>
+        <div class="summary">
+            <p id="subtotal">Subtotal: R$0,00</p>
+            <p><strong id="total">Total: R$0,00</strong></p>
+        </div>
+        <div class="buttons">
+            <button class="continue-btn" onclick="fecharCarrinho()">Continuar comprando</button>
+            <button class="checkout-btn" onclick="abrirDelivery()">Finalizar compra</button>
+            <button onclick="limparCarrinho()">🗑️ Limpar Carrinho</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ENTREGA -->
+<div id="delivery-modal" style="display:none;">
+    <div class="delivery-box">
+        <!-- Conteúdo permanece igual -->
+    </div>
+</div>
+
+<!-- SCRIPT PARA CARREGAR PRODUTOS DO JSON -->
+<script>
+fetch('content/produtos.json')
+.then(res => res.json())
+.then(data => {
+    const container = document.getElementById('bebidas');
+    // Filtra só os produtos de bebida
+    data.produtos
+        .filter(prod => prod.categoria === 'bebida')
+        .forEach(prod => {
+            const card = document.createElement('div');
+            card.classList.add('product-card');
+            card.innerHTML = `
+                <h3>${prod.title}</h3>
+                <p class="desc">${prod.description}</p>
+                <h4>cod: ${prod.codigo}</h4>
+                <p class="price">R$${prod.price.toFixed(2)}</p>
+                <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', '${prod.codigo}', 'R$${prod.price.toFixed(2)}')">Adicionar</button>
+            `;
+            container.appendChild(card);
+        });
+});
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
