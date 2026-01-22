@@ -192,6 +192,7 @@ body {
 
 /* SPLASH */
 /* SPLASH */
+/* SPLASH */
 #splash {
     position: fixed;
     inset: 0;
@@ -200,30 +201,35 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 3000;
+    transition: opacity 0.8s ease; /* fade-out */
+}
+
+/* quando for esconder */
+#splash.hide {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* LOGO NO SPLASH */
 .splash-logo {
-    width: 200px;
-    max-width: 80%;
-    animation: softPulse 2.5s ease-in-out infinite;
+    width: 280px;          /* LOGO MAIOR */
+    max-width: 85%;
+    animation: softPulse 2.8s ease-in-out infinite;
 }
 
 /* ANIMAÇÃO SUAVE */
 @keyframes softPulse {
     0%, 100% {
         transform: scale(1);
-        opacity: 0.95;
+        opacity: 0.9;
     }
     50% {
-        transform: scale(1.04);
+        transform: scale(1.05);
         opacity: 1;
     }
 }
 
-        transform: scale(1.05);
-    }
-}
+
 
 
 
