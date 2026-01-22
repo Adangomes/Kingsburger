@@ -1,0 +1,537 @@
+/* RESET */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #fafafa;
+    color: #111;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* HEADER FIXO */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #e50914;
+    padding: 12px 20px;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.hamburger {
+    background: none;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    color: #fff;
+}
+
+
+/* NAV LINKS*/
+
+.menu {
+    display: flex;
+    gap: 15px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+.cart {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+
+/* PROMO BAR */
+
+.promo-bar {
+    background: transparent;
+    color: #e50914;
+    padding: 15px 10px;
+    text-align: center;
+    border-top: 3px solid #e50914;
+    border-bottom: 3px solid #e50914;
+    width: 100%;
+}
+
+.pizzaria-nome {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ff0000;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+    animation: pulse 2.5s infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+
+/* SEÇÃO PRINCIPAL */
+
+.destaques {
+    flex: 1;
+    padding: 25px 15px;
+    background: linear-gradient(to bottom, #fff, #fbe9eb);
+    min-height: calc(100vh - 160px);
+}
+
+.destaques h2 {
+    font-size: 22px;
+    color: #000;
+    font-weight: 700;
+    margin-bottom: 15px;
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+
+/* LISTA DE PRODUTOS */
+
+.products-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.product-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-left: 6px solid #e50914;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.product-card:hover {
+    transform: translateX(6px);
+}
+
+.product-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #111;
+}
+
+.product-card h4 {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #e50914;
+    margin-bottom: 8px;
+}
+
+.btn {
+    background: #e50914;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #b20710;
+}
+
+
+/* FOOTER */
+
+.footer {
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+
+/* =======================
+   MODAIS (Carrinho + Entrega)
+======================= */
+
+#cart-modal,
+#delivery-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.cart-box,
+.delivery-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: fadeIn .3s ease;
+    color: #111;
+}
+
+
+/* SPLASH */
+
+#splash {
+    position: fixed;
+    inset: 0;
+    background: #e50914;
+    /* vermelho principal */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    /* acima de tudo */
+}
+
+.splash-text {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    animation: pulse 1.2s infinite;
+}
+
+
+/* Deixa o sistema escondido*/
+
+
+/* animação */
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+
+/* Cabeçalho Carrinho */
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e50914;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.cart-header h2 {
+    color: #e50914;
+    font-size: 20px;
+}
+
+
+/* Itens no carrinho */
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cart-item-actions button {
+    background: #e50914;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.summary {
+    margin-top: 15px;
+    text-align: right;
+    font-weight: bold;
+    color: #111;
+}
+
+
+/* Botões gerais */
+
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.continue-btn {
+    background: #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.checkout-btn {
+    background: #28a745;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+
+/* Delivery modal */
+
+.delivery-box h2 {
+    color: #e50914;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.delivery-box label {
+    font-weight: 600;
+    margin-top: 10px;
+    display: block;
+}
+
+.delivery-box input,
+.delivery-box select,
+.delivery-box textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.delivery-box textarea {
+    resize: none;
+    height: 60px;
+}
+
+.delivery-box button {
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.delivery-box .buttons button:first-child {
+    background: #ccc;
+}
+
+.delivery-box .buttons button:last-child {
+    background: #e50914;
+    color: #fff;
+}
+
+.delivery-box {
+    background: #fff;
+    color: #000;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    /* 👈 controla a altura do modal */
+    overflow-y: auto;
+    /* 👈 adiciona scroll quando o conteúdo passar do limite */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* Esconde o menu por padrão */
+
+.menu {
+    display: none;
+    flex-direction: column;
+    background: #e50914;
+    position: absolute;
+    top: 60px;
+    /* abaixo do header */
+    right: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 2000;
+}
+
+.menu a {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 0;
+    font-weight: 500;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+
+/* Quando ativo, aparece */
+
+.menu.active {
+    display: flex;
+}
+
+
+/* SPLASH */
+
+#splash {
+    position: fixed;
+    inset: 0;
+    background: #e50914;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    transition: opacity 0.5s ease;
+    /* animação para sumir */
+}
+
+#splash.hide {
+    opacity: 0;
+    pointer-events: none;
+    /* evita bloquear cliques */
+}
+
+.splash-text {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+
+/* MINI-CARRINHO (abre ao clicar no 🛒) */
+
+.mini-cart-list {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    /* aparece logo abaixo do ícone */
+    background: #fff;
+    color: #111;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    min-width: 220px;
+    z-index: 3000;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cart.open .mini-cart-list {
+    display: block;
+}
+
+.mini-cart-list div {
+    margin-bottom: 6px;
+}
+
+.mini-cart-list div:last-child {
+    margin-bottom: 0;
+}
+
+
+/* Esconde tudo, menos o spalsh*/
+
+body>*not(splash) {
+    display: none;
+}
+
+
+/* BOTÃO DE AÇÃO ABERTO-FECHADO*/
+
+.status {
+    text-align: center;
+    padding: 8px;
+    font-weight: bold;
+}
+
+.status.fechado {
+    background: #c0392b;
+    color: white;
+}
+
+.status.aberto {
+    background: #27ae60;
+    color: white;
+}
