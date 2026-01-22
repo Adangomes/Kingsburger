@@ -195,7 +195,7 @@ body {
 #splash {
     position: fixed;
     inset: 0;
-    background: linear-gradient(180deg, #e50914, #b20710);
+    background: #000; /* FUNDO PRETO */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -204,18 +204,26 @@ body {
 
 /* LOGO NO SPLASH */
 .splash-logo {
-    width: 220px;
+    width: 200px;
     max-width: 80%;
-    animation: pulse 1.6s ease-in-out infinite;
+    animation: softPulse 2.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
+/* ANIMAÇÃO SUAVE */
+@keyframes softPulse {
     0%, 100% {
         transform: scale(1);
+        opacity: 0.95;
     }
     50% {
+        transform: scale(1.04);
+        opacity: 1;
+    }
+}
+
         transform: scale(1.05);
     }
 }
+
 
 
