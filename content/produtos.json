@@ -4,28 +4,28 @@
             "price": 27.90,
             "categoria": "burger",
             "ingredientes": "Hambúrguer artesanal 150g, queijo e pão brioche",
-            "image": "/imagens/kings-classic.jpg"
+            "image": "/imagens/kingsbacon.jpg"
         },
         {
             "title": "Kings Burger Tradicional",
             "price": 25.90,
             "categoria": "burger",
             "ingredientes": "Hambúrguer artesanal 140g, duas fatias de queijo e pão brioche",
-            "image": "/imagens/kings-tradicional.jpg"
+            "image": "/imagens/kingsbacon.jpg"
         },
         {
             "title": "Kings Duplo Bacon",
             "price": 34.90,
             "categoria": "burger",
             "ingredientes": "Dois hambúrgueres artesanais de 100g cada, queijo derretido, bacon crocante e pão brioche",
-            "image": "/imagens/kings-duplo-bacon.jpg"
+            "image": "/imagens/kingsbacon.jpg"
         },
         {
             "title": "Kings Calabresa",
             "price": 31.00,
             "categoria": "burger",
             "ingredientes": "Hambúrguer artesanal 140g, calabresa grelhada, queijo e pão brioche",
-            "image": "/imagens/kings-calabresa.jpg"
+            "image": "/imagens/kingsbacon.jpg"
         },
         {
             "title": "Coca-Cola Lata",
@@ -49,4 +49,5 @@
             "image": "/imagens/coca-600.jpg"
         }
     ]
+
 }
