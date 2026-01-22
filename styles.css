@@ -129,9 +129,10 @@ body {
 
 /* IMAGEM DO PRODUTO - container */
 /* CONTAINER DA IMAGEM */
+/* CONTAINER DA IMAGEM */
 .product-image {
-    width: 100px;           /* ocupa todo o card */
-    height: 100px;         /* tamanho fixo */
+    width: 100%;           /* ocupa todo o card */
+    height: 180px;         /* tamanho fixo */
     overflow: hidden;
     border-radius: 12px;   /* cantos arredondados */
     margin-bottom: 8px;
@@ -140,7 +141,7 @@ body {
 /* IMAGEM DENTRO DO CONTAINER */
 .product-image img {
     width: 100%;
-    height: 100%;          /* força a imagem a ocupar o container */
+    height: 10%;          /* força a imagem a ocupar o container */
     object-fit: cover;     /* corta proporcionalmente sem distorcer */
     object-position: center;
     border-radius: 12px;
@@ -285,6 +286,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
