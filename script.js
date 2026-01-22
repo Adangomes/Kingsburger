@@ -124,26 +124,41 @@ async function carregarProdutos() {
         const res = await fetch('/content/produtos.json');
         const data = await res.json();
 
-        const burgersEl = document.getElementById("pizzas-salgadas");
+        const burgersEl = document.getElementById("burgers");
         const bebidasEl = document.getElementById("bebidas");
 
+        // evita duplicação ao recarregar
+        if (burgersEl) burgersEl.innerHTML = "";
+        if (bebidasEl) bebidasEl.innerHTML = "";
+
         data.produtos.forEach(prod => {
+
+            // segurança: só burger e bebida
+            if (prod.categoria !== "burger" && prod.categoria !== "bebida") return;
+
             const card = document.createElement("div");
             card.className = "product-card";
 
             card.innerHTML = `
+                <img src="${prod.image}" alt="${prod.title}">
                 <h3>${prod.title}</h3>
                 <p class="desc">${prod.ingredientes || ""}</p>
-                <p class="price">R$${prod.price.toFixed(2).replace(".", ",")}</p>
+                <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
                 <button class="btn"
                     onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">
                     Adicionar
                 </button>
             `;
 
-            if (prod.categoria === "burger" && burgersEl) burgersEl.appendChild(card);
-            if (prod.categoria === "bebida" && bebidasEl) bebidasEl.appendChild(card);
+            if (prod.categoria === "burger" && burgersEl) {
+                burgersEl.appendChild(card);
+            }
+
+            if (prod.categoria === "bebida" && bebidasEl) {
+                bebidasEl.appendChild(card);
+            }
         });
+
     } catch (e) {
         console.error("Erro ao carregar produtos", e);
     }
@@ -185,3 +200,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+
