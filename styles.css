@@ -128,7 +128,6 @@ body {
     object-fit: cover;
     object-position: center 35%; /*mantém igual ou até menor*/
     margin-bottom: 12px;/* sobe o lanche*/
-    transfor: scale(1.05);
 }
 
 .product-card h3 {
@@ -229,6 +228,7 @@ body {
         opacity: 1;
     }
 }
+
 
 
 
