@@ -6,11 +6,25 @@ let MENSAGEM_FECHADA = "Estamos fechados no momento 😔";
 const carrinho = [];
 
 // ==================================================
+// SPLASH
+// ==================================================
+function esconderSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+
+    splash.style.opacity = "0";
+
+    setTimeout(() => {
+        splash.style.display = "none";
+    }, 600);
+}
+
+// ==================================================
 // STATUS DA LOJA
 // ==================================================
 async function carregarStatusLoja() {
     try {
-        const res = await fetch('/content/status.json');
+        const res = await fetch("/content/status.json");
         if (!res.ok) return;
 
         const data = await res.json();
@@ -20,7 +34,7 @@ async function carregarStatusLoja() {
         const statusEl = document.getElementById("status-loja");
         if (statusEl) {
             statusEl.textContent = LOJA_ABERTA ? "🟢 ABERTO" : "🔴 FECHADO";
-            statusEl.className = LOJA_ABERTA ? "aberto" : "fechado";
+            statusEl.className = `status ${LOJA_ABERTA ? "aberto" : "fechado"}`;
         }
     } catch (e) {
         console.warn("Status da loja não carregado");
@@ -30,16 +44,19 @@ async function carregarStatusLoja() {
 // ==================================================
 // CARRINHO
 // ==================================================
-function adicionarAoCarrinho(nome, codigo, preco) {
+function adicionarAoCarrinho(nome, preco) {
     if (!LOJA_ABERTA) {
         alert(MENSAGEM_FECHADA);
         return;
     }
 
-    const item = carrinho.find(i => i.codigo === codigo);
+    const item = carrinho.find(i => i.nome === nome);
 
-    if (item) item.quantidade++;
-    else carrinho.push({ nome, codigo, preco, quantidade: 1 });
+    if (item) {
+        item.quantidade++;
+    } else {
+        carrinho.push({ nome, preco, quantidade: 1 });
+    }
 
     salvarCarrinho();
     atualizarCarrinho();
@@ -48,13 +65,15 @@ function adicionarAoCarrinho(nome, codigo, preco) {
 
 function atualizarCarrinho() {
     const container = document.getElementById("cart-items");
-    if (!container) return;
+    const subtotalEl = document.getElementById("subtotal");
+    if (!container || !subtotalEl) return;
 
     container.innerHTML = "";
     let subtotal = 0;
 
     carrinho.forEach((item, index) => {
         subtotal += item.preco * item.quantidade;
+
         container.innerHTML += `
             <div class="cart-item">
                 <span>${item.quantidade}x ${item.nome}</span>
@@ -63,11 +82,8 @@ function atualizarCarrinho() {
         `;
     });
 
-    const subtotalEl = document.getElementById("subtotal");
-    if (subtotalEl) {
-        subtotalEl.innerText =
-            `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
-    }
+    subtotalEl.innerText =
+        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(index) {
@@ -88,114 +104,80 @@ function carregarCarrinhoSalvo() {
 // ==================================================
 // MODAIS
 // ==================================================
-const cartModal = document.getElementById("cart-modal");
-const deliveryModal = document.getElementById("delivery-modal");
-const deliveryBox = deliveryModal?.querySelector(".delivery-box");
-const resumo = document.getElementById("resumo-pedido");
-
 function abrirCarrinho() {
-    if (cartModal) cartModal.style.display = "flex";
+    document.getElementById("cart-modal").style.display = "flex";
 }
 
 function fecharCarrinho() {
-    if (cartModal) cartModal.style.display = "none";
+    document.getElementById("cart-modal").style.display = "none";
 }
 
 function abrirDelivery() {
     fecharCarrinho();
-    if (!deliveryModal) return;
-    deliveryModal.style.display = "flex";
-    if (resumo) resumo.style.display = "none";
-    deliveryBox?.classList.remove("exit");
+    document.getElementById("delivery-modal").style.display = "flex";
 }
 
-function abrirResumo() {
-    deliveryBox?.classList.add("exit");
-    setTimeout(() => {
-        if (deliveryModal) deliveryModal.style.display = "none";
-        if (resumo) resumo.style.display = "block";
-    }, 300);
-}
-
-function voltarFormulario() {
-    if (resumo) resumo.style.display = "none";
-    if (deliveryModal) deliveryModal.style.display = "flex";
-    deliveryBox?.classList.remove("exit");
+function fecharDelivery() {
+    document.getElementById("delivery-modal").style.display = "none";
 }
 
 // ==================================================
-// PRODUTOS (NETLIFY CMS)
+// PRODUTOS (NETLIFY CMS - JSON ÚNICO)
 // ==================================================
 async function carregarProdutos() {
-    try {
-        const res = await fetch('/content/produtos/');
-        if (!res.ok) throw new Error("Pasta produtos não acessível");
+    const res = await fetch("/content/produtos.json");
+    if (!res.ok) throw new Error("Arquivo produtos.json não encontrado");
 
-        const files = await res.json();
+    const produtos = await res.json();
 
-        const containers = {
-            burger: document.getElementById("burgers"),
-            bebida: document.getElementById("bebidas")
-        };
+    const containers = {
+        burger: document.getElementById("burgers"),
+        bebida: document.getElementById("bebidas")
+    };
 
-        for (const file of files) {
-            if (!file.endsWith('.json')) continue;
+    produtos.forEach(prod => {
+        if (!containers[prod.categoria]) return;
 
-            const prodRes = await fetch(`/content/produtos/${file}`);
-            const prod = await prodRes.json();
+        const card = document.createElement("div");
+        card.className = "product-card";
 
-            if (!containers[prod.categoria]) continue;
-
-            const card = document.createElement("div");
-            card.className = "product-card";
-            card.innerHTML = `
-                <img src="${prod.image || ''}" alt="${prod.title}">
+        card.innerHTML = `
+            <div class="image-wrapper">
+                <img src="${prod.image}" alt="${prod.title}">
+            </div>
+            <div class="content">
                 <h3>${prod.title}</h3>
-                <p>${prod.ingredientes || ''}</p>
-                <strong>R$ ${Number(prod.price).toFixed(2).replace(".", ",")}</strong>
-                <button onclick="adicionarAoCarrinho(
-                    '${prod.title}',
-                    '${file}',
+                <p class="desc">${prod.ingredientes || ""}</p>
+                <div class="price">
+                    R$ ${Number(prod.price).toFixed(2).replace(".", ",")}
+                </div>
+            </div>
+            <button class="btn"
+                onclick="adicionarAoCarrinho(
+                    '${prod.title.replace(/'/g, "")}',
                     ${prod.price}
                 )">
-                    Adicionar
-                </button>
-            `;
+                +
+            </button>
+        `;
 
-            containers[prod.categoria].appendChild(card);
-        }
-
-    } catch (e) {
-        console.error("Erro ao carregar produtos:", e);
-    }
+        containers[prod.categoria].appendChild(card);
+    });
 }
 
 // ==================================================
 // INIT
 // ==================================================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     carregarStatusLoja();
     carregarCarrinhoSalvo();
     atualizarCarrinho();
-    carregarProdutos();
+
+    try {
+        await carregarProdutos();
+    } catch (e) {
+        console.error("Erro ao carregar produtos:", e);
+    }
+
+    esconderSplash(); // 🔥 AGORA O SPLASH SOME
 });
-
-
-
-
-
-#splash {
-    transition: opacity 0.6s ease;
-}
-
-function esconderSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
-
-    splash.style.opacity = "0";
-
-    setTimeout(() => {
-        splash.style.display = "none";
-    }, 600);
-}
-
