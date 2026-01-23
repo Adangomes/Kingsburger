@@ -138,9 +138,9 @@ body {
 
 /* TEXTOS DO CARD */
 .product-card h3 {
-    font-size: 15px;
+    font-size: 40px;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     text-align: center;
 }
 
@@ -264,4 +264,5 @@ body {
     0%, 100% { transform: scale(1); opacity: 0.9; }
     50% { transform: scale(1.05); opacity: 1; }
 }
+
 
