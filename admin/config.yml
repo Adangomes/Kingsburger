@@ -2,38 +2,30 @@ backend:
   name: git-gateway
   branch: main
 
-media_folder: "images"
-public_folder: "/images"
+media_folder: "imagens"
+public_folder: "/imagens"
 
 collections:
   - name: "produtos"
     label: "Produtos"
-    files:
-      - file: "content/produtos.json"
-        label: "Lista de Produtos"
+    file: "content/produtos.json"
+    format: "json"
+    fields:
+      - label: "Produtos"
         name: "produtos"
+        widget: "list"
         fields:
-          - label: "Produtos"
-            name: "produtos"
-            widget: "list"
-            fields:
-              - { label: "Nome", name: "title", widget: "string" }
-              - { label: "Preço", name: "price", widget: "number", min: 0 }
-              - { 
-                  label: "Categoria",
-                  name: "categoria",
-                  widget: "select",
-                  options: ["burger", "bebida"]
-                }
-              - { label: "Ingredientes / Descrição", name: "ingredientes", widget: "string", required: false }
-              - { label: "Imagem", name: "image", widget: "image" }
+          - { label: "Código", name: "codigo", widget: "string" }
+          - { label: "Nome", name: "title", widget: "string" }
+          - { label: "Preço", name: "price", widget: "number" }
+          - { label: "Categoria", name: "categoria", widget: "select", options: ["burger","bebida"] }
+          - { label: "Ingredientes", name: "ingredientes", widget: "string", required: false }
+          - { label: "Imagem", name: "image", widget: "image" }
 
-  - name: "config"
-    label: "Configurações da Loja"
-    files:
-      - file: "content/status.json"
-        label: "Status da Loja"
-        name: "status"
-        fields:
-          - { label: "Loja aberta?", name: "aberto", widget: "boolean", default: true }
-          - { label: "Mensagem quando fechada", name: "mensagem", widget: "string" }
+  - name: "status"
+    label: "Status da Loja"
+    file: "content/status.json"
+    format: "json"
+    fields:
+      - { label: "Loja Aberta", name: "aberto", widget: "boolean" }
+      - { label: "Mensagem Fechado", name: "mensagem", widget: "string" }
