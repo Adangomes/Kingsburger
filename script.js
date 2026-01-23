@@ -226,7 +226,7 @@ Total: R$${totalFinal.toFixed(2).replace(".", ",")}
 
 Tempo de entrega: 30 a 45 minutos`;
 
-    const numeroWhatsApp = "5547997032100";
+    const numeroWhatsApp = "5547997278232";
     const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, "_blank");
 }
@@ -241,12 +241,7 @@ async function carregarProdutos() {
 
         const containers = {
             "burger": document.getElementById("burgers"),
-            "bebida": document.getElementById("bebidas"),
-            "pizza-salgada": document.getElementById("pizzas-salgadas"),
-            "pizza-doce": document.getElementById("pizzas-doces"),
-            "combo": document.getElementById("combos"),
-            "bordas": document.getElementById("bordas"),
-            "adicionais": document.getElementById("adicionais")
+            "bebida": document.getElementById("bebidas")
         };
 
         data.produtos.forEach(prod => {
@@ -295,26 +290,4 @@ function initSplash() {
 }
 
 // ==================================================
-// INIT GERAL
-// ==================================================
-document.addEventListener("DOMContentLoaded", () => {
-    carregarStatusLoja();
-    carregarCarrinhoSalvo();
-    atualizarCarrinho();
-    carregarProdutos();
-    initMenuMobile();
-    initSplash();
-});
-function mostrarResumo() {
-    console.log(
-        "Nome:", document.getElementById("nomeCliente").value,
-        "Cidade:", document.getElementById("cidade").value,
-        "Bairro:", document.getElementById("bairro").value,
-        "Rua:", document.getElementById("rua").value,
-        "Número:", document.getElementById("numero").value,
-        "Pagamento:", document.getElementById("pagamento").value
-    );
-
-    // restante da função...
-}
 
