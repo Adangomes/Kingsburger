@@ -239,8 +239,30 @@ body {
     gap: 12px;
 }
 
+/* BOTOES DO CARRINHO - LADO A LADO */
+#cart-items .cart-buttons {
+    display: flex;
+    flex-direction: row; /* lado a lado */
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#cart-items .cart-buttons button {
+    flex: 1;
+    padding: 14px 0;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.3s, transform 0.2s;
+}
+
+#cart-items .cart-buttons button:hover {
+    transform: scale(1.05);
+}
+
 /* =====================================================
-   MODAL DE ENTREGA / FORMULÁRIO DE PEDIDO
+   MODAL DE FORMULÁRIO
    ===================================================== */
 #delivery-modal {
     position: fixed;
@@ -255,355 +277,74 @@ body {
 
 .delivery-box {
     background: #fff;
-    padding: 30px 25px;
+    padding: 25px 20px;
     border-radius: 18px;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    animation: fadeInUp 0.4s ease-out;
+    animation: slideUpForm 0.4s ease-out;
 }
 
-/* Animação suave */
-@keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(30px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-/* Título */
-.delivery-box h2,
-#resumo-pedido h3 {
-    text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #e50914;
-}
-
-/* Inputs e selects */
-.delivery-box input,
-.delivery-box select,
-.delivery-box textarea {
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 14px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.delivery-box input:focus,
-.delivery-box select:focus,
-.delivery-box textarea:focus {
-    border-color: #e50914;
-    box-shadow: 0 0 5px rgba(229,9,20,0.4);
-    outline: none;
-}
-
-/* Labels */
-.delivery-box label {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
-    display: block;
-    color: #333;
-}
-
-/* Botões do formulário */
-.delivery-box .buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-}
-
-.delivery-box .buttons button {
-    flex: 1;
-    padding: 12px 0;
-    font-weight: 700;
-    font-size: 16px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-}
-
-.delivery-box .buttons button:first-child {
-    background: #ddd;
-    color: #333;
-}
-
-.delivery-box .buttons button:last-child {
-    background: #e50914;
-    color: #fff;
-}
-
-.delivery-box .buttons button:hover {
-    transform: scale(1.03);
-}
-
-.delivery-box .buttons button:last-child:hover {
-    background: #b00610;
-}
-
-/* Troco */
-#troco-box {
-    display: none;
-    margin-bottom: 12px;
-}
-
-/* Resumo do pedido */
-#resumo-pedido {
-    display: none;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-}
-
-#resumo-pedido #resumo-itens div {
-    margin-bottom: 6px;
-    font-size: 14px;
-    color: #444;
-}
-
-#resumo-pedido p {
-    font-size: 15px;
-    color: #111;
-    margin: 8px 0;
-}
-
-#resumo-total {
-    font-weight: 700;
-    font-size: 18px;
-    color: #e50914;
-}
-
-/* Scroll elegante */
-.delivery-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.delivery-box::-webkit-scrollbar-track {
-    background: #f0f0f0;
-    border-radius: 3px;
-}
-
-.delivery-box::-webkit-scrollbar-thumb {
-    background: #e50914;
-    border-radius: 3px;
-}
-
-/* Responsivo */
-@media (max-width: 480px) {
-    .delivery-box {
-        padding: 20px 15px;
-    }
-
-    .delivery-box h2, #resumo-pedido h3 {
-        font-size: 20px;
-    }
-
-    .delivery-box .buttons button {
-        font-size: 14px;
-        padding: 10px 0;
-    }
-}
-
-/* =====================================================
-   FOOTER
-   ===================================================== */
-.footer {
-    background: #111;
-    color: #fff;
-    text-align: center;
-    padding: 20px;
-    font-size: 14px;
-}
-
-/* =====================================================
-   SPLASH
-   ===================================================== */
-#splash {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-}
-
-.splash-logo {
-    width: 300px;
-    max-width: 90%;
-    animation: softPulse 2.8s ease-in-out infinite;
-}
-
-@keyframes softPulse {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.05); opacity: 1; }
-}
-
-/* =====================================================
-   CARDS DE BEBIDAS
-   ===================================================== */
-.cards-bebidas {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
-    padding: 12px;
-}
-
-.cards-bebidas .product-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    height: auto;
-}
-
-.cards-bebidas .product-card .image-wrapper {
-    width: 100%;
-    height: 120px;
-    background: #f1f1f1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.cards-bebidas .product-card .image-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.cards-bebidas .product-card .content {
-    padding: 8px 8px 0 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.cards-bebidas .product-card h3 {
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    margin: 4px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.cards-bebidas .product-card .desc {
-    font-size: 11px;
-    color: #666;
-    text-align: center;
-    margin: 2px 0;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.cards-bebidas .price {
-    font-size: 20px;
-    font-weight: 800;
-    color: #111;
-    text-align: center;
-    margin: 8px 0;
-    width: 100%;
-}
-
-.cards-bebidas .product-card .footer {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0;
-}
-
-.cards-bebidas .btn {
-    width: 100%;
-    height: 40px;
-    border-radius: 0 0 12px 12px;
-    background: #e50914;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.cards-bebidas .btn:hover {
-    background: #b00610;
-}
-/* =====================================================
-   ANIMAÇÃO DO MODAL DE RESUMO DE PEDIDO
-   ===================================================== */
-#resumo-pedido {
-    display: none;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-    animation: slideUp 0.4s ease-out forwards; /* animação */
-}
-
-/* Animação de abrir de baixo para cima */
-@keyframes slideUp {
+/* Entrada do formulário */
+@keyframes slideUpForm {
     0% { opacity: 0; transform: translateY(50px); }
     100% { opacity: 1; transform: translateY(0); }
 }
 
-/* =====================================================
-   BOTÕES DO MODAL DE CARRINHO - UM EM CIMA DO OUTRO
-   ===================================================== */
-#cart-items .cart-buttons {
-    display: flex;
-    flex-direction: column; /* um em cima do outro */
-    gap: 10px;
-    margin-top: 15px;
+/* Saída do formulário */
+.delivery-box.exit {
+    animation: slideOutForm 0.3s ease-in forwards;
 }
 
-#cart-items .cart-buttons button {
-    width: 100%;
-    padding: 14px 0;
-    font-size: 16px;
-    border-radius: 12px;
+@keyframes slideOutForm {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-50px); }
 }
 
 /* =====================================================
-   X DE FECHAR NO CANTO SUPERIOR DIREITO
+   MODAL DE RESUMO
    ===================================================== */
-#cart-modal .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
-    background: none;
-    border: none;
-    color: #e50914;
-    cursor: pointer;
+#resumo-pedido {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    overflow-y: auto;
+    padding: 20px;
+    z-index: 4500;
+    animation: slideUpResumo 0.4s ease-out forwards;
 }
-/* =====================================================
-   BOTÕES FIXOS NO FINAL DO MODAL DE RESUMO
-   ===================================================== */
+
+/* Animação de entrada do resumo */
+@keyframes slideUpResumo {
+    0% { opacity: 0; transform: translate(-50%, 60%); }
+    100% { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Inputs do resumo em negrito */
+#resumo-pedido input, 
+#resumo-pedido select, 
+#resumo-pedido textarea {
+    font-weight: 700; /* negrito */
+}
+
+/* Botões fixos no resumo */
 #resumo-pedido .resumo-buttons {
     position: sticky;
     bottom: 0;
     background: #fff;
-    padding: 12px 15px;
+    padding: 12px 0;
     display: flex;
-    flex-direction: column; /* um em cima do outro */
+    flex-direction: column;
     gap: 10px;
     border-top: 1px solid #eee;
     z-index: 10;
@@ -611,17 +352,22 @@ body {
 
 #resumo-pedido .resumo-buttons button {
     width: 100%;
-    padding: 14px 0;
+    padding: 12px 0;
     font-size: 16px;
     border-radius: 12px;
     cursor: pointer;
+    font-weight: 700;
+    transition: background 0.3s, transform 0.2s;
 }
 
-/* Exemplo: botão principal */
+#resumo-pedido .resumo-buttons button:hover {
+    transform: scale(1.05);
+}
+
+/* Botões principais */
 #resumo-pedido .resumo-buttons .btn-primary {
     background: #e50914;
     color: #fff;
-    font-weight: 700;
 }
 
 #resumo-pedido .resumo-buttons .btn-primary:hover {
@@ -635,62 +381,54 @@ body {
 }
 
 /* =====================================================
-   ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
+   BOTÕES DA TELA DE CONTATO
    ===================================================== */
-
-/* =====================================================
-   ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
-   ===================================================== */
-#delivery-modal .delivery-box {
-    animation: slideUpForm 0.4s ease-out;
+.contact-buttons button {
+    padding: 12px 0;
+    width: 100%;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.3s, transform 0.2s;
 }
 
-@keyframes slideUpForm {
-    0% { opacity: 0; transform: translateY(50px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-
-/* =====================================================
-   ANIMAÇÃO DE SAÍDA DO MODAL DE FORMULÁRIO
-   ===================================================== */
-#delivery-modal .delivery-box.exit {
-    animation: slideOutForm 0.3s ease-in forwards;
-}
-
-@keyframes slideOutForm {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-50px); }
+.contact-buttons button:hover {
+    background: #b00610;
+    transform: scale(1.05);
+    color: #fff;
 }
 
 /* =====================================================
-   CENTRALIZAR O MODAL DE RESUMO
+   SCROLL E RESPONSIVO
    ===================================================== */
-/* =====================================================
-   CENTRALIZAR O MODAL DE RESUMO NO MEIO DA TELA
-   ===================================================== */
-#resumo-pedido {
-    display: none;
-    position: fixed;
-    top: 50%;       /* centraliza verticalmente */
-    left: 50%;      /* centraliza horizontalmente */
-    transform: translate(-50%, -50%);
-    width: 90%;     /* ocupa 90% da largura da tela */
-    max-width: 500px;
-    max-height: 80vh; /* limita altura e permite scroll interno */
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    overflow-y: auto; /* scroll se passar do max-height */
-    padding: 20px;
-    z-index: 4500;
-    animation: slideUp 0.4s ease-out forwards; /* animação de entrada */
+.delivery-box::-webkit-scrollbar,
+#resumo-pedido::-webkit-scrollbar {
+    width: 6px;
 }
 
-/* ANIMAÇÃO DE ENTRADA */
-@keyframes slideUp {
-    0% { opacity: 0; transform: translate(-50%, 60%); }
-    100% { opacity: 1; transform: translate(-50%, -50%); }
+.delivery-box::-webkit-scrollbar-track,
+#resumo-pedido::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
 }
 
+.delivery-box::-webkit-scrollbar-thumb,
+#resumo-pedido::-webkit-scrollbar-thumb {
+    background: #e50914;
+    border-radius: 3px;
+}
 
+@media (max-width: 480px) {
+    .delivery-box, #resumo-pedido {
+        padding: 20px 15px;
+    }
+    .delivery-box h2, #resumo-pedido h3 {
+        font-size: 20px;
+    }
+    .delivery-box .buttons button,
+    #resumo-pedido .resumo-buttons button,
+    .contact-buttons button {
+        font-size: 14px;
+        padding: 10px 0;
+    }
+}
