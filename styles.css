@@ -268,8 +268,8 @@ body {
 }
 
 .splash-logo {
-    width: 220px;
-    max-width: 85%;
+    width: 300px;
+    max-width: 90%;
     animation: softPulse 2.8s ease-in-out infinite;
 }
 
@@ -368,3 +368,4 @@ body {
     background: #b00610;
     transform: scale(1.05);
 }
+
