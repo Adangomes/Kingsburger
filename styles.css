@@ -369,6 +369,25 @@ body {
     transform: scale(1.05);
 }
 
+/* PADRÃO DE IMAGEM NO MODAL DO CARRINHO */
+.cart-item img {
+    width: 60px;       /* largura fixa */
+    height: 60px;      /* altura fixa */
+    object-fit: cover; /* mantém a proporção e corta se necessário */
+    border-radius: 8px; /* cantos arredondados */
+    margin-right: 12px; /* espaço entre imagem e texto */
+}
+
+/* Ajuste do container do item para ficar alinhado */
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
 
 
 
