@@ -11,8 +11,9 @@ const carrinho = [];
 async function carregarStatusLoja() {
     try {
         const res = await fetch('/content/status.json');
-        const data = await res.json();
+        if (!res.ok) return;
 
+        const data = await res.json();
         LOJA_ABERTA = data.aberto;
         MENSAGEM_FECHADA = data.mensagem || MENSAGEM_FECHADA;
 
@@ -22,7 +23,7 @@ async function carregarStatusLoja() {
             statusEl.className = LOJA_ABERTA ? "aberto" : "fechado";
         }
     } catch (e) {
-        console.error("Erro ao carregar status da loja", e);
+        console.warn("Status da loja não carregado");
     }
 }
 
@@ -35,9 +36,9 @@ function adicionarAoCarrinho(nome, codigo, preco) {
         return;
     }
 
-    const existente = carrinho.find(i => i.nome === nome && i.codigo === codigo);
+    const item = carrinho.find(i => i.codigo === codigo);
 
-    if (existente) existente.quantidade++;
+    if (item) item.quantidade++;
     else carrinho.push({ nome, codigo, preco, quantidade: 1 });
 
     salvarCarrinho();
@@ -62,8 +63,11 @@ function atualizarCarrinho() {
         `;
     });
 
-    document.getElementById("subtotal").innerText =
-        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    const subtotalEl = document.getElementById("subtotal");
+    if (subtotalEl) {
+        subtotalEl.innerText =
+            `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    }
 }
 
 function removerItem(index) {
@@ -90,65 +94,79 @@ const deliveryBox = deliveryModal?.querySelector(".delivery-box");
 const resumo = document.getElementById("resumo-pedido");
 
 function abrirCarrinho() {
-    cartModal.style.display = "flex";
+    if (cartModal) cartModal.style.display = "flex";
 }
+
 function fecharCarrinho() {
-    cartModal.style.display = "none";
+    if (cartModal) cartModal.style.display = "none";
 }
 
 function abrirDelivery() {
     fecharCarrinho();
+    if (!deliveryModal) return;
     deliveryModal.style.display = "flex";
-    resumo.style.display = "none";
-    deliveryBox.classList.remove("exit");
+    if (resumo) resumo.style.display = "none";
+    deliveryBox?.classList.remove("exit");
 }
 
 function abrirResumo() {
-    deliveryBox.classList.add("exit");
+    deliveryBox?.classList.add("exit");
     setTimeout(() => {
-        deliveryModal.style.display = "none";
-        resumo.style.display = "block";
+        if (deliveryModal) deliveryModal.style.display = "none";
+        if (resumo) resumo.style.display = "block";
     }, 300);
 }
 
 function voltarFormulario() {
-    resumo.style.display = "none";
-    deliveryModal.style.display = "flex";
-    deliveryBox.classList.remove("exit");
+    if (resumo) resumo.style.display = "none";
+    if (deliveryModal) deliveryModal.style.display = "flex";
+    deliveryBox?.classList.remove("exit");
 }
 
 // ==================================================
-// PRODUTOS
+// PRODUTOS (NETLIFY CMS)
 // ==================================================
 async function carregarProdutos() {
     try {
-        const res = await fetch('/content/produtos.json');
-        const data = await res.json();
+        const res = await fetch('/content/produtos/');
+        if (!res.ok) throw new Error("Pasta produtos não acessível");
+
+        const files = await res.json();
 
         const containers = {
             burger: document.getElementById("burgers"),
             bebida: document.getElementById("bebidas")
         };
 
-        data.produtos.forEach(prod => {
-            if (!containers[prod.categoria]) return;
+        for (const file of files) {
+            if (!file.endsWith('.json')) continue;
+
+            const prodRes = await fetch(`/content/produtos/${file}`);
+            const prod = await prodRes.json();
+
+            if (!containers[prod.categoria]) continue;
 
             const card = document.createElement("div");
             card.className = "product-card";
             card.innerHTML = `
-                <img src="${prod.image || ''}">
+                <img src="${prod.image || ''}" alt="${prod.title}">
                 <h3>${prod.title}</h3>
                 <p>${prod.ingredientes || ''}</p>
-                <strong>R$ ${prod.price.toFixed(2).replace(".", ",")}</strong>
-                <button onclick="adicionarAoCarrinho('${prod.title}','${prod.title}',${prod.price})">
+                <strong>R$ ${Number(prod.price).toFixed(2).replace(".", ",")}</strong>
+                <button onclick="adicionarAoCarrinho(
+                    '${prod.title}',
+                    '${file}',
+                    ${prod.price}
+                )">
                     Adicionar
                 </button>
             `;
+
             containers[prod.categoria].appendChild(card);
-        });
+        }
 
     } catch (e) {
-        console.error("Erro ao carregar produtos", e);
+        console.error("Erro ao carregar produtos:", e);
     }
 }
 
