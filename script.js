@@ -126,18 +126,21 @@ function fecharDelivery() {
 // ==================================================
 async function carregarProdutos() {
     const res = await fetch("/content/produtos.json");
-    if (!res.ok) throw new Error("Arquivo produtos.json não encontrado");
+    if (!res.ok) {
+        console.error("produtos.json não encontrado");
+        return;
+    }
 
-    const produtos = await res.json();
+    const data = await res.json();
+    const produtos = data.produtos;
 
-    const containers = {
-        burger: document.getElementById("burgers"),
-        bebida: document.getElementById("bebidas")
-    };
+    const burgers = document.getElementById("burgers");
+    const bebidas = document.getElementById("bebidas");
+
+    burgers.innerHTML = "";
+    bebidas.innerHTML = "";
 
     produtos.forEach(prod => {
-        if (!containers[prod.categoria]) return;
-
         const card = document.createElement("div");
         card.className = "product-card";
 
@@ -149,21 +152,19 @@ async function carregarProdutos() {
                 <h3>${prod.title}</h3>
                 <p class="desc">${prod.ingredientes || ""}</p>
                 <div class="price">
-                    R$ ${Number(prod.price).toFixed(2).replace(".", ",")}
+                    R$ ${prod.price.toFixed(2).replace(".", ",")}
                 </div>
             </div>
-            <button class="btn"
-                onclick="adicionarAoCarrinho(
-                    '${prod.title.replace(/'/g, "")}',
-                    ${prod.price}
-                )">
+            <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', ${prod.price})">
                 +
             </button>
         `;
 
-        containers[prod.categoria].appendChild(card);
+        if (prod.categoria === "burger") burgers.appendChild(card);
+        if (prod.categoria === "bebida") bebidas.appendChild(card);
     });
 }
+
 
 // ==================================================
 // INIT
@@ -181,3 +182,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     esconderSplash(); // 🔥 AGORA O SPLASH SOME
 });
+
