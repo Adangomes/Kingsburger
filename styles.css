@@ -634,4 +634,19 @@ body {
     color: #333;
 }
 
+/* =====================================================
+   ANIMAÇÃO DO MODAL DE FORMULÁRIO
+   ===================================================== */
+#delivery-modal {
+    display: none; /* continua oculto até abrir */
+    justify-content: center;
+    align-items: center;
+    animation: slideUpModal 0.4s ease-out forwards;
+}
+
+@keyframes slideUpModal {
+    0% { opacity: 0; transform: translateY(50px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
 
