@@ -548,3 +548,50 @@ body {
 .cards-bebidas .btn:hover {
     background: #b00610;
 }
+/* =====================================================
+   ANIMAÇÃO DO MODAL DE RESUMO DE PEDIDO
+   ===================================================== */
+#resumo-pedido {
+    display: none;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    animation: slideUp 0.4s ease-out forwards; /* animação */
+}
+
+/* Animação de abrir de baixo para cima */
+@keyframes slideUp {
+    0% { opacity: 0; transform: translateY(50px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================
+   BOTÕES DO MODAL DE CARRINHO - UM EM CIMA DO OUTRO
+   ===================================================== */
+#cart-items .cart-buttons {
+    display: flex;
+    flex-direction: column; /* um em cima do outro */
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#cart-items .cart-buttons button {
+    width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    border-radius: 12px;
+}
+
+/* =====================================================
+   X DE FECHAR NO CANTO SUPERIOR DIREITO
+   ===================================================== */
+#cart-modal .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: #e50914;
+    cursor: pointer;
+}
+
