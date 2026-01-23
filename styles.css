@@ -1,4 +1,6 @@
-/* RESET */
+/* =====================================================
+   RESET
+   ===================================================== */
 ** {
     margin: 0;
     padding: 0;
@@ -6,14 +8,18 @@
     font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* BODY */
+/* =====================================================
+   BODY
+   ===================================================== */
 body {
     background: #f8f9fa;
     color: #1a1a1a;
     min-height: 100vh;
 }
 
-/* HEADER */
+/* =====================================================
+   HEADER
+   ===================================================== */
 .header {
     display: flex;
     align-items: center;
@@ -41,7 +47,9 @@ body {
     color: #fff;
 }
 
-/* MENU */
+/* =====================================================
+   MENU
+   ===================================================== */
 .menu {
     display: none;
     flex-direction: column;
@@ -63,7 +71,9 @@ body {
     font-weight: 500;
 }
 
-/* STATUS */
+/* =====================================================
+   STATUS
+   ===================================================== */
 .status {
     padding: 6px 10px;
     font-weight: bold;
@@ -74,7 +84,9 @@ body {
 .status.aberto { background: #27ae60; }
 .status.fechado { background: #c0392b; }
 
-/* SEÇÃO */
+/* =====================================================
+   SEÇÃO DE DESTAQUES / GRID DE PRODUTOS
+   ===================================================== */
 .destaques {
     padding: 25px 15px;
     background: #f8f9fa;
@@ -87,13 +99,7 @@ body {
     margin-bottom: 20px;
 }
 
-/* =====================================================
-   🔥 NOVO GRID + CARD (SUBSTITUI O ANTIGO)
-   ===================================================== */
-
-/* GRID */
-/* GRID UNIFICADO - Burgers, Bebidas, Sobremesas */
-/* GRID UNIFICADO - Burgers, Bebidas, Sobremesas */
+/* GRID DE PRODUTOS */
 .cards,
 .cards-bebidas,
 .cards-sobremesas,
@@ -104,7 +110,7 @@ body {
     padding: 16px;
 }
 
-/* CARD UNIFICADO */
+/* CARD DE PRODUTO */
 .product-card {
     background: #fff;
     border-radius: 14px;
@@ -114,10 +120,10 @@ body {
     flex-direction: column;
 }
 
-/* IMAGEM - força preencher todo o container */
+/* IMAGEM */
 .product-card .image-wrapper {
     width: 100%;
-    height: 140px; /* altura fixa do card */
+    height: 140px;
     background: #f1f1f1;
     display: flex;
     align-items: center;
@@ -128,33 +134,31 @@ body {
 .product-card .image-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: fill; /* força a imagem a preencher todo o container, mesmo distorcendo */
+    object-fit: cover;
 }
 
-/* CONTEÚDO */
+/* CONTEÚDO DO CARD */
 .product-card .content {
     padding: 16px;
     display: flex;
     flex-direction: column;
     flex: 1;
-    text-align: center; /* centraliza todos os textos dentro do card */
+    text-align: center;
 }
 
-/* TÍTULO CENTRALIZADO E MAIOR */
+/* TÍTULO */
 .product-card h3 {
-    font-size: 16px; /* maior que antes */
+    font-size: 16px;
     font-weight: 700;
     margin-bottom: 8px;
     color: #111;
-
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* limita a 2 linhas */
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-align: center; /* garante centralização */
 }
 
-/* DESCRIÇÃO CONTROLADA */
+/* DESCRIÇÃO */
 .product-card .desc {
     font-size: 12px;
     color: #666;
@@ -164,34 +168,23 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-align: center; /* centraliza a descrição */
-}
-
-/* FOOTER DO CARD */
-.product-card .footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: center; /* centraliza o botão */
-    align-items: center;
-    gap: 8px;
 }
 
 /* PREÇO */
-/* Valor do produto maior e centralizado */
 .price {
     font-weight: 700;
-    font-size: 26px;      /* maior que antes */
+    font-size: 26px;
     color: #111;
-    text-align: center;    /* centraliza horizontalmente */
-    width: 100%;           /* garante que o text-align funcione */
-    margin-bottom: 8px;    /* dá um pequeno espaçamento do botão abaixo */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 8px;
 }
 
-/* BOTÃO ADICIONAR - maior e centralizado */
+/* BOTÃO */
 .btn {
-    width: 100%;           /* ocupa toda a largura do card */
-    height: 40px;          /* altura confortável */
-    border-radius: 0 0 14px 14px; /* cantos inferiores arredondados */
+    width: 100%;
+    height: 40px;
+    border-radius: 0 0 14px 14px;
     background: #e50914;
     color: #fff;
     border: none;
@@ -210,13 +203,8 @@ body {
 }
 
 /* =====================================================
-   MODAIS / CARRINHO
+   MODAL DE CARRINHO
    ===================================================== */
-/* =====================================================
-   MODAIS / FORMULÁRIO DE ENTREGA
-   ===================================================== */
-
-/* Modal de carrinho */
 #cart-modal {
     position: fixed;
     inset: 0;
@@ -239,7 +227,21 @@ body {
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
 }
 
-/* Modal de formulário de entrega */
+/* ITENS DO CARRINHO */
+#cart-items .cart-item {
+    background: #fff;
+    border: 2px solid #e50914;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* =====================================================
+   MODAL DE ENTREGA / FORMULÁRIO DE PEDIDO
+   ===================================================== */
 #delivery-modal {
     position: fixed;
     inset: 0;
@@ -247,7 +249,7 @@ body {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 3000;
+    z-index: 4000;
     padding: 15px;
 }
 
@@ -263,40 +265,155 @@ body {
     animation: fadeInUp 0.4s ease-out;
 }
 
-/* Animação suave ao abrir */
+/* Animação suave */
 @keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(30px);}
-    100% { opacity: 1; transform: translateY(0);}
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
-/* Título, inputs, labels, botões, troco e resumo */
-.delivery-box h2, #resumo-pedido h3 { ... }
+/* Título */
+.delivery-box h2,
+#resumo-pedido h3 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #e50914;
+}
+
+/* Inputs e selects */
 .delivery-box input,
 .delivery-box select,
-.delivery-box textarea { ... }
+.delivery-box textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
 .delivery-box input:focus,
 .delivery-box select:focus,
-.delivery-box textarea:focus { ... }
-.delivery-box label { ... }
-.delivery-box .buttons { ... }
-.delivery-box .buttons button { ... }
-#troco-box { ... }
-#resumo-pedido { ... }
-#resumo-pedido #resumo-itens div { ... }
-#resumo-pedido p { ... }
-#resumo-total { ... }
+.delivery-box textarea:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 5px rgba(229,9,20,0.4);
+    outline: none;
+}
 
-/* Scroll interno elegante */
-.delivery-box::-webkit-scrollbar { ... }
-.delivery-box::-webkit-scrollbar-track { ... }
-.delivery-box::-webkit-scrollbar-thumb { ... }
+/* Labels */
+.delivery-box label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: block;
+    color: #333;
+}
+
+/* Botões do formulário */
+.delivery-box .buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.delivery-box .buttons button {
+    flex: 1;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.delivery-box .buttons button:first-child {
+    background: #ddd;
+    color: #333;
+}
+
+.delivery-box .buttons button:last-child {
+    background: #e50914;
+    color: #fff;
+}
+
+.delivery-box .buttons button:hover {
+    transform: scale(1.03);
+}
+
+.delivery-box .buttons button:last-child:hover {
+    background: #b00610;
+}
+
+/* Troco */
+#troco-box {
+    display: none;
+    margin-bottom: 12px;
+}
+
+/* Resumo do pedido */
+#resumo-pedido {
+    display: none;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+#resumo-pedido #resumo-itens div {
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #444;
+}
+
+#resumo-pedido p {
+    font-size: 15px;
+    color: #111;
+    margin: 8px 0;
+}
+
+#resumo-total {
+    font-weight: 700;
+    font-size: 18px;
+    color: #e50914;
+}
+
+/* Scroll elegante */
+.delivery-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.delivery-box::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.delivery-box::-webkit-scrollbar-thumb {
+    background: #e50914;
+    border-radius: 3px;
+}
 
 /* Responsivo */
-@media (max-width: 480px) { ... }
+@media (max-width: 480px) {
+    .delivery-box {
+        padding: 20px 15px;
+    }
 
+    .delivery-box h2, #resumo-pedido h3 {
+        font-size: 20px;
+    }
 
+    .delivery-box .buttons button {
+        font-size: 14px;
+        padding: 10px 0;
+    }
+}
 
-/* FOOTER */
+/* =====================================================
+   FOOTER
+   ===================================================== */
 .footer {
     background: #111;
     color: #fff;
@@ -305,7 +422,9 @@ body {
     font-size: 14px;
 }
 
-/* SPLASH */
+/* =====================================================
+   SPLASH
+   ===================================================== */
 #splash {
     position: fixed;
     inset: 0;
@@ -327,9 +446,9 @@ body {
     50% { transform: scale(1.05); opacity: 1; }
 }
 
-/* CARDS DE BEBIDAS MENOR - classe exclusiva */
-/* CARDS DE BEBIDAS PADRÃO */
-/* CARDS DE BEBIDAS PADRÃO COMPACTO */
+/* =====================================================
+   CARDS DE BEBIDAS
+   ===================================================== */
 .cards-bebidas {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -337,7 +456,6 @@ body {
     padding: 12px;
 }
 
-/* CARD DE BEBIDA */
 .cards-bebidas .product-card {
     background: #fff;
     border-radius: 12px;
@@ -348,7 +466,6 @@ body {
     height: auto;
 }
 
-/* IMAGEM - contêiner fixo */
 .cards-bebidas .product-card .image-wrapper {
     width: 100%;
     height: 120px;
@@ -365,15 +482,13 @@ body {
     object-fit: cover;
 }
 
-/* CONTEÚDO CENTRALIZADO */
 .cards-bebidas .product-card .content {
-    padding: 8px 8px 0 8px; /* Reduzi o padding inferior para o preço aproximar do botão */
+    padding: 8px 8px 0 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* TÍTULO */
 .cards-bebidas .product-card h3 {
     font-size: 14px;
     font-weight: 600;
@@ -385,7 +500,6 @@ body {
     overflow: hidden;
 }
 
-/* DESCRIÇÃO */
 .cards-bebidas .product-card .desc {
     font-size: 11px;
     color: #666;
@@ -398,33 +512,30 @@ body {
     overflow: hidden;
 }
 
-/* PREÇO - AUMENTADO E CENTRALIZADO */
 .cards-bebidas .price {
-    font-size: 20px;       /* Aumentado conforme solicitado */
-    font-weight: 800;      /* Mais negrito para destaque */
+    font-size: 20px;
+    font-weight: 800;
     color: #111;
     text-align: center;
-    margin: 8px 0;         /* Espaçamento vertical */
+    margin: 8px 0;
     width: 100%;
 }
 
-/* FOOTER - AJUSTADO PARA EMPILHAR */
 .cards-bebidas .product-card .footer {
     width: 100%;
     display: flex;
-    flex-direction: column; /* Coloca o botão embaixo do preço */
+    flex-direction: column;
     align-items: center;
-    padding: 0;             /* Remove padding para o botão encostar nas bordas se desejar */
+    padding: 0;
 }
 
-/* BOTÃO ADICIONAR - CORRIGIDO */
 .cards-bebidas .btn {
-    width: 100%;            /* Agora ocupa a largura total do card */
-    height: 40px;           /* Altura confortável */
-    border-radius: 0 0 12px 12px; /* Arredonda apenas os cantos de baixo */
+    width: 100%;
+    height: 40px;
+    border-radius: 0 0 12px 12px;
     background: #e50914;
     color: #fff;
-    font-size: 14px;        /* Texto "Adicionar" ou "+" */
+    font-size: 14px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -437,6 +548,3 @@ body {
 .cards-bebidas .btn:hover {
     background: #b00610;
 }
-
-
-
