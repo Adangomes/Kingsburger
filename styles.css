@@ -277,6 +277,41 @@ body {
     50% { transform: scale(1.05); opacity: 1; }
 }
 
+/* CARDS DE BEBIDAS MENOR - classe exclusiva */
+.cards-bebidas .product-card {
+    max-width: 140px;      /* card menor que os outros */
+    font-size: 13px;       /* diminui textos */
+}
 
+.cards-bebidas .product-card .content {
+    padding: 6px 8px;      /* menos espaçamento interno */
+}
+
+.cards-bebidas .product-card h3 {
+    font-size: 13px;       /* título menor */
+    margin-bottom: 2px;
+}
+
+.cards-bebidas .product-card .desc {
+    font-size: 11px;
+    margin-bottom: 2px;
+    line-height: 1.1;
+}
+
+.cards-bebidas .product-card .footer {
+    margin-top: auto;
+    flex-direction: column; /* para compactar preço e botão */
+    gap: 4px;
+}
+
+.cards-bebidas .price {
+    font-size: 16px;
+}
+
+.cards-bebidas .btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+}
 
 
