@@ -594,4 +594,44 @@ body {
     color: #e50914;
     cursor: pointer;
 }
+/* =====================================================
+   BOTÕES FIXOS NO FINAL DO MODAL DE RESUMO
+   ===================================================== */
+#resumo-pedido .resumo-buttons {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column; /* um em cima do outro */
+    gap: 10px;
+    border-top: 1px solid #eee;
+    z-index: 10;
+}
+
+#resumo-pedido .resumo-buttons button {
+    width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+/* Exemplo: botão principal */
+#resumo-pedido .resumo-buttons .btn-primary {
+    background: #e50914;
+    color: #fff;
+    font-weight: 700;
+}
+
+#resumo-pedido .resumo-buttons .btn-primary:hover {
+    background: #b00610;
+}
+
+/* Botão secundário (opcional) */
+#resumo-pedido .resumo-buttons .btn-secondary {
+    background: #ddd;
+    color: #333;
+}
+
 
