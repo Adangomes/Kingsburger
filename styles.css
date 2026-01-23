@@ -87,7 +87,7 @@ body {
 }
 
 .destaques h2 {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     margin-bottom: 20px;
 }
@@ -95,52 +95,50 @@ body {
 /* GRID DE PRODUTOS */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
-    justify-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
 }
 
 /* CARD DO PRODUTO */
 .product-card {
     background: #fff;
-    border-radius: 16px;
+    border: 1px solid #eee;
+    border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     transition: transform 0.2s, box-shadow 0.2s;
-    width: 240px;
-    height: 380px;
 }
 
 .product-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
 }
 
 /* IMAGEM DO PRODUTO */
 .product-card img {
-    width: 100%;
-    height: 60%;
+    width: 100%;       /* ocupa toda a largura do card */
+    height: auto;      /* altura proporcional */
     object-fit: cover;
-    border-radius: 16px;
+    border-radius: 12px;
     margin-bottom: 10px;
 }
 
 /* TEXTOS DO CARD */
 .product-card h3 {
     font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 6px;
+    font-weight: 600;
+    margin-bottom: 8px;
     text-align: center;
 }
 
 .product-card p.desc {
     font-size: 15px;
     color: #555;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
@@ -159,143 +157,155 @@ body {
     padding: 12px 20px;
     font-size: 16px;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s;
 }
 
-.btn:hover {
-    background: #b00610;
-    transform: translateY(-2px);
-}
+.btn:hover { background: #b00610; }
 
-/* RESPONSIVO */
-@media (max-width: 480px) {
-    .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 12px;
-    }
-
-    .product-card {
-        width: 180px;
-        height: 320px;
-    }
-
-    .product-card img { height: 55%; }
-
-    .product-card h3 { font-size: 16px; }
-    .product-card p.desc { font-size: 13px; }
-    .price { font-size: 16px; }
-    .btn { padding: 10px 16px; font-size: 14px; }
-}
-
-/* MODAL PROFISSIONAL */
+/* MODAL CARRINHO E DELIVERY */
 #cart-modal, #delivery-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.7);
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 3000;
-    padding: 20px;
+    z-index: 2000;
+    padding: 15px;
 }
 
 .cart-box, .delivery-box {
     background: #fff;
-    border-radius: 16px;
     padding: 25px;
+    border-radius: 16px;
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
-.cart-box h3, .delivery-box h2 {
+.cart-box h2, .delivery-box h2 {
     font-size: 22px;
-    font-weight: 700;
     margin-bottom: 12px;
     color: #333;
 }
 
-#cart-items, #resumo-itens {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.delivery-box label {
+    font-weight: 600;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    display: block;
 }
 
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: #f5f5f5;
+.delivery-box input,
+.delivery-box select,
+.delivery-box textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    outline: none;
 }
 
-.cart-item button {
-    background: #e50914;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.summary p {
-    margin: 4px 0;
-    font-weight: bold;
-    text-align: right;
-}
-
-.buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+.delivery-box textarea {
+    resize: vertical;
+    min-height: 80px;
 }
 
 .buttons button {
-    flex: 1;
-    padding: 12px 15px;
-    font-weight: bold;
+    width: 100%;
+    padding: 12px 0;
+    font-size: 16px;
     border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
     border: none;
+    cursor: pointer;
+    background: #e50914;
+    color: #fff;
+    font-weight: bold;
+    margin-bottom: 10px;
     transition: background 0.2s;
 }
 
-.continue-btn { background: #aaa; color: #fff; }
-.continue-btn:hover { background: #888; }
+.buttons button:hover {
+    background: #b00610;
+}
 
-.checkout-btn { background: #e50914; color: #fff; }
-.checkout-btn:hover { background: #b00610; }
-
-#delivery-modal label {
-    font-weight: 600;
-    margin-top: 10px;
-    margin-bottom: 4px;
-    display: block;
+/* FOOTER */
+.footer {
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
     font-size: 14px;
 }
 
-#delivery-modal input, #delivery-modal select, #delivery-modal textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
+/* SPLASH */
+#splash {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    transition: opacity 0.8s ease;
 }
 
-#resumo-pedido {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
+#splash.hide {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.splash-logo {
+    width: 220px;
+    max-width: 85%;
+    animation: softPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes softPulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* RESPONSIVO PARA CELULAR */
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: 1fr; /* cada card ocupa a tela inteira */
+        gap: 12px;
+        padding: 0 10px; /* pequeno padding nas laterais */
+    }
+
+    .product-card {
+        width: 100%;
+        max-width: none;
+        height: auto;
+    }
+
+    .product-card img {
+        width: 100%;
+        height: auto;
+    }
+
+    .product-card h3 { font-size: 18px; }
+    .product-card p.desc { font-size: 14px; }
+    .price { font-size: 16px; }
+    .btn { padding: 14px 22px; font-size: 18px; border-radius: 10px; }
+
+    /* Inputs do modal maiores */
+    .delivery-box input,
+    .delivery-box select,
+    .delivery-box textarea,
+    .buttons button {
+        font-size: 18px;
+        padding: 14px;
+    }
 }
