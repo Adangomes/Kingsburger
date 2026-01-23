@@ -1,0 +1,46 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "produtos"
+    label: "Produtos"
+    files:
+      - file: "content/produtos.json"
+        label: "Lista de Produtos"
+        name: "produtos"
+        fields:
+          - label: "Produtos"
+            name: "produtos"
+            widget: "list"
+            fields:
+              - { label: "Nome", name: "title", widget: "string" }
+              - { label: "Código", name: "codigo", widget: "string" }
+              - { label: "Preço", name: "price", widget: "number", min: 0 }
+              - { 
+                  label: "Categoria",
+                  name: "categoria",
+                  widget: "select",
+                  options: ["bebida", "pizza-salgada", "pizza-doce", "combo", "bordas", "adicionais"]
+                }
+
+  - name: "config"
+    label: "Configurações da Loja"
+    files:
+      - file: "content/status.json"
+        label: "Status da Loja"
+        name: "status"
+        fields:
+          - label: "Loja aberta?"
+            name: "aberto"
+            widget: "boolean"
+            default: true
+          - label: "Mensagem quando fechada"
+            name: "mensagem"
+            widget: "string"
+            default: "Estamos fechados no momento 😔"
+
+
