@@ -637,13 +637,4 @@ body {
 /* =====================================================
    ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
    ===================================================== */
-#delivery-modal .delivery-box {
-    animation: slideUpModal 0.4s ease-out;
-}
-
-@keyframes slideUpModal {
-    0% { opacity: 0; transform: translateY(50px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
 
