@@ -39,7 +39,7 @@
             "price": 6.50,
             "categoria": "bebida",
             "ingredientes": "350ml",
-            "image": "/imagens/guarana-lata.jpg"
+            "image": "/imagens/75B8E700-7AB5-41EF-8491-35D2B544A5C8.jpeg"
         },
         {
             "title": "Coca-Cola 600ml",
@@ -50,5 +50,6 @@
         }
     ]
 }
+
 
 
