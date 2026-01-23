@@ -6,9 +6,10 @@
     font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* BODY */
 body {
-    background: #fafafa;
-    color: #111;
+    background: #f8f9fa;
+    color: #1a1a1a;
     min-height: 100vh;
 }
 
@@ -31,20 +32,16 @@ body {
     font-weight: bold;
 }
 
-.hamburger {
+.hamburger,
+.cart {
     background: none;
     border: none;
-    font-size: 26px;
+    font-size: 24px;
     cursor: pointer;
     color: #fff;
 }
 
-.cart {
-    font-size: 22px;
-    cursor: pointer;
-}
-
-/* MENU MOBILE */
+/* MENU */
 .menu {
     display: none;
     flex-direction: column;
@@ -68,7 +65,7 @@ body {
     font-weight: 500;
 }
 
-/* STATUS LOJA */
+/* STATUS */
 .status {
     padding: 6px 10px;
     font-weight: bold;
@@ -79,10 +76,10 @@ body {
 .status.aberto { background: #27ae60; color: #fff; }
 .status.fechado { background: #c0392b; color: #fff; }
 
-/* SEÇÃO PRINCIPAL */
+/* SEÇÃO */
 .destaques {
     padding: 25px 15px;
-    background: linear-gradient(to bottom, #fff, #fbe9eb);
+    background: #f8f9fa;
     min-height: calc(100vh - 120px);
 }
 
@@ -92,90 +89,85 @@ body {
     margin-bottom: 20px;
 }
 
-/* GRID (2 por linha no mobile) */
+/* GRID FOODGO */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 8px;
+    gap: 20px;
+    padding: 15px;
 }
 
 /* CARD */
 .product-card {
     background: #fff;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 30px;
+    padding: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
 }
 
 /* IMAGEM */
 .product-card img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    border-radius: 20px;
+    margin-bottom: 15px;
 }
 
 /* CONTEÚDO */
 .product-card .content {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    width: 100%;
+    text-align: center;
 }
 
-/* NOME */
 .product-card h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1c1c1c;
-    line-height: 1.2;
+    font-size: 15px;
+    color: #1a1a1a;
+    margin-bottom: 4px;
 }
 
-/* DESCRIÇÃO */
 .product-card p.desc {
-    font-size: 12px;
-    color: #6f6f6f;
-    line-height: 1.3;
+    font-size: 11px;
+    color: #999;
 }
 
-/* RODAPÉ */
+/* FOOTER CARD */
 .product-card .footer {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 15px;
 }
 
-/* PREÇO */
 .price {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ea1d2c; /* vermelho iFood */
-}
-
-/* BOTÃO + */
-.btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #ea1d2c;
-    color: #fff;
-    border: none;
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+/* BOTÃO */
+.btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 12px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 20px;
+    border: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
 }
 
-.btn:hover {
-    background: #c41622;
-}
-
-/* MODAL CARRINHO E DELIVERY */
+/* MODAIS */
 #cart-modal, #delivery-modal {
     position: fixed;
     inset: 0;
@@ -196,60 +188,19 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
 
-.cart-box h2, .delivery-box h2 {
-    font-size: 22px;
+/* CARRINHO */
+#cart-items .cart-item {
+    background: #fff;
+    border: 2px solid #e50914;
+    border-radius: 12px;
+    padding: 10px 12px;
     margin-bottom: 12px;
-    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
-
-.delivery-box label {
-    font-weight: 600;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    display: block;
-}
-
-.delivery-box input,
-.delivery-box select,
-.delivery-box textarea {
-    width: 100%;
-    padding: 12px 14px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    outline: none;
-}
-
-.delivery-box textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* BOTÕES DO CARRINHO MENOR */
-.cart-box .buttons button {
-    width: 100%;
-    padding: 10px 0;   /* um pouco menor que 12px */
-    font-size: 14px;   /* menor que 16px */
-    border-radius: 6px; 
-    border: none;
-    cursor: pointer;
-    background: #e50914;
-    color: #fff;
-    font-weight: bold;
-    margin-bottom: 8px;
-    transition: background 0.2s;
-}
-
-.cart-box .buttons button:hover {
-    background: #b00610;
-}
-
 
 /* FOOTER */
 .footer {
@@ -269,12 +220,6 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 3000;
-    transition: opacity 0.8s ease;
-}
-
-#splash.hide {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .splash-logo {
@@ -288,117 +233,21 @@ body {
     50% { transform: scale(1.05); opacity: 1; }
 }
 
-/* RESPONSIVO PARA CELULAR */
+/* MOBILE */
 @media (max-width: 480px) {
     .products-grid {
-        grid-template-columns: 1fr; /* cada card ocupa a tela inteira */
         gap: 12px;
-        padding: 0 10px; /* pequeno padding nas laterais */
     }
 
     .product-card {
-        width: 100%;
-        max-width: none;
-        height: auto;
+        padding: 10px;
     }
 
     .product-card img {
-        width: 100%;
-        height: auto;
-    }
-
-    .product-card h3 { font-size: 18px; }
-    .product-card p.desc { font-size: 14px; }
-    .price { font-size: 16px; }
-    .btn { padding: 14px 22px; font-size: 18px; border-radius: 10px; }
-
-    /* Inputs do modal maiores */
-    .delivery-box input,
-    .delivery-box select,
-    .delivery-box textarea,
-    .buttons button {
-        font-size: 18px;
-        padding: 14px;
+        width: 80px;
+        height: 80px;
     }
 }
-/* ITENS DO CARRINHO - DESTACADOS COM CONTORNO */
-#cart-items .cart-item {
-    background: #fff;                   /* fundo branco para contraste */
-    border: 2px solid #e50914;         /* contorno vermelho */
-    border-radius: 12px;                /* cantos arredondados */
-    padding: 10px 12px;                 /* espaçamento interno */
-    margin-bottom: 12px;                /* separação entre os itens */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12); /* sombra leve */
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-#cart-items .cart-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-}
-
-#cart-items .cart-item img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-right: 12px;
-}
-
-#cart-items .cart-item .item-info {
-    flex: 1;
-}
-
-#cart-items .cart-item .item-info p {
-    margin: 2px 0;
-    font-size: 14px;
-}
-
-#cart-items .cart-item .item-info .item-price {
-    font-weight: bold;
-    color: #e50914;
-}
-
-/* BOTÃO EXCLUIR MAIS DESTACADO */
-#cart-items .cart-item .delete-btn {
-    background: #e50914;       /* vermelho forte */
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s, transform 0.2s;
-}
-
-#cart-items .cart-item .delete-btn:hover {
-    background: #b00610;
-    transform: scale(1.05);
-}
-
-/* PADRÃO DE IMAGEM NO MODAL DO CARRINHO */
-.cart-item img {
-    width: 60px;       /* largura fixa */
-    height: 60px;      /* altura fixa */
-    object-fit: cover; /* mantém a proporção e corta se necessário */
-    border-radius: 8px; /* cantos arredondados */
-    margin-right: 12px; /* espaço entre imagem e texto */
-}
-
-/* Ajuste do container do item para ficar alinhado */
-.cart-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-
 
 
 
