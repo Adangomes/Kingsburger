@@ -311,3 +311,35 @@ function abrirResumo() {
         resumo.style.display = 'block'; // abre resumo no centro
     }, 300); // 300ms = duração da animação slideOutForm
 }
+
+const deliveryModal = document.getElementById('delivery-modal');
+const deliveryBox = deliveryModal.querySelector('.delivery-box');
+const resumo = document.getElementById('resumo-pedido');
+
+function abrirFormulario() {
+    // Esconde resumo se estiver aberto
+    resumo.style.display = 'none';
+    
+    // Mostra formulário
+    deliveryModal.style.display = 'flex';
+    deliveryBox.classList.remove('exit');
+}
+
+function abrirResumo() {
+    // Se formulário estiver aberto, anima para subir e sumir
+    if(deliveryModal.style.display === 'flex') {
+        deliveryBox.classList.add('exit');
+        setTimeout(() => {
+            deliveryModal.style.display = 'none';
+            resumo.style.display = 'block'; // mostra resumo no centro
+        }, 300); // duração da animação
+    } else {
+        resumo.style.display = 'block';
+    }
+}
+
+// Fechar resumo ou formulário
+function fecharModal() {
+    deliveryModal.style.display = 'none';
+    resumo.style.display = 'none';
+}
