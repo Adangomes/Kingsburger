@@ -638,3 +638,15 @@ body {
    ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
    ===================================================== */
 
+/* =====================================================
+   ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
+   ===================================================== */
+#delivery-modal .delivery-box {
+    animation: slideUpForm 0.4s ease-out;
+}
+
+@keyframes slideUpForm {
+    0% { opacity: 0; transform: translateY(50px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
