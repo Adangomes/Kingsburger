@@ -635,13 +635,10 @@ body {
 }
 
 /* =====================================================
-   ANIMAÇÃO DO MODAL DE FORMULÁRIO
+   ANIMAÇÃO DO CONTEÚDO DO MODAL DE FORMULÁRIO
    ===================================================== */
-#delivery-modal {
-    display: none; /* continua oculto até abrir */
-    justify-content: center;
-    align-items: center;
-    animation: slideUpModal 0.4s ease-out forwards;
+#delivery-modal .delivery-box {
+    animation: slideUpModal 0.4s ease-out;
 }
 
 @keyframes slideUpModal {
