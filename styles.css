@@ -177,9 +177,14 @@ body {
 }
 
 /* PREÇO */
+/* Valor do produto maior e centralizado */
 .price {
     font-weight: 700;
-    font-size: 16px;
+    font-size: 18px;      /* maior que antes */
+    color: #111;
+    text-align: center;    /* centraliza horizontalmente */
+    width: 100%;           /* garante que o text-align funcione */
+    margin-bottom: 8px;    /* dá um pequeno espaçamento do botão abaixo */
 }
 
 /* BOTÃO ADICIONAR - maior e centralizado */
