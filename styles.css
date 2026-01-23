@@ -278,40 +278,113 @@ body {
 }
 
 /* CARDS DE BEBIDAS MENOR - classe exclusiva */
+/* CARDS DE BEBIDAS PADRÃO */
+.cards-bebidas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 12px;
+}
+
+/* CARD DE BEBIDA */
 .cards-bebidas .product-card {
-    max-width: 140px;      /* card menor que os outros */
-    font-size: 13px;       /* diminui textos */
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* centraliza conteúdo */
+    height: 210px;       /* altura fixa padrão */
 }
 
+/* IMAGEM - contêiner fixo para todas bebidas */
+.cards-bebidas .product-card .image-wrapper {
+    width: 100%;
+    height: 120px;       /* todas imagens com mesma altura */
+    background: #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.cards-bebidas .product-card .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* garante que a imagem preencha o card sem distorcer */
+}
+
+/* CONTEÚDO CENTRALIZADO */
 .cards-bebidas .product-card .content {
-    padding: 6px 8px;      /* menos espaçamento interno */
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* tudo centralizado */
+    flex: 1;
 }
 
+/* TÍTULO */
 .cards-bebidas .product-card h3 {
-    font-size: 13px;       /* título menor */
-    margin-bottom: 2px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
+/* DESCRIÇÃO */
 .cards-bebidas .product-card .desc {
     font-size: 11px;
-    margin-bottom: 2px;
-    line-height: 1.1;
+    color: #666;
+    text-align: center;
+    margin-bottom: 4px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
+/* FOOTER */
 .cards-bebidas .product-card .footer {
-    margin-top: auto;
-    flex-direction: column; /* para compactar preço e botão */
-    gap: 4px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
 }
 
+/* PREÇO CENTRALIZADO */
 .cards-bebidas .price {
     font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    flex: 1; /* ocupa espaço para centralizar */
 }
 
+/* BOTÃO ADICIONAR */
 .cards-bebidas .btn {
     width: 36px;
     height: 36px;
+    border-radius: 12px;
+    background: #e50914;
+    color: #fff;
     font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.cards-bebidas .btn:hover {
+    background: #b00610;
+    transform: scale(1.1);
 }
 
 
