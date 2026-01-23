@@ -287,6 +287,15 @@ body {
 }
 
 /* CARD DE BEBIDA */
+/* CARDS DE BEBIDAS PADRÃO COMPACTO */
+.cards-bebidas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 12px;
+}
+
+/* CARD DE BEBIDA */
 .cards-bebidas .product-card {
     background: #fff;
     border-radius: 12px;
@@ -294,14 +303,13 @@ body {
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    align-items: center; /* centraliza conteúdo */
-    height: 210px;       /* altura fixa padrão */
+    height: auto;       /* altura automática */
 }
 
-/* IMAGEM - contêiner fixo para todas bebidas */
+/* IMAGEM - contêiner fixo */
 .cards-bebidas .product-card .image-wrapper {
     width: 100%;
-    height: 120px;       /* todas imagens com mesma altura */
+    height: 120px;
     background: #f1f1f1;
     display: flex;
     align-items: center;
@@ -312,7 +320,7 @@ body {
 .cards-bebidas .product-card .image-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* garante que a imagem preencha o card sem distorcer */
+    object-fit: cover; /* garante que a imagem preencha o card */
 }
 
 /* CONTEÚDO CENTRALIZADO */
@@ -320,8 +328,7 @@ body {
     padding: 8px;
     display: flex;
     flex-direction: column;
-    align-items: center; /* tudo centralizado */
-    flex: 1;
+    align-items: center;
 }
 
 /* TÍTULO */
@@ -329,7 +336,7 @@ body {
     font-size: 14px;
     font-weight: 600;
     text-align: center;
-    margin-bottom: 4px;
+    margin: 4px 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -341,7 +348,7 @@ body {
     font-size: 11px;
     color: #666;
     text-align: center;
-    margin-bottom: 4px;
+    margin: 2px 0;
     line-height: 1.2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -355,7 +362,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 6px;
+    padding: 0 6px 6px 6px;
 }
 
 /* PREÇO CENTRALIZADO */
@@ -363,10 +370,10 @@ body {
     font-size: 16px;
     font-weight: 700;
     text-align: center;
-    flex: 1; /* ocupa espaço para centralizar */
+    flex: 1;
 }
 
-/* BOTÃO ADICIONAR */
+/* BOTÃO ADICIONAR VISÍVEL */
 .cards-bebidas .btn {
     width: 36px;
     height: 36px;
@@ -386,5 +393,4 @@ body {
     background: #b00610;
     transform: scale(1.1);
 }
-
 
