@@ -188,3 +188,14 @@ document.addEventListener("DOMContentLoaded", () => {
     transition: opacity 0.6s ease;
 }
 
+function esconderSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+
+    splash.style.opacity = "0";
+
+    setTimeout(() => {
+        splash.style.display = "none";
+    }, 600);
+}
+
