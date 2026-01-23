@@ -179,3 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarCarrinho();
     carregarProdutos();
 });
+
+
+
+
+
+#splash {
+    transition: opacity 0.6s ease;
+}
+
