@@ -42,6 +42,7 @@ function carregarBairros() {
     const cidade = document.getElementById("cidade").value;
     const bairroSelect = document.getElementById("bairro");
     bairroSelect.innerHTML = "";
+
     let lista = [];
     if (cidade === "jaragua") lista = bairrosJaragua;
     if (cidade === "guaramirim") lista = bairrosGuaramirim;
@@ -55,14 +56,13 @@ function carregarBairros() {
 }
 
 function calcularTaxaEntrega(cidade, bairro) {
-    let taxa = 0;
-    if (cidade === "jaragua") taxa = 20;
-    else if (cidade === "guaramirim") {
-        if (bairro === "Centro") taxa = 10;
-        else if (bairro === "Escolinha") taxa = 5;
-        else taxa = 15;
+    if (cidade === "jaragua") return 20;
+    if (cidade === "guaramirim") {
+        if (bairro === "Centro") return 10;
+        if (bairro === "Escolinha") return 5;
+        return 15;
     }
-    return taxa;
+    return 0;
 }
 
 // ==================================================
@@ -253,10 +253,7 @@ async function carregarProdutos() {
                 <h3>${prod.title}</h3>
                 <p class="desc">${prod.ingredientes || ""}</p>
                 <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
-                <button class="btn"
-                    onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">
-                    Adicionar
-                </button>
+                <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">Adicionar</button>
             `;
 
             if (containers[prod.categoria]) containers[prod.categoria].appendChild(card);
@@ -290,4 +287,13 @@ function initSplash() {
 }
 
 // ==================================================
-
+// INIT GERAL
+// ==================================================
+document.addEventListener("DOMContentLoaded", () => {
+    carregarStatusLoja();
+    carregarCarrinhoSalvo();
+    atualizarCarrinho();
+    carregarProdutos();
+    initMenuMobile();
+    initSplash();
+});
