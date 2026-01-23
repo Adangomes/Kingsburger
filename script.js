@@ -29,14 +29,14 @@ async function carregarStatusLoja() {
 // ==================================================
 // BAIRROS E TAXAS POR CIDADE
 // ==================================================
-const bairrosJaragua = ["Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
-    "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo", "João Pessoa",
-    "Nova Brasília", "Nereu Ramos", "Rau", "Rio Cerro I", "Rio Cerro II",
-    "Rio da Luz", "Tifa Martins", "Três Rios do Sul", "Vieira", "Vila Lenzi"];
+const bairrosJaragua = ["Centro","Amizade","Baependi","Barra do Rio Cerro","Boa Vista",
+    "Czerniewicz","Ilha da Figueira","Jaraguá 84","Jaraguá Esquerdo","João Pessoa",
+    "Nova Brasília","Nereu Ramos","Rau","Rio Cerro I","Rio Cerro II",
+    "Rio da Luz","Tifa Martins","Três Rios do Sul","Vieira","Vila Lenzi"];
 
-const bairrosGuaramirim = ["Centro", "Amizade", "Avaí", "Bananal do Sul", "Corticeira",
-    "Figueirinha", "Guamiranga", "Imigrantes", "João Pessoa", "Nova Esperança",
-    "Recanto Feliz", "Rio Branco", "Rua Nova", "Seleção", "Escolinha"];
+const bairrosGuaramirim = ["Centro","Amizade","Avaí","Bananal do Sul","Corticeira",
+    "Figueirinha","Guamiranga","Imigrantes","João Pessoa","Nova Esperança",
+    "Recanto Feliz","Rio Branco","Rua Nova","Seleção","Escolinha"];
 
 function carregarBairros() {
     const cidade = document.getElementById("cidade").value;
@@ -194,10 +194,6 @@ function finalizarEntrega() {
     const observacao = document.getElementById("observacao").value;
     const pagamento = document.getElementById("pagamento").value;
     const troco = document.getElementById("troco").value;
-
-    if (!nome || !cidade || !bairro || !rua || !numero || !pagamento) {
-        return alert("Preencha todos os campos obrigatórios (nome, endereço e pagamento)!");
-    }
 
     let subtotal = carrinho.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
     let taxaEntrega = calcularTaxaEntrega(cidade, bairro);
