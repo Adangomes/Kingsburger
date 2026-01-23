@@ -293,3 +293,21 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+
+
+
+
+// MODAL 
+function abrirResumo() {
+    const deliveryModal = document.getElementById('delivery-modal');
+    const resumo = document.getElementById('resumo-pedido');
+
+    // Faz o formulário “subir e sumir”
+    deliveryModal.querySelector('.delivery-box').classList.add('exit');
+
+    // Espera animação terminar antes de esconder o modal
+    setTimeout(() => {
+        deliveryModal.style.display = 'none';
+        resumo.style.display = 'block'; // abre resumo no centro
+    }, 300); // 300ms = duração da animação slideOutForm
+}
