@@ -221,23 +221,25 @@ body {
     min-height: 80px;
 }
 
-.buttons button {
+/* BOTÕES DO CARRINHO MENOR */
+.cart-box .buttons button {
     width: 100%;
-    padding: 12px 0;
-    font-size: 16px;
-    border-radius: 8px;
+    padding: 10px 0;   /* um pouco menor que 12px */
+    font-size: 14px;   /* menor que 16px */
+    border-radius: 6px; 
     border: none;
     cursor: pointer;
     background: #e50914;
     color: #fff;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     transition: background 0.2s;
 }
 
-.buttons button:hover {
+.cart-box .buttons button:hover {
     background: #b00610;
 }
+
 
 /* FOOTER */
 .footer {
@@ -309,3 +311,4 @@ body {
         padding: 14px;
     }
 }
+
