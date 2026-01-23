@@ -1,13 +1,13 @@
 {
     "produtos": [{
-            "title": "Kings Burguer Classic",
+            "title": "Kings Burger Classic",
             "price": 27.90,
             "categoria": "burger",
             "ingredientes": "Hambúrguer artesanal 150g, queijo e pão brioche",
             "image": "/imagens/kings-classic.jpg"
         },
         {
-            "title": "Kings Burguer Tradicional",
+            "title": "Kings Burger Tradicional",
             "price": 25.90,
             "categoria": "burger",
             "ingredientes": "Hambúrguer artesanal 140g, duas fatias de queijo e pão brioche",
@@ -32,25 +32,21 @@
             "price": 6.90,
             "categoria": "bebida",
             "ingredientes": "350ml",
-            "image": "/imagens/E36FDF00-9626-485C-B2CF-BC089FAC11B8.jpeg"
+            "image": "/imagens/coca-lata.jpg"
         },
         {
             "title": "Guaraná Antarctica Lata",
             "price": 6.50,
             "categoria": "bebida",
             "ingredientes": "350ml",
-            "image": "/imagens/75B8E700-7AB5-41EF-8491-35D2B544A5C8.jpeg"
+            "image": "/imagens/guarana-lata.jpg"
         },
         {
             "title": "Coca-Cola 600ml",
             "price": 8.50,
             "categoria": "bebida",
             "ingredientes": "600ml",
-            "image": "/imagens/16F3F6E1-7CC0-4093-9723-96310FC8EED8.jpeg"
+            "image": "/imagens/coca-600.jpg"
         }
     ]
 }
-
-
-
-
