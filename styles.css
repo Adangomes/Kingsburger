@@ -180,11 +180,11 @@ body {
 /* Valor do produto maior e centralizado */
 .price {
     font-weight: 700;
-    font-size: 18px;      /* maior que antes */
+    font-size: 26px;      /* maior que antes */
     color: #111;
     text-align: center;    /* centraliza horizontalmente */
     width: 100%;           /* garante que o text-align funcione */
-    margin-bottom: 8px;    /* dá um pequeno espaçamento do botão abaixo */
+    margin-bottom: 4px;    /* dá um pequeno espaçamento do botão abaixo */
 }
 
 /* BOTÃO ADICIONAR - maior e centralizado */
