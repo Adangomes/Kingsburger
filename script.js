@@ -6,56 +6,44 @@ let MENSAGEM_FECHADA = "Estamos fechados no momento 😔";
 const carrinho = [];
 
 // ==================================================
-// SPLASH
-// ==================================================
-function esconderSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
-
-    splash.style.opacity = "0";
-
-    setTimeout(() => {
-        splash.style.display = "none";
-    }, 600);
-}
-
-// ==================================================
 // STATUS DA LOJA
 // ==================================================
 async function carregarStatusLoja() {
     try {
-        const res = await fetch("/content/status.json");
-        if (!res.ok) return;
-
+        const res = await fetch('/content/status.json');
         const data = await res.json();
+
         LOJA_ABERTA = data.aberto;
         MENSAGEM_FECHADA = data.mensagem || MENSAGEM_FECHADA;
 
         const statusEl = document.getElementById("status-loja");
         if (statusEl) {
             statusEl.textContent = LOJA_ABERTA ? "🟢 ABERTO" : "🔴 FECHADO";
-            statusEl.className = `status ${LOJA_ABERTA ? "aberto" : "fechado"}`;
+            statusEl.className = LOJA_ABERTA ? "aberto" : "fechado";
         }
     } catch (e) {
-        console.warn("Status da loja não carregado");
+        console.error("Erro ao carregar status da loja", e);
     }
 }
 
 // ==================================================
 // CARRINHO
 // ==================================================
-function adicionarAoCarrinho(nome, preco) {
+function adicionarAoCarrinho(nome, codigo, preco) {
     if (!LOJA_ABERTA) {
         alert(MENSAGEM_FECHADA);
         return;
     }
 
-    const item = carrinho.find(i => i.nome === nome);
+    const precoNum = Number(preco);
+    const existente = carrinho.find(
+        i => i.nome === nome && i.codigo === codigo
+    );
 
-    if (item) {
-        item.quantidade++;
+    if (existente) {
+        existente.quantidade++;
     } else {
-        carrinho.push({ nome, preco, quantidade: 1 });
+        carrinho.push({ nome, codigo, preco: precoNum, quantidade: 1 });
     }
 
     salvarCarrinho();
@@ -65,8 +53,7 @@ function adicionarAoCarrinho(nome, preco) {
 
 function atualizarCarrinho() {
     const container = document.getElementById("cart-items");
-    const subtotalEl = document.getElementById("subtotal");
-    if (!container || !subtotalEl) return;
+    if (!container) return;
 
     container.innerHTML = "";
     let subtotal = 0;
@@ -76,19 +63,27 @@ function atualizarCarrinho() {
 
         container.innerHTML += `
             <div class="cart-item">
-                <span>${item.quantidade}x ${item.nome}</span>
+                <div>${item.quantidade}x ${item.nome}</div>
                 <button onclick="removerItem(${index})">Excluir</button>
             </div>
         `;
     });
 
-    subtotalEl.innerText =
-        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("subtotal").innerText =
+        `Subtotal: R$${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("total").innerText =
+        `Total: R$${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(index) {
     carrinho.splice(index, 1);
     salvarCarrinho();
+    atualizarCarrinho();
+}
+
+function limparCarrinho() {
+    carrinho.length = 0;
+    localStorage.removeItem("meuCarrinho");
     atualizarCarrinho();
 }
 
@@ -122,64 +117,80 @@ function fecharDelivery() {
 }
 
 // ==================================================
-// PRODUTOS (NETLIFY CMS - JSON ÚNICO)
+// CARREGAR PRODUTOS DO JSON
 // ==================================================
 async function carregarProdutos() {
-    const res = await fetch("/content/produtos.json");
-    if (!res.ok) {
-        console.error("produtos.json não encontrado");
-        return;
-    }
+    try {
+        const res = await fetch('/content/produtos.json');
+        const data = await res.json();
 
-    const data = await res.json();
-    const produtos = data.produtos;
+        const burgersEl = document.getElementById("burgers");
+        const bebidasEl = document.getElementById("bebidas");
 
-    const burgers = document.getElementById("burgers");
-    const bebidas = document.getElementById("bebidas");
+        data.produtos.forEach(prod => {
+            const card = document.createElement("div");
+            card.className = "product-card";
 
-    burgers.innerHTML = "";
-    bebidas.innerHTML = "";
-
-    produtos.forEach(prod => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-
-        card.innerHTML = `
-            <div class="image-wrapper">
+            card.innerHTML = `
                 <img src="${prod.image}" alt="${prod.title}">
-            </div>
-            <div class="content">
                 <h3>${prod.title}</h3>
                 <p class="desc">${prod.ingredientes || ""}</p>
-                <div class="price">
-                    R$ ${prod.price.toFixed(2).replace(".", ",")}
-                </div>
-            </div>
-            <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', ${prod.price})">
-                +
-            </button>
-        `;
+                <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
+                <button class="btn"
+                    onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">
+                    Adicionar
+                </button>
+            `;
 
-        if (prod.categoria === "burger") burgers.appendChild(card);
-        if (prod.categoria === "bebida") bebidas.appendChild(card);
-    });
+            // 🍔 SOMENTE BURGERS NA HOME
+            if (prod.categoria === "burger" && burgersEl) {
+                burgersEl.appendChild(card);
+            }
+
+            // 🥤 SOMENTE BEBIDAS NA PAGINA DE BEBIDAS
+            if (prod.categoria === "bebida" && bebidasEl) {
+                bebidasEl.appendChild(card);
+            }
+        });
+
+    } catch (e) {
+        console.error("Erro ao carregar produtos", e);
+    }
 }
 
+// ==================================================
+// MENU MOBILE
+// ==================================================
+function initMenuMobile() {
+    const hamburger = document.getElementById("hamburger");
+    const menu = document.getElementById("mobile-menu");
+
+    if (hamburger && menu) {
+        hamburger.onclick = () => menu.classList.toggle("active");
+    }
+}
 
 // ==================================================
-// INIT
+// SPLASH
 // ==================================================
-document.addEventListener("DOMContentLoaded", async () => {
+function initSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+
+    setTimeout(() => {
+        splash.classList.add("hide");
+        setTimeout(() => splash.remove(), 500);
+    }, 1500);
+}
+
+// ==================================================
+// INIT GERAL
+// ==================================================
+document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCarrinhoSalvo();
     atualizarCarrinho();
-
-    try {
-        await carregarProdutos();
-    } catch (e) {
-        console.error("Erro ao carregar produtos:", e);
-    }
-
-    esconderSplash(); // 🔥 AGORA O SPLASH SOME
+    carregarProdutos();
+    initMenuMobile();
+    initSplash();
 });
-
