@@ -279,14 +279,6 @@ body {
 
 /* CARDS DE BEBIDAS MENOR - classe exclusiva */
 /* CARDS DE BEBIDAS PADRÃO */
-.cards-bebidas {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
-    padding: 12px;
-}
-
-/* CARD DE BEBIDA */
 /* CARDS DE BEBIDAS PADRÃO COMPACTO */
 .cards-bebidas {
     display: grid;
@@ -303,7 +295,7 @@ body {
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    height: auto;       /* altura automática */
+    height: auto;
 }
 
 /* IMAGEM - contêiner fixo */
@@ -320,12 +312,12 @@ body {
 .cards-bebidas .product-card .image-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* garante que a imagem preencha o card */
+    object-fit: cover;
 }
 
 /* CONTEÚDO CENTRALIZADO */
 .cards-bebidas .product-card .content {
-    padding: 8px;
+    padding: 8px 8px 0 8px; /* Reduzi o padding inferior para o preço aproximar do botão */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -356,41 +348,44 @@ body {
     overflow: hidden;
 }
 
-/* FOOTER */
+/* PREÇO - AUMENTADO E CENTRALIZADO */
+.cards-bebidas .price {
+    font-size: 20px;       /* Aumentado conforme solicitado */
+    font-weight: 800;      /* Mais negrito para destaque */
+    color: #111;
+    text-align: center;
+    margin: 8px 0;         /* Espaçamento vertical */
+    width: 100%;
+}
+
+/* FOOTER - AJUSTADO PARA EMPILHAR */
 .cards-bebidas .product-card .footer {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column; /* Coloca o botão embaixo do preço */
     align-items: center;
-    padding: 0 6px 6px 6px;
+    padding: 0;             /* Remove padding para o botão encostar nas bordas se desejar */
 }
 
-/* PREÇO CENTRALIZADO */
-.cards-bebidas .price {
-    font-size: 16px;
-    font-weight: 700;
-    text-align: center;
-    flex: 1;
-}
-
-/* BOTÃO ADICIONAR MAIOR E PROPORCIONAL AO CARD */
+/* BOTÃO ADICIONAR - CORRIGIDO */
 .cards-bebidas .btn {
-    width: 50px;               /* maior e confortável */
-    height: 50px;
-    border-radius: 14px;       /* cantos arredondados */
+    width: 100%;            /* Agora ocupa a largura total do card */
+    height: 40px;           /* Altura confortável */
+    border-radius: 0 0 12px 12px; /* Arredonda apenas os cantos de baixo */
     background: #e50914;
     color: #fff;
-    font-size: 24px;           /* símbolo "+" maior */
+    font-size: 14px;        /* Texto "Adicionar" ou "+" */
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s;
 }
 
 .cards-bebidas .btn:hover {
     background: #b00610;
-    transform: scale(1.1);
 }
+
 
