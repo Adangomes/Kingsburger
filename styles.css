@@ -120,13 +120,13 @@ body {
 
 /* IMAGEM DO PRODUTO */
 .product-card img {
-    width: 250px;           /* tamanho ideal */
-    height: 250px;          /* quadrado para manter proporção */
+    width: 100%;      /* ocupa toda a largura do card */
+    height: auto;     /* altura proporcional */
+    max-width: 250px; /* limita o tamanho máximo */
+    border-radius: 16px;
     object-fit: cover;
-    border-radius: 16px;    /* arredondada */
-    margin-bottom: 10px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
+
 
 /* TEXTOS DO CARD */
 .product-card h3 {
@@ -248,4 +248,5 @@ body {
     0%, 100% { transform: scale(1); opacity: 0.9; }
     50% { transform: scale(1.05); opacity: 1; }
 }
+
 
