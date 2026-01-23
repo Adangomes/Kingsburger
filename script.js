@@ -27,45 +27,6 @@ async function carregarStatusLoja() {
 }
 
 // ==================================================
-// BAIRROS E TAXAS POR CIDADE
-// ==================================================
-const bairrosJaragua = ["Centro","Amizade","Baependi","Barra do Rio Cerro","Boa Vista",
-    "Czerniewicz","Ilha da Figueira","Jaraguá 84","Jaraguá Esquerdo","João Pessoa",
-    "Nova Brasília","Nereu Ramos","Rau","Rio Cerro I","Rio Cerro II",
-    "Rio da Luz","Tifa Martins","Três Rios do Sul","Vieira","Vila Lenzi"];
-
-const bairrosGuaramirim = ["Centro","Amizade","Avaí","Bananal do Sul","Corticeira",
-    "Figueirinha","Guamiranga","Imigrantes","João Pessoa","Nova Esperança",
-    "Recanto Feliz","Rio Branco","Rua Nova","Seleção","Escolinha"];
-
-function carregarBairros() {
-    const cidade = document.getElementById("cidade").value;
-    const bairroSelect = document.getElementById("bairro");
-    bairroSelect.innerHTML = "";
-
-    let lista = [];
-    if (cidade === "jaragua") lista = bairrosJaragua;
-    if (cidade === "guaramirim") lista = bairrosGuaramirim;
-
-    lista.forEach(b => {
-        const opt = document.createElement("option");
-        opt.value = b;
-        opt.textContent = b;
-        bairroSelect.appendChild(opt);
-    });
-}
-
-function calcularTaxaEntrega(cidade, bairro) {
-    if (cidade === "jaragua") return 20;
-    if (cidade === "guaramirim") {
-        if (bairro === "Centro") return 10;
-        if (bairro === "Escolinha") return 5;
-        return 15;
-    }
-    return 0;
-}
-
-// ==================================================
 // CARRINHO
 // ==================================================
 function adicionarAoCarrinho(nome, codigo, preco) {
@@ -74,11 +35,10 @@ function adicionarAoCarrinho(nome, codigo, preco) {
         return;
     }
 
-    const precoNum = Number(preco);
     const existente = carrinho.find(i => i.nome === nome && i.codigo === codigo);
 
     if (existente) existente.quantidade++;
-    else carrinho.push({ nome, codigo, preco: precoNum, quantidade: 1 });
+    else carrinho.push({ nome, codigo, preco, quantidade: 1 });
 
     salvarCarrinho();
     atualizarCarrinho();
@@ -94,31 +54,21 @@ function atualizarCarrinho() {
 
     carrinho.forEach((item, index) => {
         subtotal += item.preco * item.quantidade;
-
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-            <div class="cart-item-name">${item.quantidade}x ${item.nome}</div>
-            <div class="cart-item-actions">
-                <button onclick="removerItem(${index})" class="delete-btn">Excluir</button>
+        container.innerHTML += `
+            <div class="cart-item">
+                <span>${item.quantidade}x ${item.nome}</span>
+                <button onclick="removerItem(${index})">Excluir</button>
             </div>
         `;
-        container.appendChild(div);
     });
 
-    document.getElementById("subtotal").innerText = `Subtotal: R$${subtotal.toFixed(2).replace(".", ",")}`;
-    document.getElementById("total").innerText = `Total: R$${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("subtotal").innerText =
+        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(index) {
     carrinho.splice(index, 1);
     salvarCarrinho();
-    atualizarCarrinho();
-}
-
-function limparCarrinho() {
-    carrinho.length = 0;
-    localStorage.removeItem("meuCarrinho");
     atualizarCarrinho();
 }
 
@@ -134,101 +84,41 @@ function carregarCarrinhoSalvo() {
 // ==================================================
 // MODAIS
 // ==================================================
-function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
-function abrirDelivery() { fecharCarrinho(); document.getElementById("delivery-modal").style.display = "flex"; }
-function fecharDelivery() { document.getElementById("delivery-modal").style.display = "none"; }
+const cartModal = document.getElementById("cart-modal");
+const deliveryModal = document.getElementById("delivery-modal");
+const deliveryBox = deliveryModal?.querySelector(".delivery-box");
+const resumo = document.getElementById("resumo-pedido");
 
-function toggleTroco() {
-    const pagamento = document.getElementById("pagamento").value;
-    document.getElementById("troco-box").style.display = pagamento === "Dinheiro" ? "block" : "none";
+function abrirCarrinho() {
+    cartModal.style.display = "flex";
+}
+function fecharCarrinho() {
+    cartModal.style.display = "none";
 }
 
-// ==================================================
-// RESUMO E FINALIZAR PEDIDO
-// ==================================================
-function mostrarResumo() {
-    const nome = document.getElementById("nomeCliente").value;
-    const cidade = document.getElementById("cidade").value;
-    const bairro = document.getElementById("bairro").value;
-    const rua = document.getElementById("rua").value;
-    const numero = document.getElementById("numero").value;
-    const pagamento = document.getElementById("pagamento").value;
+function abrirDelivery() {
+    fecharCarrinho();
+    deliveryModal.style.display = "flex";
+    resumo.style.display = "none";
+    deliveryBox.classList.remove("exit");
+}
 
-    if (!nome || !cidade || !bairro || !rua || !numero || !pagamento) {
-        return alert("Preencha todos os campos obrigatórios antes de continuar!");
-    }
-
-    let subtotal = carrinho.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
-    let taxaEntrega = calcularTaxaEntrega(cidade, bairro);
-
-    const resumoItens = document.getElementById("resumo-itens");
-    resumoItens.innerHTML = "";
-    carrinho.forEach(item => {
-        const div = document.createElement("div");
-        div.textContent = `${item.quantidade}x ${item.nome} - R$${item.preco.toFixed(2).replace(".", ",")}`;
-        resumoItens.appendChild(div);
-    });
-
-    document.getElementById("resumo-taxa").innerText = `Taxa de entrega: R$${taxaEntrega},00`;
-    document.getElementById("resumo-total").innerText = `Total: R$${(subtotal + taxaEntrega).toFixed(2).replace(".", ",")}`;
-
-    document.getElementById("step1-buttons").style.display = "none";
-    document.getElementById("resumo-pedido").style.display = "block";
+function abrirResumo() {
+    deliveryBox.classList.add("exit");
+    setTimeout(() => {
+        deliveryModal.style.display = "none";
+        resumo.style.display = "block";
+    }, 300);
 }
 
 function voltarFormulario() {
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.getElementById("step1-buttons").style.display = "block";
-}
-
-function finalizarEntrega() {
-    if (carrinho.length === 0) return alert("Seu carrinho está vazio!");
-
-    const nome = document.getElementById("nomeCliente").value;
-    const cidade = document.getElementById("cidade").value;
-    const bairro = document.getElementById("bairro").value;
-    const rua = document.getElementById("rua").value;
-    const numero = document.getElementById("numero").value;
-    const referencia = document.getElementById("referencia").value;
-    const observacao = document.getElementById("observacao").value;
-    const pagamento = document.getElementById("pagamento").value;
-    const troco = document.getElementById("troco").value;
-
-    let subtotal = carrinho.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
-    let taxaEntrega = calcularTaxaEntrega(cidade, bairro);
-    let totalFinal = subtotal + taxaEntrega;
-
-    let itensMsg = carrinho.map(item =>
-        `• ${item.nome} - R$${item.preco.toFixed(2).replace(".", ",")} x ${item.quantidade}`
-    ).join("\n");
-
-    const mensagem =
-`Olá! Gostaria de fazer meu pedido:
-${itensMsg}
-
-Cliente: ${nome}
-Entrega em: ${cidade.toUpperCase()}
-Bairro: ${bairro}
-Rua: ${rua}, Nº ${numero}
-Ref: ${referencia || "-"}
-Obs: ${observacao || "-"}
-
-Pagamento: ${pagamento}${pagamento === "Dinheiro" && troco ? " (troco para R$" + troco + ")" : ""}
-
-Subtotal: R$${subtotal.toFixed(2).replace(".", ",")}
-Taxa de entrega: R$${taxaEntrega.toFixed(2).replace(".", ",")}
-Total: R$${totalFinal.toFixed(2).replace(".", ",")}
-
-Tempo de entrega: 30 a 45 minutos`;
-
-    const numeroWhatsApp = "5547997278232";
-    const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, "_blank");
+    resumo.style.display = "none";
+    deliveryModal.style.display = "flex";
+    deliveryBox.classList.remove("exit");
 }
 
 // ==================================================
-// CARREGAR PRODUTOS DO JSON
+// PRODUTOS
 // ==================================================
 async function carregarProdutos() {
     try {
@@ -236,23 +126,25 @@ async function carregarProdutos() {
         const data = await res.json();
 
         const containers = {
-            "burger": document.getElementById("burgers"),
-            "bebida": document.getElementById("bebidas")
+            burger: document.getElementById("burgers"),
+            bebida: document.getElementById("bebidas")
         };
 
         data.produtos.forEach(prod => {
+            if (!containers[prod.categoria]) return;
+
             const card = document.createElement("div");
             card.className = "product-card";
-
             card.innerHTML = `
-                <img src="${prod.image}" alt="${prod.title}">
+                <img src="${prod.image || ''}">
                 <h3>${prod.title}</h3>
-                <p class="desc">${prod.ingredientes || ""}</p>
-                <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
-                <button class="btn" onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">Adicionar</button>
+                <p>${prod.ingredientes || ''}</p>
+                <strong>R$ ${prod.price.toFixed(2).replace(".", ",")}</strong>
+                <button onclick="adicionarAoCarrinho('${prod.title}','${prod.title}',${prod.price})">
+                    Adicionar
+                </button>
             `;
-
-            if (containers[prod.categoria]) containers[prod.categoria].appendChild(card);
+            containers[prod.categoria].appendChild(card);
         });
 
     } catch (e) {
@@ -261,85 +153,11 @@ async function carregarProdutos() {
 }
 
 // ==================================================
-// MENU MOBILE
-// ==================================================
-function initMenuMobile() {
-    const hamburger = document.getElementById("hamburger");
-    const menu = document.getElementById("mobile-menu");
-    if (hamburger && menu) hamburger.onclick = () => menu.classList.toggle("active");
-}
-
-// ==================================================
-// SPLASH
-// ==================================================
-function initSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
-
-    setTimeout(() => {
-        splash.classList.add("hide");
-        setTimeout(() => splash.remove(), 500);
-    }, 1500);
-}
-
-// ==================================================
-// INIT GERAL
+// INIT
 // ==================================================
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCarrinhoSalvo();
     atualizarCarrinho();
     carregarProdutos();
-    initMenuMobile();
-    initSplash();
 });
-
-
-
-
-// MODAL 
-function abrirResumo() {
-    const deliveryModal = document.getElementById('delivery-modal');
-    const resumo = document.getElementById('resumo-pedido');
-
-    // Faz o formulário “subir e sumir”
-    deliveryModal.querySelector('.delivery-box').classList.add('exit');
-
-    // Espera animação terminar antes de esconder o modal
-    setTimeout(() => {
-        deliveryModal.style.display = 'none';
-        resumo.style.display = 'block'; // abre resumo no centro
-    }, 300); // 300ms = duração da animação slideOutForm
-}
-
-const deliveryModal = document.getElementById('delivery-modal');
-const deliveryBox = deliveryModal.querySelector('.delivery-box');
-const resumo = document.getElementById('resumo-pedido');
-
-function abrirFormulario() {
-    // Esconde resumo se estiver aberto
-    resumo.style.display = 'none';
-    
-    // Mostra formulário
-    deliveryModal.style.display = 'flex';
-    deliveryBox.classList.remove('exit');
-}
-
-function abrirResumo() {
-    // Se formulário estiver aberto, anima para subir e sumir
-    if(deliveryModal.style.display === 'flex') {
-        deliveryBox.classList.add('exit');
-        setTimeout(() => {
-            deliveryModal.style.display = 'none';
-            resumo.style.display = 'block'; // mostra resumo no centro
-        }, 300); // duração da animação
-    } else {
-        resumo.style.display = 'block';
-    }
-}
-
-// Fechar resumo ou formulário
-function fecharModal() {
-    deliveryModal.style.display = 'none';
-    resumo.style.display = 'none';
-}
