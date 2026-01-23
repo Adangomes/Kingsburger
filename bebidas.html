@@ -1,113 +1,254 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bebidas | Kings Burguer</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
+// ==================================================
+// CONFIGURAÇÕES GLOBAIS
+// ==================================================
+let LOJA_ABERTA = true;
+let MENSAGEM_FECHADA = "Estamos fechados no momento 😔";
+const carrinho = [];
 
-<body>
+// ==================================================
+// STATUS DA LOJA (Netlify CMS)
+// ==================================================
+async function carregarStatusLoja() {
+    try {
+        const res = await fetch('/content/status.json');
+        const data = await res.json();
 
-<div id="menu">
+        LOJA_ABERTA = data.aberto;
+        MENSAGEM_FECHADA = data.mensagem || MENSAGEM_FECHADA;
 
-    <header class="header">
-        <div class="logo">KINGS BURGUER</div>
-        <div id="status-loja" class="status"></div>
+        const statusEl = document.getElementById("status-loja");
+        if (statusEl) {
+            statusEl.textContent = LOJA_ABERTA ? "🟢 ABERTO" : "🔴 FECHADO";
+            statusEl.className = LOJA_ABERTA ? "status aberto" : "status fechado";
+        }
+    } catch (e) {
+        console.error("Erro ao carregar status da loja", e);
+    }
+}
 
-        <button class="hamburger" id="hamburger">&#9776;</button>
+// ==================================================
+// BAIRROS E TAXAS
+// ==================================================
+const bairrosJaragua = [
+    "Centro","Amizade","Baependi","Barra do Rio Cerro","Boa Vista",
+    "Czerniewicz","Ilha da Figueira","Jaraguá 84","Jaraguá Esquerdo",
+    "João Pessoa","Nova Brasília","Nereu Ramos","Rau","Rio Cerro I",
+    "Rio Cerro II","Rio da Luz","Tifa Martins","Três Rios do Sul",
+    "Vieira","Vila Lenzi"
+];
 
-        <nav class="menu" id="mobile-menu">
-            <a href="index.html">Hambúrgueres</a>
-            <a href="bebidas.html">Bebidas</a>
-            <a href="contato.html">Contato</a>
-        </nav>
+const bairrosGuaramirim = [
+    "Centro","Amizade","Avaí","Bananal do Sul","Corticeira",
+    "Figueirinha","Guamiranga","Imigrantes","João Pessoa",
+    "Nova Esperança","Recanto Feliz","Rio Branco","Rua Nova",
+    "Seleção","Escolinha"
+];
 
-        <div class="cart" onclick="abrirCarrinho()">🛒</div>
-    </header>
+function carregarBairros() {
+    const cidade = document.getElementById("cidade").value;
+    const bairroSelect = document.getElementById("bairro");
+    bairroSelect.innerHTML = "";
 
-    <section class="destaques">
-        <h2>BEBIDAS</h2>
-        <div class="cards-bebidas" id="bebidas"></div>
-    </section>
+    let lista = [];
+    if (cidade === "jaragua") lista = bairrosJaragua;
+    if (cidade === "guaramirim") lista = bairrosGuaramirim;
 
-    <footer class="footer">
-        <p>Sistema Desenvolvido por Adan Gomes</p>
-    </footer>
+    lista.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        bairroSelect.appendChild(opt);
+    });
+}
 
-</div>
+function calcularTaxaEntrega(cidade, bairro) {
+    if (cidade === "jaragua") return 20;
+    if (cidade === "guaramirim") {
+        if (bairro === "Centro") return 10;
+        if (bairro === "Escolinha") return 5;
+        return 15;
+    }
+    return 0;
+}
 
-<!-- CARRINHO -->
-<div id="cart-modal" style="display:none;">
-    <div class="cart-box">
-        <div class="cart-header">
-            <h2>Meu Carrinho</h2>
-            <button onclick="fecharCarrinho()">X</button>
-        </div>
-        <div id="cart-items"></div>
-        <div class="summary">
-            <p id="subtotal">Subtotal: R$0,00</p>
-            <p><strong id="total">Total: R$0,00</strong></p>
-        </div>
-        <div class="buttons">
-            <button onclick="fecharCarrinho()">Continuar comprando</button>
-            <button onclick="abrirDelivery()">Finalizar compra</button>
-            <button onclick="limparCarrinho()">🗑️ Limpar Carrinho</button>
-        </div>
-    </div>
-</div>
+// ==================================================
+// CARRINHO
+// ==================================================
+function adicionarAoCarrinho(nome, codigo, preco) {
+    if (!LOJA_ABERTA) {
+        alert(MENSAGEM_FECHADA);
+        return;
+    }
 
-<!-- ENTREGA -->
-<div id="delivery-modal" style="display:none;">
-    <div class="delivery-box">
-        <h2>Informações de Entrega</h2>
+    const existente = carrinho.find(i => i.nome === nome && i.codigo === codigo);
+    if (existente) existente.quantidade++;
+    else carrinho.push({ nome, codigo, preco, quantidade: 1 });
 
-        <input type="text" id="nomeCliente" placeholder="Nome">
+    salvarCarrinho();
+    atualizarCarrinho();
+    abrirCarrinho();
+}
 
-        <select id="cidade" onchange="carregarBairros()">
-            <option value="">Cidade</option>
-            <option value="jaragua">Jaraguá do Sul</option>
-            <option value="guaramirim">Guaramirim</option>
-        </select>
+function atualizarCarrinho() {
+    const container = document.getElementById("cart-items");
+    if (!container) return;
 
-        <select id="bairro"></select>
-        <input type="text" id="rua" placeholder="Rua">
-        <input type="text" id="numero" placeholder="Número">
-        <input type="text" id="referencia" placeholder="Referência">
-        <textarea id="observacao" placeholder="Observações"></textarea>
+    container.innerHTML = "";
+    let subtotal = 0;
 
-        <select id="pagamento" onchange="toggleTroco()">
-            <option value="">Pagamento</option>
-            <option value="Credito">Crédito</option>
-            <option value="Debito">Débito</option>
-            <option value="Pix">Pix</option>
-            <option value="Dinheiro">Dinheiro</option>
-        </select>
+    carrinho.forEach((item, index) => {
+        subtotal += item.preco * item.quantidade;
 
-        <div id="troco-box" style="display:none;">
-            <input type="number" id="troco" placeholder="Troco para quanto?">
-        </div>
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+            <div>${item.quantidade}x ${item.nome}</div>
+            <button onclick="removerItem(${index})">Excluir</button>
+        `;
+        container.appendChild(div);
+    });
 
-        <div class="buttons">
-            <button onclick="fecharDelivery()">Voltar</button>
-            <button onclick="mostrarResumo()">Próximo</button>
-        </div>
+    document.getElementById("subtotal").innerText =
+        `Subtotal: R$${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("total").innerText =
+        `Total: R$${subtotal.toFixed(2).replace(".", ",")}`;
+}
 
-        <div id="resumo-pedido" style="display:none;">
-            <h3>Resumo</h3>
-            <div id="resumo-itens"></div>
-            <p id="resumo-taxa"></p>
-            <p><strong>Entrega: 30 a 45 min</strong></p>
-            <p id="resumo-total"></p>
+function removerItem(index) {
+    carrinho.splice(index, 1);
+    salvarCarrinho();
+    atualizarCarrinho();
+}
 
-            <div class="buttons">
-                <button onclick="voltarFormulario()">Voltar</button>
-                <button onclick="finalizarEntrega()">Finalizar</button>
-            </div>
-        </div>
-    </div>
-</div>
+function limparCarrinho() {
+    carrinho.length = 0;
+    localStorage.removeItem("meuCarrinho");
+    atualizarCarrinho();
+}
 
-<script src="script.js"></script>
-</body>
-</html>
+function salvarCarrinho() {
+    localStorage.setItem("meuCarrinho", JSON.stringify(carrinho));
+}
+
+function carregarCarrinhoSalvo() {
+    const salvo = localStorage.getItem("meuCarrinho");
+    if (salvo) carrinho.push(...JSON.parse(salvo));
+}
+
+// ==================================================
+// MODAIS
+// ==================================================
+function abrirCarrinho() {
+    document.getElementById("cart-modal").style.display = "flex";
+}
+function fecharCarrinho() {
+    document.getElementById("cart-modal").style.display = "none";
+}
+function abrirDelivery() {
+    fecharCarrinho();
+    document.getElementById("delivery-modal").style.display = "flex";
+}
+function fecharDelivery() {
+    document.getElementById("delivery-modal").style.display = "none";
+}
+
+function toggleTroco() {
+    const pagamento = document.getElementById("pagamento").value;
+    document.getElementById("troco-box").style.display =
+        pagamento === "Dinheiro" ? "block" : "none";
+}
+
+// ==================================================
+// RESUMO E FINALIZAÇÃO
+// ==================================================
+function mostrarResumo() {
+    const campos = ["nomeCliente","cidade","bairro","rua","numero","pagamento"];
+    for (let id of campos) {
+        if (!document.getElementById(id).value) {
+            alert("Preencha todos os campos obrigatórios!");
+            return;
+        }
+    }
+
+    let subtotal = carrinho.reduce((s, i) => s + i.preco * i.quantidade, 0);
+    let taxa = calcularTaxaEntrega(
+        document.getElementById("cidade").value,
+        document.getElementById("bairro").value
+    );
+
+    const resumoItens = document.getElementById("resumo-itens");
+    resumoItens.innerHTML = "";
+
+    carrinho.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = `${item.quantidade}x ${item.nome}`;
+        resumoItens.appendChild(div);
+    });
+
+    document.getElementById("resumo-taxa").innerText =
+        `Taxa: R$${taxa.toFixed(2).replace(".", ",")}`;
+    document.getElementById("resumo-total").innerText =
+        `Total: R$${(subtotal + taxa).toFixed(2).replace(".", ",")}`;
+
+    document.getElementById("step1-buttons").style.display = "none";
+    document.getElementById("resumo-pedido").style.display = "block";
+}
+
+function voltarFormulario() {
+    document.getElementById("resumo-pedido").style.display = "none";
+    document.getElementById("step1-buttons").style.display = "flex";
+}
+
+function finalizarEntrega() {
+    if (carrinho.length === 0) {
+        alert("Carrinho vazio!");
+        return;
+    }
+
+    const numeroWhatsApp = "5547997278232";
+    const mensagem = "Olá! Gostaria de fazer um pedido.";
+    window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`, "_blank");
+}
+
+// ==================================================
+// PRODUTOS (Netlify CMS)
+// ==================================================
+async function carregarProdutos() {
+    try {
+        const res = await fetch('/content/produtos.json');
+        const data = await res.json();
+
+        const containers = {
+            burger: document.getElementById("burgers"),
+            bebida: document.getElementById("bebidas")
+        };
+
+        data.produtos.forEach(prod => {
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+                <img src="${prod.image}" alt="${prod.title}">
+                <h3>${prod.title}</h3>
+                <p class="desc">${prod.ingredientes || ""}</p>
+                <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
+                <button class="btn"
+                    onclick="adicionarAoCarrinho('${prod.title}','${prod.codigo}',${prod.price})">
+                    Adicionar
+                </button>
+            `;
+            containers[prod.categoria]?.appendChild(card);
+        });
+    } catch (e) {
+        console.error("Erro ao carregar produtos", e);
+    }
+}
+
+// ==================================================
+// INIT
+// ==================================================
+document.addEventListener("DOMContentLoaded", () => {
+    carregarStatusLoja();
+    carregarCarrinhoSalvo();
+    atualizarCarrinho();
+    carregarProdutos();
+});
