@@ -373,14 +373,14 @@ body {
     flex: 1;
 }
 
-/* BOTÃO ADICIONAR VISÍVEL */
+/* BOTÃO ADICIONAR MAIOR E PROPORCIONAL AO CARD */
 .cards-bebidas .btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 50px;               /* maior e confortável */
+    height: 50px;
+    border-radius: 14px;       /* cantos arredondados */
     background: #e50914;
     color: #fff;
-    font-size: 18px;
+    font-size: 24px;           /* símbolo "+" maior */
     display: flex;
     align-items: center;
     justify-content: center;
