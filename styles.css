@@ -666,21 +666,31 @@ body {
 /* =====================================================
    CENTRALIZAR O MODAL DE RESUMO
    ===================================================== */
+/* =====================================================
+   CENTRALIZAR O MODAL DE RESUMO NO MEIO DA TELA
+   ===================================================== */
 #resumo-pedido {
     display: none;
-    padding: 10px;
-    border-top: 1px solid #eee;
     position: fixed;
     top: 50%;       /* centraliza verticalmente */
-    left: 50%;
+    left: 50%;      /* centraliza horizontalmente */
     transform: translate(-50%, -50%);
-    width: 90%;
+    width: 90%;     /* ocupa 90% da largura da tela */
     max-width: 500px;
-    max-height: 80vh;
+    max-height: 80vh; /* limita altura e permite scroll interno */
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    overflow-y: auto;
-    animation: slideUp 0.4s ease-out forwards; /* animação de entrada */
+    overflow-y: auto; /* scroll se passar do max-height */
+    padding: 20px;
     z-index: 4500;
+    animation: slideUp 0.4s ease-out forwards; /* animação de entrada */
 }
+
+/* ANIMAÇÃO DE ENTRADA */
+@keyframes slideUp {
+    0% { opacity: 0; transform: translate(-50%, 60%); }
+    100% { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+
