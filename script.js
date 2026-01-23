@@ -305,3 +305,16 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+function mostrarResumo() {
+    console.log(
+        "Nome:", document.getElementById("nomeCliente").value,
+        "Cidade:", document.getElementById("cidade").value,
+        "Bairro:", document.getElementById("bairro").value,
+        "Rua:", document.getElementById("rua").value,
+        "Número:", document.getElementById("numero").value,
+        "Pagamento:", document.getElementById("pagamento").value
+    );
+
+    // restante da função...
+}
+
