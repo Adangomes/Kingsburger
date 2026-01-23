@@ -121,10 +121,10 @@ body {
 /* IMAGEM DO PRODUTO */
 .product-card img {
     width: 100%;       /* ocupa toda a largura do card */
-    height: 80px;      /* altura proporcional */
+    height: 600px;      /* altura proporcional */
     object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 10px;
+    border-radius: 14px;
+    margin-bottom: 12px;
 }
 
 /* TEXTOS DO CARD */
@@ -368,5 +368,6 @@ body {
     background: #b00610;
     transform: scale(1.05);
 }
+
 
 
