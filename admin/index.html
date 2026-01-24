@@ -77,21 +77,8 @@
   <!-- Netlify CMS -->
   <script src="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js"></script>
 
-  <script>
-    const btn = document.getElementById("toggle-loja");
-
-    btn.addEventListener("click", () => {
-      // Alterna status localmente
-      LOJA_ABERTA = !LOJA_ABERTA;
-      const statusEl = document.getElementById("status-loja");
-      const msgEl = document.getElementById("mensagem-fechada");
-
-      statusEl.textContent = LOJA_ABERTA ? "🟢 ABERTO" : "🔴 FECHADO";
-      statusEl.className = LOJA_ABERTA ? "aberto" : "fechado";
-
-      msgEl.textContent = LOJA_ABERTA ? "" : MENSAGEM_FECHADA;
-    });
-  </script>
+ 
 
 </body>
 </html>
+
