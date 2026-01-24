@@ -304,3 +304,8 @@ function calcularTaxaEntrega(cidade, bairro) {
 
     return 0;
 }
+
+function voltarFormulario() {
+    document.getElementById("resumo-pedido").style.display = "none";
+    document.getElementById("step1-buttons").style.display = "flex";
+}
