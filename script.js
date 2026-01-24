@@ -309,3 +309,7 @@ function voltarFormulario() {
     document.getElementById("resumo-pedido").style.display = "none";
     document.getElementById("step1-buttons").style.display = "flex";
 }
+
+const numeroWhatsApp = "5547997278232";
+const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+window.open(url, "_blank");
