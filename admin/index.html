@@ -13,17 +13,18 @@
 
     h1 { text-align: center; margin-bottom: 30px; }
 
+    /* CARD DO STATUS DA LOJA */
     .card {
       background: #fff;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       max-width: 400px;
     }
 
     #status-loja {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
       margin-bottom: 10px;
     }
@@ -49,11 +50,17 @@
     }
 
     button:hover { background: #2980b9; }
+
+    /* SEPARAR CMS DO PAINEL CUSTOM */
+    #cms-container {
+      margin-top: 50px;
+      max-width: 900px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Painel Administrativo</h1>
+  <h1>PAINEL ADMINISTRATIVO</h1>
 
   <!-- STATUS DA LOJA -->
   <div class="card">
@@ -62,23 +69,19 @@
     <button id="toggle-loja">Alternar Status</button>
   </div>
 
-  <!-- PRODUTOS (CMS) -->
-  <div class="card">
-    <h2>Produtos</h2>
-    <p>Use o Netlify CMS para gerenciar os produtos abaixo:</p>
+  <!-- CMS -->
+  <div id="cms-container">
+    <!-- O Netlify CMS vai renderizar aqui -->
   </div>
 
-  <!-- SEU SCRIPT -->
+  <!-- Script principal -->
   <script src="script.js"></script>
 
-  <!-- Netlify Identity (LOGIN) -->
+  <!-- Netlify Identity -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <!-- Netlify CMS -->
   <script src="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js"></script>
 
- 
-
 </body>
 </html>
-
