@@ -249,3 +249,44 @@ function toggleTroco() {
     }
 }
 
+function mostrarResumo() {
+    const nome = document.getElementById("nomeCliente").value;
+    const cidade = document.getElementById("cidade").value;
+    const bairro = document.getElementById("bairro").value;
+    const rua = document.getElementById("rua").value;
+    const numero = document.getElementById("numero").value;
+    const pagamento = document.getElementById("pagamento").value;
+
+    if (!nome || !cidade || !bairro || !rua || !numero || !pagamento) {
+        alert("Preencha todos os campos obrigatórios!");
+        return;
+    }
+
+    let subtotal = 0;
+    carrinho.forEach(item => subtotal += item.preco * item.quantidade);
+
+    const taxaEntrega = calcularTaxaEntrega(cidade, bairro);
+    const total = subtotal + taxaEntrega;
+
+    // itens
+    const resumoItens = document.getElementById("resumo-itens");
+    resumoItens.innerHTML = "";
+
+    carrinho.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent =
+            `${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2).replace(".", ",")}`;
+        resumoItens.appendChild(div);
+    });
+
+    document.getElementById("resumo-taxa").innerText =
+        `Taxa de entrega: R$ ${taxaEntrega.toFixed(2).replace(".", ",")}`;
+
+    document.getElementById("resumo-total").innerText =
+        `Total: R$ ${total.toFixed(2).replace(".", ",")}`;
+
+    // 🔥 CONTROLE DE TELAS
+    document.getElementById("step1-buttons").style.display = "none";
+    document.getElementById("resumo-pedido").style.display = "block";
+}
+
