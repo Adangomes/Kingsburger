@@ -256,17 +256,53 @@ function calcularTaxaEntrega(cidade, bairro) {
 }
 
 // ==================================================
-// FINALIZAR WHATSAPP
-// ==================================================
 function finalizarEntrega() {
     const pagamento = document.getElementById("pagamento").value;
     const numeroWhatsApp = "5547997278232";
 
-    let msg = `🛒 *NOVO PEDIDO*%0A%0A`;
-    carrinho.forEach(i => msg += `• ${i.quantidade}x ${i.nome}%0A`);
+    // Monta o objeto pedido
+    const pedido = {
+        produtos: carrinho.map(i => ({
+            nome: i.nome,
+            preco: i.preco.toFixed(2), // ajusta para 2 casas decimais
+            quantidade: i.quantidade
+        })),
+        cliente: {
+            nome: document.getElementById("nome").value,
+            cidade: document.getElementById("cidade").value,
+            bairro: document.getElementById("bairro").value,
+            rua: document.getElementById("rua").value,
+            referencia: document.getElementById("referencia").value,
+            obs: document.getElementById("obs").value
+        },
+        pagamento: pagamento,
+        subtotal: calcularSubtotal(), // função que soma os produtos
+        taxaEntrega: calcularTaxaEntrega(), // sua função de entrega
+        total: calcularTotal(), // subtotal + taxa
+        tempoEntrega: "30 a 45 minutos"
+    };
 
-    msg += `%0A💳 Pagamento: ${pagamento}`;
+    // Gera a mensagem formatada para WhatsApp
+    let msg = "Olá! Gostaria de fazer meu pedido:%0A%0A";
 
+    pedido.produtos.forEach(p => {
+        msg += `• ${p.nome} - *R$${p.preco}* x *${p.quantidade}*%0A`;
+    });
+
+    msg += `%0ACliente: *${pedido.cliente.nome}*%0A`;
+    msg += `Entrega em: *${pedido.cliente.cidade}*%0A`;
+    msg += `Bairro: *${pedido.cliente.bairro}*%0A`;
+    msg += `Rua: *${pedido.cliente.rua}*%0A`;
+    msg += `Ref: *${pedido.cliente.referencia || "-"}*%0A`;
+    msg += `Obs: *${pedido.cliente.obs || "-"}*%0A%0A`;
+
+    msg += `Pagamento: *${pedido.pagamento}*%0A`;
+    msg += `Subtotal: *R$${pedido.subtotal.toFixed(2)}*%0A`;
+    msg += `Taxa de entrega: *R$${pedido.taxaEntrega.toFixed(2)}*%0A`;
+    msg += `Total: *R$${pedido.total.toFixed(2)}*%0A`;
+    msg += `Tempo de entrega: *${pedido.tempoEntrega}*`;
+
+    // Abre WhatsApp com a mensagem
     window.open(`https://wa.me/${numeroWhatsApp}?text=${msg}`, "_blank");
 
     limparCarrinho();
@@ -297,4 +333,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
