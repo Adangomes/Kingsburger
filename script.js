@@ -35,15 +35,12 @@ function adicionarAoCarrinho(nome, codigo, preco) {
         return;
     }
 
-    const precoNum = Number(preco);
-    const existente = carrinho.find(
-        i => i.nome === nome && i.codigo === codigo
-    );
+    const existente = carrinho.find(i => i.nome === nome);
 
     if (existente) {
         existente.quantidade++;
     } else {
-        carrinho.push({ nome, codigo, preco: precoNum, quantidade: 1 });
+        carrinho.push({ nome, codigo, preco, quantidade: 1 });
     }
 
     salvarCarrinho();
@@ -70,9 +67,9 @@ function atualizarCarrinho() {
     });
 
     document.getElementById("subtotal").innerText =
-        `Subtotal: R$${subtotal.toFixed(2).replace(".", ",")}`;
+        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
     document.getElementById("total").innerText =
-        `Total: R$${subtotal.toFixed(2).replace(".", ",")}`;
+        `Total: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(index) {
@@ -117,7 +114,7 @@ function fecharDelivery() {
 }
 
 // ==================================================
-// CARREGAR PRODUTOS DO JSON
+// PRODUTOS
 // ==================================================
 async function carregarProdutos() {
     try {
@@ -142,15 +139,8 @@ async function carregarProdutos() {
                 </button>
             `;
 
-            // 🍔 SOMENTE BURGERS NA HOME
-            if (prod.categoria === "burger" && burgersEl) {
-                burgersEl.appendChild(card);
-            }
-
-            // 🥤 SOMENTE BEBIDAS NA PAGINA DE BEBIDAS
-            if (prod.categoria === "bebida" && bebidasEl) {
-                bebidasEl.appendChild(card);
-            }
+            if (prod.categoria === "burger" && burgersEl) burgersEl.appendChild(card);
+            if (prod.categoria === "bebida" && bebidasEl) bebidasEl.appendChild(card);
         });
 
     } catch (e) {
@@ -164,93 +154,44 @@ async function carregarProdutos() {
 function initMenuMobile() {
     const hamburger = document.getElementById("hamburger");
     const menu = document.getElementById("mobile-menu");
-
-    if (hamburger && menu) {
-        hamburger.onclick = () => menu.classList.toggle("active");
-    }
+    if (hamburger && menu) hamburger.onclick = () => menu.classList.toggle("active");
 }
 
 // ==================================================
-// SPLASH
+// BAIRROS
 // ==================================================
-function initSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
+const bairrosJaragua = ["Centro","Amizade","Baependi","Rau","Ilha da Figueira"];
+const bairrosGuaramirim = ["Centro","Amizade","Escolinha","Avaí"];
 
-    setTimeout(() => {
-        splash.classList.add("hide");
-        setTimeout(() => splash.remove(), 500);
-    }, 1500);
-}
-
-// ==================================================
-// INIT GERAL
-// ==================================================
-document.addEventListener("DOMContentLoaded", () => {
-    carregarStatusLoja();
-    carregarCarrinhoSalvo();
-    atualizarCarrinho();
-    carregarProdutos();
-    initMenuMobile();
-    initSplash();
-});
-// ==================================================
-// BAIRROS POR CIDADE
-// ==================================================
-const bairrosJaragua = [
-    "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
-    "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo",
-    "João Pessoa", "Nova Brasília", "Nereu Ramos", "Rau",
-    "Rio Cerro I", "Rio Cerro II", "Rio da Luz",
-    "Tifa Martins", "Três Rios do Sul", "Vieira", "Vila Lenzi"
-];
-
-const bairrosGuaramirim = [
-    "Centro", "Amizade", "Avaí", "Bananal do Sul", "Corticeira",
-    "Figueirinha", "Guamiranga", "Imigrantes", "João Pessoa",
-    "Nova Esperança", "Recanto Feliz", "Rio Branco",
-    "Rua Nova", "Seleção", "Escolinha"
-];
-
-// ==================================================
-// CARREGAR BAIRROS DINAMICAMENTE
-// ==================================================
 function carregarBairros() {
     const cidade = document.getElementById("cidade").value;
     const bairroSelect = document.getElementById("bairro");
 
-    bairroSelect.innerHTML = "<option value=''>Selecione o bairro</option>";
+    bairroSelect.innerHTML = "<option value=''>Selecione</option>";
+    const bairros = cidade === "jaragua" ? bairrosJaragua : bairrosGuaramirim;
 
-    let bairros = [];
-
-    if (cidade === "jaragua") bairros = bairrosJaragua;
-    if (cidade === "guaramirim") bairros = bairrosGuaramirim;
-
-    bairros.forEach(bairro => {
-        const option = document.createElement("option");
-        option.value = bairro;
-        option.textContent = bairro;
-        bairroSelect.appendChild(option);
+    bairros.forEach(b => {
+        const o = document.createElement("option");
+        o.value = b;
+        o.textContent = b;
+        bairroSelect.appendChild(o);
     });
 }
 
 // ==================================================
-// MOSTRAR / ESCONDER TROCO
+// TROCO
 // ==================================================
 function toggleTroco() {
     const pagamento = document.getElementById("pagamento").value;
-    const trocoBox = document.getElementById("troco-box");
-
-    if (pagamento === "Dinheiro") {
-        trocoBox.style.display = "block";
-    } else {
-        trocoBox.style.display = "none";
-        document.getElementById("troco").value = "";
-    }
+    document.getElementById("troco-box").style.display =
+        pagamento === "Dinheiro" ? "block" : "none";
 }
 
+// ==================================================
+// RESUMO
+// ==================================================
 function mostrarResumo() {
-    const nome = document.getElementById("nomeCliente").value;
+    const nome = nomeCliente.value;
     const cidade = document.getElementById("cidade").value;
     const bairro = document.getElementById("bairro").value;
     const rua = document.getElementById("rua").value;
@@ -258,51 +199,38 @@ function mostrarResumo() {
     const pagamento = document.getElementById("pagamento").value;
 
     if (!nome || !cidade || !bairro || !rua || !numero || !pagamento) {
-        alert("Preencha todos os campos obrigatórios!");
+        alert("Preencha todos os campos!");
         return;
     }
 
     let subtotal = 0;
-    carrinho.forEach(item => subtotal += item.preco * item.quantidade);
+    carrinho.forEach(i => subtotal += i.preco * i.quantidade);
 
-    const taxaEntrega = calcularTaxaEntrega(cidade, bairro);
-    const total = subtotal + taxaEntrega;
+    const taxa = calcularTaxaEntrega(cidade, bairro);
+    const total = subtotal + taxa;
 
-    // itens
     const resumoItens = document.getElementById("resumo-itens");
     resumoItens.innerHTML = "";
 
-    carrinho.forEach(item => {
-        const div = document.createElement("div");
-        div.textContent =
-            `${item.quantidade}x ${item.nome} - R$ ${item.preco.toFixed(2).replace(".", ",")}`;
-        resumoItens.appendChild(div);
+    carrinho.forEach(i => {
+        resumoItens.innerHTML += `<p>${i.quantidade}x ${i.nome}</p>`;
     });
 
     document.getElementById("resumo-taxa").innerText =
-        `Taxa de entrega: R$ ${taxaEntrega.toFixed(2).replace(".", ",")}`;
-
+        `Taxa de entrega: R$ ${taxa.toFixed(2).replace(".", ",")}`;
     document.getElementById("resumo-total").innerText =
         `Total: R$ ${total.toFixed(2).replace(".", ",")}`;
 
-    // 🔥 CONTROLE DE TELAS
+    let resumoPagamento = document.getElementById("resumo-pagamento");
+    if (!resumoPagamento) {
+        resumoPagamento = document.createElement("p");
+        resumoPagamento.id = "resumo-pagamento";
+        document.getElementById("resumo-pedido").appendChild(resumoPagamento);
+    }
+    resumoPagamento.innerHTML = `<strong>Pagamento:</strong> ${pagamento}`;
+
     document.getElementById("step1-buttons").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
-}
-
-
-function calcularTaxaEntrega(cidade, bairro) {
-    if (cidade === "jaragua") {
-        return 20;
-    }
-
-    if (cidade === "guaramirim") {
-        if (bairro === "Centro") return 10;
-        if (bairro === "Escolinha") return 5;
-        return 15;
-    }
-
-    return 0;
 }
 
 function voltarFormulario() {
@@ -310,53 +238,32 @@ function voltarFormulario() {
     document.getElementById("step1-buttons").style.display = "flex";
 }
 
+function calcularTaxaEntrega(cidade, bairro) {
+    if (cidade === "jaragua") return 20;
+    if (cidade === "guaramirim" && bairro === "Escolinha") return 5;
+    return 15;
+}
+
+// ==================================================
+// FINALIZAR WHATSAPP
+// ==================================================
 function finalizarEntrega() {
-    if (carrinho.length === 0) {
-        alert("Carrinho vazio!");
-        return;
-    }
+    let msg = `🛒 *NOVO PEDIDO*%0A`;
+    carrinho.forEach(i => msg += `• ${i.quantidade}x ${i.nome}%0A`);
+    msg += `%0A💳 Pagamento: ${pagamento.value}`;
 
-    const nome = document.getElementById("nomeCliente").value;
-    const cidade = document.getElementById("cidade").value;
-    const bairro = document.getElementById("bairro").value;
-    const rua = document.getElementById("rua").value;
-    const numero = document.getElementById("numero").value;
-    const referencia = document.getElementById("referencia").value || "Não informado";
-    const observacao = document.getElementById("observacao").value || "Nenhuma";
-    const pagamento = document.getElementById("pagamento").value;
-    const troco = document.getElementById("troco").value;
-
-    let mensagem = `🛒 *NOVO PEDIDO*%0A%0A`;
-    mensagem += `👤 *Cliente:* ${nome}%0A`;
-    mensagem += `📍 *Endereço:* ${rua}, ${numero} - ${bairro} (${cidade})%0A`;
-    mensagem += `📌 *Referência:* ${referencia}%0A%0A`;
-    mensagem += `🧾 *Itens:*%0A`;
-
-    let subtotal = 0;
-    carrinho.forEach(item => {
-        subtotal += item.preco * item.quantidade;
-        mensagem += `• ${item.quantidade}x ${item.nome} - R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}%0A`;
-    });
-
-    const taxaEntrega = calcularTaxaEntrega(cidade, bairro);
-    const total = subtotal + taxaEntrega;
-
-    mensagem += `%0A🚚 *Taxa de entrega:* R$ ${taxaEntrega.toFixed(2).replace(".", ",")}%0A`;
-    mensagem += `💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}%0A%0A`;
-    mensagem += `💳 *Pagamento:* ${pagamento}%0A`;
-
-    if (pagamento === "Dinheiro" && troco) {
-        mensagem += `💵 *Troco para:* R$ ${troco}%0A`;
-    }
-
-    mensagem += `%0A📝 *Observações:* ${observacao}`;
-
-    const numeroWhatsApp = "5547997278232";
-    const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
-
-    window.open(url, "_blank");
-
+    window.open(`https://wa.me/5547997278232?text=${msg}`, "_blank");
     limparCarrinho();
     fecharDelivery();
 }
 
+// ==================================================
+// INIT
+// ==================================================
+document.addEventListener("DOMContentLoaded", () => {
+    carregarStatusLoja();
+    carregarCarrinhoSalvo();
+    atualizarCarrinho();
+    carregarProdutos();
+    initMenuMobile();
+});
