@@ -267,3 +267,28 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarProdutos();
     initMenuMobile();
 });
+
+function initSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return;
+
+    setTimeout(() => {
+        splash.classList.add("hide");
+
+        setTimeout(() => {
+            splash.style.display = "none";
+        }, 500);
+
+    }, 1500);
+}
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    carregarStatusLoja();
+    carregarCarrinhoSalvo();
+    atualizarCarrinho();
+    carregarProdutos();
+    initMenuMobile();
+    initSplash(); // 🔥 ISSO AQUI É O QUE DESBLOQUEIA
+});
