@@ -266,6 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarCarrinho();
     carregarProdutos();
     initMenuMobile();
+    initSplash(); // 🔥 ISSO AQUI É O QUE DESBLOQUEIA
 });
 
 function initSplash() {
@@ -284,11 +285,3 @@ function initSplash() {
 
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    carregarStatusLoja();
-    carregarCarrinhoSalvo();
-    atualizarCarrinho();
-    carregarProdutos();
-    initMenuMobile();
-    initSplash(); // 🔥 ISSO AQUI É O QUE DESBLOQUEIA
-});
