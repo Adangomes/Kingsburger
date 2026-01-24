@@ -290,3 +290,17 @@ function mostrarResumo() {
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
+
+function calcularTaxaEntrega(cidade, bairro) {
+    if (cidade === "jaragua") {
+        return 20;
+    }
+
+    if (cidade === "guaramirim") {
+        if (bairro === "Centro") return 10;
+        if (bairro === "Escolinha") return 5;
+        return 15;
+    }
+
+    return 0;
+}
