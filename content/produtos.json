@@ -41,6 +41,13 @@
       "categoria": "bebida",
       "ingredientes": "600ml",
       "image": "/imagens/16F3F6E1-7CC0-4093-9723-96310FC8EED8.jpeg"
+    },
+    {
+      "image": "/imagens/kingsclassic.jpg",
+      "title": "kings burger classic",
+      "price": 28,
+      "categoria": "burger",
+      "ingredientes": "hamburguer artesanal 150g, queijo prato, pão brioche"
     }
   ]
 }
