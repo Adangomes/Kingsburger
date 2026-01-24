@@ -260,47 +260,41 @@ function finalizarEntrega() {
     const pagamento = document.getElementById("pagamento").value;
     const numeroWhatsApp = "5547997278232";
 
-    // Monta o objeto pedido
-    const pedido = {
-        produtos: carrinho.map(i => ({
-            nome: i.nome,
-            preco: i.preco.toFixed(2), // ajusta para 2 casas decimais
-            quantidade: i.quantidade
-        })),
-        cliente: {
-            nome: document.getElementById("nome").value,
-            cidade: document.getElementById("cidade").value,
-            bairro: document.getElementById("bairro").value,
-            rua: document.getElementById("rua").value,
-            referencia: document.getElementById("referencia").value,
-            obs: document.getElementById("obs").value
-        },
-        pagamento: pagamento,
-        subtotal: calcularSubtotal(), // função que soma os produtos
-        taxaEntrega: calcularTaxaEntrega(), // sua função de entrega
-        total: calcularTotal(), // subtotal + taxa
-        tempoEntrega: "30 a 45 minutos"
+    // Pega os dados do cliente do formulário
+    const cliente = {
+        nome: document.getElementById("nomeCliente").value,
+        cidade: document.getElementById("cidade").value,
+        bairro: document.getElementById("bairro").value,
+        rua: document.getElementById("rua").value + ", Nº " + document.getElementById("numero").value,
+        referencia: document.getElementById("referencia").value || "-",
+        obs: document.getElementById("observacao").value || "-"
     };
 
-    // Gera a mensagem formatada para WhatsApp
+    // Calcula subtotal, taxa e total
+    let subtotal = 0;
+    let taxaEntrega = 20; // Ajuste se precisar calcular dinamicamente
+    carrinho.forEach(item => subtotal += item.preco * item.quantidade);
+    let total = subtotal + taxaEntrega;
+
+    // Monta a mensagem formatada para WhatsApp
     let msg = "Olá! Gostaria de fazer meu pedido:%0A%0A";
 
-    pedido.produtos.forEach(p => {
-        msg += `• ${p.nome} - *R$${p.preco}* x *${p.quantidade}*%0A`;
+    carrinho.forEach(item => {
+        msg += `• ${item.nome} - *R$${item.preco.toFixed(2)}* x *${item.quantidade}*%0A`;
     });
 
-    msg += `%0ACliente: *${pedido.cliente.nome}*%0A`;
-    msg += `Entrega em: *${pedido.cliente.cidade}*%0A`;
-    msg += `Bairro: *${pedido.cliente.bairro}*%0A`;
-    msg += `Rua: *${pedido.cliente.rua}*%0A`;
-    msg += `Ref: *${pedido.cliente.referencia || "-"}*%0A`;
-    msg += `Obs: *${pedido.cliente.obs || "-"}*%0A%0A`;
+    msg += `%0ACliente: *${cliente.nome}*%0A`;
+    msg += `Entrega em: *${cliente.cidade}*%0A`;
+    msg += `Bairro: *${cliente.bairro}*%0A`;
+    msg += `Rua: *${cliente.rua}*%0A`;
+    msg += `Ref: *${cliente.referencia}*%0A`;
+    msg += `Obs: *${cliente.obs}*%0A%0A`;
 
-    msg += `Pagamento: *${pedido.pagamento}*%0A`;
-    msg += `Subtotal: *R$${pedido.subtotal.toFixed(2)}*%0A`;
-    msg += `Taxa de entrega: *R$${pedido.taxaEntrega.toFixed(2)}*%0A`;
-    msg += `Total: *R$${pedido.total.toFixed(2)}*%0A`;
-    msg += `Tempo de entrega: *${pedido.tempoEntrega}*`;
+    msg += `Pagamento: *${pagamento}*%0A`;
+    msg += `Subtotal: *R$${subtotal.toFixed(2)}*%0A`;
+    msg += `Taxa de entrega: *R$${taxaEntrega.toFixed(2)}*%0A`;
+    msg += `Total: *R$${total.toFixed(2)}*%0A`;
+    msg += `Tempo de entrega: *30 a 45 minutos*`;
 
     // Abre WhatsApp com a mensagem
     window.open(`https://wa.me/${numeroWhatsApp}?text=${msg}`, "_blank");
@@ -308,6 +302,7 @@ function finalizarEntrega() {
     limparCarrinho();
     fecharDelivery();
 }
+
 
 // ==================================================
 // SPLASH
@@ -333,5 +328,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
