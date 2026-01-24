@@ -25,3 +25,14 @@ collections:
               - { label: "Ingredientes", name: "ingredientes", widget: "string", required: false }
               - { label: "Imagem", name: "image", widget: "image" }
 
+
+collections:
+  - name: "status-loja"
+    label: "Status da Loja"
+    files:
+      - file: "content/status.json"
+        label: "Configuração da Loja"
+        name: "config-loja"
+        fields:
+          - { label: "Aberto", name: "aberto", widget: "boolean" }
+          - { label: "Mensagem Fechada", name: "mensagem", widget: "string" }
