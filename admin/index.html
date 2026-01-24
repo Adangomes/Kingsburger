@@ -14,12 +14,12 @@
     h1 { text-align: center; margin-bottom: 30px; }
 
     /* CARD DO STATUS DA LOJA */
-    .card {
+    .card-loja {
       background: #fff;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
+      margin-top: 50px; /* espaçamento do CMS acima */
       max-width: 400px;
     }
 
@@ -53,25 +53,25 @@
 
     /* SEPARAR CMS DO PAINEL CUSTOM */
     #cms-container {
-      margin-top: 50px;
       max-width: 900px;
+      margin-bottom: 50px; /* espaçamento entre CMS e painel da loja */
     }
   </style>
 </head>
 <body>
 
-  <h1>PAINEL ADMINISTRATIVO</h1>
+  <h1>Painel Administrativo</h1>
 
-  <!-- STATUS DA LOJA -->
-  <div class="card">
+  <!-- CMS EM CIMA -->
+  <div id="cms-container">
+    <!-- O Netlify CMS vai renderizar aqui -->
+  </div>
+
+  <!-- STATUS DA LOJA EMBAIXO -->
+  <div class="card-loja">
     <div id="status-loja" class="fechado">🔴 FECHADO</div>
     <div id="mensagem-fechada">Estamos fechados no momento 😔</div>
     <button id="toggle-loja">Alternar Status</button>
-  </div>
-
-  <!-- CMS -->
-  <div id="cms-container">
-    <!-- O Netlify CMS vai renderizar aqui -->
   </div>
 
   <!-- Script principal -->
