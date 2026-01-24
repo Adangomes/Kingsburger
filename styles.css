@@ -628,49 +628,54 @@ body {
 /* =============================== */
 /* BOTÕES DO CARRINHO              */
 /* =============================== */
-.cart-box .buttons {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+/* =============================== */
+/* MODAL DO CARRINHO               */
+/* =============================== */
+#cart-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    padding: 15px;
 }
 
-.cart-box .buttons button {
-    flex: 1 1 auto;
-    padding: 10px 15px;
+.cart-box {
+    background: #fff;
+    padding: 25px 20px 20px 20px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+
+/* BOTÃO FECHAR X NO CANTO */
+.cart-header button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
     border: none;
-    border-radius: 12px;
+    font-size: 22px;
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s ease;
+    color: #e50914;
 }
 
-.cart-box .continue-btn {
-    background-color: #f1f1f1;
-    color: #000;
-}
-
-.cart-box .continue-btn:hover {
-    background-color: #e0e0e0;
-}
-
-.cart-box .checkout-btn {
-    background-color: #e50914;
-    color: #fff;
-}
-
-.cart-box .checkout-btn:hover {
-    background-color: #b00610;
-}
-
-.cart-box .buttons button:last-child {
-    background-color: #ff4d4d;
-    color: #fff;
-}
-
-.cart-box .buttons button:last-child:hover {
-    background-color: #cc0000;
+/* ITENS DO CARRINHO */
+#cart-items .cart-item {
+    background: #fff;
+    border: 2px solid #e50914;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 /* =============================== */
@@ -688,3 +693,31 @@ body {
     margin: 5px 0;
     font-size: 16px;
 }
+
+/* =============================== */
+/* BOTOES                          */
+/* =============================== */
+.cart-box .buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.cart-box .buttons button {
+    flex: 1 1 auto;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+    background-color: #e50914; /* todos vermelhos */
+    transition: all 0.2s ease;
+}
+
+.cart-box .buttons button:hover {
+    background-color: #b00610;
+}
+
