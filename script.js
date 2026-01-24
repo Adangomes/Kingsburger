@@ -249,6 +249,8 @@ function voltarFormulario() {
     document.getElementById("step1-buttons").style.display = "flex";
 }
 
+//AQUI VAI SER AJUSTADO OS VALORES POR BAIRROS
+
 function calcularTaxaEntrega(cidade, bairro) {
     cidade = cidade.toLowerCase();
     bairro = bairro.toLowerCase();
@@ -273,8 +275,8 @@ function calcularTaxaEntrega(cidade, bairro) {
         }
     }
 
-    // Se cidade não estiver na lista
-    return null; // ou 0, caso prefira
+    // Valor padrão caso a cidade não seja listada
+    return 0;
 }
 
 
@@ -351,6 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
 
