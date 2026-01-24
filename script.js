@@ -36,7 +36,12 @@ function adicionarAoCarrinho(nome, codigo, preco) {
     }
 
     const existente = carrinho.find(i => i.nome === nome);
-    existente ? existente.quantidade++ : carrinho.push({ nome, codigo, preco, quantidade: 1 });
+
+    if (existente) {
+        existente.quantidade++;
+    } else {
+        carrinho.push({ nome, codigo, preco, quantidade: 1 });
+    }
 
     salvarCarrinho();
     atualizarCarrinho();
@@ -52,6 +57,7 @@ function atualizarCarrinho() {
 
     carrinho.forEach((item, index) => {
         subtotal += item.preco * item.quantidade;
+
         container.innerHTML += `
             <div class="cart-item">
                 <div>${item.quantidade}x ${item.nome}</div>
@@ -60,13 +66,21 @@ function atualizarCarrinho() {
         `;
     });
 
-    document.getElementById("subtotal").innerText = `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
-    document.getElementById("total").innerText = `Total: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("subtotal").innerText =
+        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("total").innerText =
+        `Total: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(index) {
     carrinho.splice(index, 1);
     salvarCarrinho();
+    atualizarCarrinho();
+}
+
+function limparCarrinho() {
+    carrinho.length = 0;
+    localStorage.removeItem("meuCarrinho");
     atualizarCarrinho();
 }
 
@@ -79,27 +93,24 @@ function carregarCarrinhoSalvo() {
     if (salvo) carrinho.push(...JSON.parse(salvo));
 }
 
-function limparCarrinho() {
-    carrinho.length = 0;
-    localStorage.removeItem("meuCarrinho");
-    atualizarCarrinho();
-}
-
 // ==================================================
 // MODAIS
 // ==================================================
 function abrirCarrinho() {
-    document.getElementById("cart-modal")?.style.display = "flex";
+    document.getElementById("cart-modal").style.display = "flex";
 }
+
 function fecharCarrinho() {
-    document.getElementById("cart-modal")?.style.display = "none";
+    document.getElementById("cart-modal").style.display = "none";
 }
+
 function abrirDelivery() {
     fecharCarrinho();
-    document.getElementById("delivery-modal")?.style.display = "flex";
+    document.getElementById("delivery-modal").style.display = "flex";
 }
+
 function fecharDelivery() {
-    document.getElementById("delivery-modal")?.style.display = "none";
+    document.getElementById("delivery-modal").style.display = "none";
 }
 
 // ==================================================
@@ -120,14 +131,16 @@ async function carregarProdutos() {
             card.innerHTML = `
                 <img src="${prod.image}" alt="${prod.title}">
                 <h3>${prod.title}</h3>
+                <p class="desc">${prod.ingredientes || ""}</p>
                 <p class="price">R$ ${prod.price.toFixed(2).replace(".", ",")}</p>
-                <button onclick="adicionarAoCarrinho('${prod.title}','${prod.codigo}',${prod.price})">
+                <button class="btn"
+                    onclick="adicionarAoCarrinho('${prod.title}', '${prod.title}', ${prod.price})">
                     Adicionar
                 </button>
             `;
 
-            if (prod.categoria === "burger") burgersEl?.appendChild(card);
-            if (prod.categoria === "bebida") bebidasEl?.appendChild(card);
+            if (prod.categoria === "burger" && burgersEl) burgersEl.appendChild(card);
+            if (prod.categoria === "bebida" && bebidasEl) bebidasEl.appendChild(card);
         });
 
     } catch (e) {
@@ -136,34 +149,84 @@ async function carregarProdutos() {
 }
 
 // ==================================================
+// MENU MOBILE
+// ==================================================
+function initMenuMobile() {
+    const hamburger = document.getElementById("hamburger");
+    const menu = document.getElementById("mobile-menu");
+    if (hamburger && menu) hamburger.onclick = () => menu.classList.toggle("active");
+}
+
+// ==================================================
+// BAIRROS
+// ==================================================
+const bairrosJaragua = ["Centro","Amizade","Baependi","Rau","Ilha da Figueira"];
+const bairrosGuaramirim = ["Centro","Amizade","Escolinha","Avaí"];
+
+function carregarBairros() {
+    const cidade = document.getElementById("cidade").value;
+    const bairroSelect = document.getElementById("bairro");
+
+    bairroSelect.innerHTML = "<option value=''>Selecione</option>";
+    const bairros = cidade === "jaragua" ? bairrosJaragua : bairrosGuaramirim;
+
+    bairros.forEach(b => {
+        const o = document.createElement("option");
+        o.value = b;
+        o.textContent = b;
+        bairroSelect.appendChild(o);
+    });
+}
+
+// ==================================================
+// TROCO
+// ==================================================
+function toggleTroco() {
+    const pagamento = document.getElementById("pagamento").value;
+    document.getElementById("troco-box").style.display =
+        pagamento === "Dinheiro" ? "block" : "none";
+}
+
+// ==================================================
 // RESUMO
 // ==================================================
 function mostrarResumo() {
-    const pagamento = document.getElementById("forma-pagamento").value;
-    if (!pagamento) {
-        alert("Selecione a forma de pagamento");
+    const nome = document.getElementById("nomeCliente").value;
+    const cidade = document.getElementById("cidade").value;
+    const bairro = document.getElementById("bairro").value;
+    const rua = document.getElementById("rua").value;
+    const numero = document.getElementById("numero").value;
+    const pagamento = document.getElementById("pagamento").value;
+
+    if (!nome || !cidade || !bairro || !rua || !numero || !pagamento) {
+        alert("Preencha todos os campos!");
         return;
     }
 
     let subtotal = 0;
     carrinho.forEach(i => subtotal += i.preco * i.quantidade);
 
-    const taxa = 20;
+    const taxa = calcularTaxaEntrega(cidade, bairro);
     const total = subtotal + taxa;
 
+    // itens
     const resumoItens = document.getElementById("resumo-itens");
     resumoItens.innerHTML = "";
     carrinho.forEach(i => resumoItens.innerHTML += `<p>${i.quantidade}x ${i.nome}</p>`);
 
-    document.getElementById("resumo-taxa").innerText = `Taxa: R$ ${taxa.toFixed(2).replace(".", ",")}`;
-    document.getElementById("resumo-total").innerText = `Total: R$ ${total.toFixed(2).replace(".", ",")}`;
+    // taxa e total
+    document.getElementById("resumo-taxa").innerText =
+        `Taxa de entrega: R$ ${taxa.toFixed(2).replace(".", ",")}`;
+    document.getElementById("resumo-total").innerText =
+        `Total: R$ ${total.toFixed(2).replace(".", ",")}`;
 
+    // PAGAMENTO ANTES DOS BOTÕES
     let resumoPagamento = document.getElementById("resumo-pagamento");
     if (!resumoPagamento) {
         resumoPagamento = document.createElement("p");
         resumoPagamento.id = "resumo-pagamento";
-        document.querySelector("#resumo-pedido .buttons")
-            .before(resumoPagamento);
+        const resumoPedido = document.getElementById("resumo-pedido");
+        resumoPedido.insertBefore(resumoPagamento, resumoPedido.querySelector(".buttons"));
     }
     resumoPagamento.innerHTML = `<strong>Pagamento:</strong> ${pagamento}`;
 
@@ -176,19 +239,41 @@ function voltarFormulario() {
     document.getElementById("step1-buttons").style.display = "flex";
 }
 
+function calcularTaxaEntrega(cidade, bairro) {
+    if (cidade === "jaragua") return 20;
+    if (cidade === "guaramirim" && bairro === "Escolinha") return 5;
+    return 15;
+}
+
 // ==================================================
-// WHATSAPP
+// FINALIZAR WHATSAPP
 // ==================================================
 function finalizarEntrega() {
-    const pagamento = document.getElementById("forma-pagamento").value;
+    const pagamento = document.getElementById("pagamento").value;
+    const numeroWhatsApp = "5547997278232";
 
-    let msg = `🛒 *NOVO PEDIDO*%0A`;
+    let msg = `🛒 *NOVO PEDIDO*%0A%0A`;
     carrinho.forEach(i => msg += `• ${i.quantidade}x ${i.nome}%0A`);
+
     msg += `%0A💳 Pagamento: ${pagamento}`;
 
-    window.open(`https://wa.me/5547997278232?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${numeroWhatsApp}?text=${msg}`, "_blank");
+
     limparCarrinho();
     fecharDelivery();
+}
+
+// ==================================================
+// SPLASH
+// ==================================================
+function initSplash() {
+    const splash = document.getElementById("splash");
+    if (!splash) return; // ignora se não houver splash
+
+    setTimeout(() => {
+        splash.classList.add("hide");
+        setTimeout(() => splash.style.display = "none", 500);
+    }, 1500);
 }
 
 // ==================================================
@@ -199,15 +284,6 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarCarrinhoSalvo();
     atualizarCarrinho();
     carregarProdutos();
-    initSplash();
+    initMenuMobile();
+    initSplash(); // desbloqueia splash
 });
-
-function initSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
-
-    setTimeout(() => {
-        splash.classList.add("hide");
-        setTimeout(() => splash.style.display = "none", 500);
-    }, 1500);
-}
