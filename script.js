@@ -164,7 +164,7 @@ const bairrosJaragua = [
     "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
     "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo", "João Pessoa",
     "Nova Brasília", "Nereu Ramos", "Rau", "Rio Cerro I", "Rio Cerro II",
-    "Rio da Luz", "Tifa Martins", "Três Rios do Sul", "Vieira", "Vila Lenzi"
+    "Rio da Luz", "Tifa Martins","Vila nova", "Três Rios do Sul", "Vieira", "Vila Lenzi"
 ];
 
 const bairrosGuaramirim = [
@@ -250,10 +250,33 @@ function voltarFormulario() {
 }
 
 function calcularTaxaEntrega(cidade, bairro) {
-    if (cidade === "jaragua") return 20;
-    if (cidade === "guaramirim" && bairro === "Escolinha") return 5;
-    return 15;
+    cidade = cidade.toLowerCase();
+    bairro = bairro.toLowerCase();
+
+    if (cidade === "jaragua") {
+        switch (bairro) {
+            case "vila nova": return 5;
+            case "ilha da figueira": return 8;
+            case "boa vista": return 6;
+            case "centro": return 7;
+            default: return 12; // demais bairros de Jaraguá
+        }
+    }
+
+    if (cidade === "guaramirim") {
+        switch (bairro) {
+            case "corticeira": return 30;
+            case "escolinha": return 25;
+            case "centro": return 15;
+            case "avai": return 20;
+            default: return 22; // demais bairros de Guaramirim
+        }
+    }
+
+    // Se cidade não estiver na lista
+    return null; // ou 0, caso prefira
 }
+
 
 // ==================================================
 function finalizarEntrega() {
@@ -328,6 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
 
