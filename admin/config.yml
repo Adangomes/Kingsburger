@@ -1,3 +1,12 @@
+backend:
+  name: git-gateway
+  branch: principal  # ou main, dependendo do seu repositório
+
+media_folder: "imagens"        # pasta onde as imagens serão salvas
+public_folder: "/imagens"       # caminho público usado no site
+media_library:
+  name: uploadcare              # pode ser uploadcare ou cloudinary
+
 collections:
   - name: "produtos"
     label: "Produtos"
