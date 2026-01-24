@@ -279,10 +279,7 @@ function calcularTaxaEntrega(cidade, bairro) {
    
 }
 
-
-// ==================================================
 function finalizarEntrega() {
-    const pagamento = document.getElementById("pagamento").value;
     const numeroWhatsApp = "5547997278232";
 
     // Pega os dados do cliente do formulário
@@ -295,13 +292,29 @@ function finalizarEntrega() {
         obs: document.getElementById("observacao").value || "-"
     };
 
-    // Calcula subtotal, taxa e total
+    const pagamento = document.getElementById("pagamento").value;
+
+    // Verifica se todos os campos estão preenchidos
+    if (!cliente.nome || !cliente.cidade || !cliente.bairro || !cliente.rua || !pagamento) {
+        alert("Preencha todos os campos!");
+        return;
+    }
+
+    // Calcula subtotal
     let subtotal = 0;
-    let taxaEntrega = 20; // Ajuste se precisar calcular dinamicamente
     carrinho.forEach(item => subtotal += item.preco * item.quantidade);
+
+    // Calcula taxa de entrega dinamicamente
+    let taxaEntrega = calcularTaxaEntrega(cliente.cidade, cliente.bairro);
+    if (taxaEntrega === null) {
+        alert("Entrega não disponível para essa cidade/bairro.");
+        return;
+    }
+
+    // Calcula total
     let total = subtotal + taxaEntrega;
 
-    // Monta a mensagem formatada para WhatsApp
+    // Monta a mensagem para WhatsApp
     let msg = "Olá! Gostaria de fazer meu pedido:%0A%0A";
 
     carrinho.forEach(item => {
@@ -324,10 +337,10 @@ function finalizarEntrega() {
     // Abre WhatsApp com a mensagem
     window.open(`https://wa.me/${numeroWhatsApp}?text=${msg}`, "_blank");
 
+    // Limpa carrinho e fecha modal
     limparCarrinho();
     fecharDelivery();
 }
-
 
 // ==================================================
 // SPLASH
@@ -353,6 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
 
