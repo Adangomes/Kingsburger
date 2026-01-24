@@ -310,6 +310,53 @@ function voltarFormulario() {
     document.getElementById("step1-buttons").style.display = "flex";
 }
 
-const numeroWhatsApp = "5547997278232";
-const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-window.open(url, "_blank");
+function finalizarEntrega() {
+    if (carrinho.length === 0) {
+        alert("Carrinho vazio!");
+        return;
+    }
+
+    const nome = document.getElementById("nomeCliente").value;
+    const cidade = document.getElementById("cidade").value;
+    const bairro = document.getElementById("bairro").value;
+    const rua = document.getElementById("rua").value;
+    const numero = document.getElementById("numero").value;
+    const referencia = document.getElementById("referencia").value || "Não informado";
+    const observacao = document.getElementById("observacao").value || "Nenhuma";
+    const pagamento = document.getElementById("pagamento").value;
+    const troco = document.getElementById("troco").value;
+
+    let mensagem = `🛒 *NOVO PEDIDO*%0A%0A`;
+    mensagem += `👤 *Cliente:* ${nome}%0A`;
+    mensagem += `📍 *Endereço:* ${rua}, ${numero} - ${bairro} (${cidade})%0A`;
+    mensagem += `📌 *Referência:* ${referencia}%0A%0A`;
+    mensagem += `🧾 *Itens:*%0A`;
+
+    let subtotal = 0;
+    carrinho.forEach(item => {
+        subtotal += item.preco * item.quantidade;
+        mensagem += `• ${item.quantidade}x ${item.nome} - R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}%0A`;
+    });
+
+    const taxaEntrega = calcularTaxaEntrega(cidade, bairro);
+    const total = subtotal + taxaEntrega;
+
+    mensagem += `%0A🚚 *Taxa de entrega:* R$ ${taxaEntrega.toFixed(2).replace(".", ",")}%0A`;
+    mensagem += `💰 *Total:* R$ ${total.toFixed(2).replace(".", ",")}%0A%0A`;
+    mensagem += `💳 *Pagamento:* ${pagamento}%0A`;
+
+    if (pagamento === "Dinheiro" && troco) {
+        mensagem += `💵 *Troco para:* R$ ${troco}%0A`;
+    }
+
+    mensagem += `%0A📝 *Observações:* ${observacao}`;
+
+    const numeroWhatsApp = "5547997278232";
+    const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
+
+    window.open(url, "_blank");
+
+    limparCarrinho();
+    fecharDelivery();
+}
+
