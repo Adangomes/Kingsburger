@@ -275,8 +275,8 @@ function calcularTaxaEntrega(cidade, bairro) {
         }
     }
 
-    // Valor padrão caso a cidade não seja listada
-    return 0;
+
+   
 }
 
 
@@ -353,6 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
 
