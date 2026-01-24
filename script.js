@@ -194,3 +194,58 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash();
 });
+// ==================================================
+// BAIRROS POR CIDADE
+// ==================================================
+const bairrosJaragua = [
+    "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
+    "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo",
+    "João Pessoa", "Nova Brasília", "Nereu Ramos", "Rau",
+    "Rio Cerro I", "Rio Cerro II", "Rio da Luz",
+    "Tifa Martins", "Três Rios do Sul", "Vieira", "Vila Lenzi"
+];
+
+const bairrosGuaramirim = [
+    "Centro", "Amizade", "Avaí", "Bananal do Sul", "Corticeira",
+    "Figueirinha", "Guamiranga", "Imigrantes", "João Pessoa",
+    "Nova Esperança", "Recanto Feliz", "Rio Branco",
+    "Rua Nova", "Seleção", "Escolinha"
+];
+
+// ==================================================
+// CARREGAR BAIRROS DINAMICAMENTE
+// ==================================================
+function carregarBairros() {
+    const cidade = document.getElementById("cidade").value;
+    const bairroSelect = document.getElementById("bairro");
+
+    bairroSelect.innerHTML = "<option value=''>Selecione o bairro</option>";
+
+    let bairros = [];
+
+    if (cidade === "jaragua") bairros = bairrosJaragua;
+    if (cidade === "guaramirim") bairros = bairrosGuaramirim;
+
+    bairros.forEach(bairro => {
+        const option = document.createElement("option");
+        option.value = bairro;
+        option.textContent = bairro;
+        bairroSelect.appendChild(option);
+    });
+}
+
+// ==================================================
+// MOSTRAR / ESCONDER TROCO
+// ==================================================
+function toggleTroco() {
+    const pagamento = document.getElementById("pagamento").value;
+    const trocoBox = document.getElementById("troco-box");
+
+    if (pagamento === "Dinheiro") {
+        trocoBox.style.display = "block";
+    } else {
+        trocoBox.style.display = "none";
+        document.getElementById("troco").value = "";
+    }
+}
+
