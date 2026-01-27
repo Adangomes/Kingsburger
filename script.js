@@ -252,25 +252,33 @@ function voltarFormulario() {
 //AQUI VAI SER AJUSTADO OS VALORES POR BAIRROS
 
 function calcularTaxaEntrega(cidade, bairro) {
-    cidade = cidade.toLowerCase();
-    bairro = bairro.toLowerCase();
+    cidade = normalizarTexto(cidade);
+    bairro = normalizarTexto(bairro);
 
-    if (cidade === "jaragua") {
+    if (cidade === "jaragua do sul" || cidade === "jaragua") {
         switch (bairro) {
             case "vila nova":
                 return 5;
-            case "Tres rios do norte":
+
+            case "tres rios do norte":
                 return 14;
+
             case "ilha da figueira":
                 return 8;
+
             case "boa vista":
                 return 6;
+
             case "centro":
                 return 7;
+
             default:
-                return 12; // demais bairros de Jaraguá
+                return 12; // demais bairros
         }
     }
+
+    return 0;
+}
 
     if (cidade === "guaramirim") {
         switch (bairro) {
@@ -378,4 +386,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
