@@ -259,7 +259,7 @@ function calcularTaxaEntrega(cidade, bairro) {
         switch (bairro) {
             case "vila nova":
                 return 5;
-            case "Três Rios do Norte":
+            case "Tres rios do norte":
                 return 14;
             case "ilha da figueira":
                 return 8;
@@ -378,3 +378,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
