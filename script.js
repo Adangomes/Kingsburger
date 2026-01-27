@@ -1,4 +1,10 @@
 // ==================================================
+// GEOAPIFY (AUTOCOMPLETE DE RUA)
+// ==================================================
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; // 👈 usa a mesma do Netlify
+
+
+// ==================================================
 // CONFIGURAÇÕES GLOBAIS
 // ==================================================
 let LOJA_ABERTA = true;
@@ -164,7 +170,7 @@ const bairrosJaragua = [
     "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
     "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo", "João Pessoa",
     "Nova Brasília", "Nereu Ramos", "Rau", "Rio Cerro I", "Rio Cerro II",
-    "Rio da Luz", "Tifa Martins","Vila nova", "Três Rios do Sul", "Três Rios do Norte", "Vieira", "Vila Lenzi"
+    "Rio da Luz", "Tifa Martins", "Vila nova", "Três Rios do Sul", "Três Rios do Norte", "Vieira", "Vila Lenzi"
 ];
 
 const bairrosGuaramirim = [
@@ -257,27 +263,38 @@ function calcularTaxaEntrega(cidade, bairro) {
 
     if (cidade === "jaragua") {
         switch (bairro) {
-            case "vila nova": return 5;
-            case "Três Rios do Norte": return 14;
-            case "ilha da figueira": return 8;
-            case "boa vista": return 6;
-            case "centro": return 7;
-            default: return 12; // demais bairros de Jaraguá
+            case "vila nova":
+                return 5;
+            case "Tres rios do norte":
+                return 14;
+            case "ilha da figueira":
+                return 8;
+            case "boa vista":
+                return 6;
+            case "centro":
+                return 7;
+            default:
+                return 12; // demais bairros de Jaraguá
         }
     }
 
     if (cidade === "guaramirim") {
         switch (bairro) {
-            case "corticeira": return 30;
-            case "escolinha": return 25;
-            case "centro": return 15;
-            case "avai": return 20;
-            default: return 22; // demais bairros de Guaramirim
+            case "corticeira":
+                return 30;
+            case "escolinha":
+                return 25;
+            case "centro":
+                return 15;
+            case "avai":
+                return 20;
+            default:
+                return 22; // demais bairros de Guaramirim
         }
     }
 
 
-   
+
 }
 
 function finalizarEntrega() {
@@ -369,9 +386,97 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+//AUTOCOMPLETE DE RUAS (JARAGUÁ DO SUL – FUNCIONAL)
+// ==================================================
+// AUTOCOMPLETE DE RUA (JARAGUÁ / GUARAMIRIM)
+// ==================================================
+function normalizar(txt) {
+    return txt ?
+        txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() :
+        "";
+}
 
+async function autocompleteRua(texto, cidade, container, onSelect) {
+    if (texto.length < 2) {
+        container.innerHTML = "";
+        return;
+    }
 
+    const cidadeFiltro =
+        cidade === "jaragua" ?
+        "Jaraguá do Sul" :
+        cidade === "guaramirim" ?
+        "Guaramirim" :
+        "";
 
+    if (!cidadeFiltro) return;
 
+    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+        texto + " " + cidadeFiltro
+    )}&filter=countrycode:br&limit=6&apiKey=${GEOAPIFY_KEY}`;
 
+    const res = await fetch(url);
+    const data = await res.json();
 
+    container.innerHTML = "";
+    if (!data.features) return;
+
+    data.features.forEach(f => {
+        const city = normalizar(f.properties.city || "");
+        if (!city.includes(normalizar(cidadeFiltro))) return;
+
+        const rua =
+            f.properties.address_line1 ||
+            f.properties.street ||
+            "";
+
+        if (!rua) return;
+
+        const div = document.createElement("div");
+        div.className = "sugestao-rua";
+        div.textContent = rua;
+
+        div.onclick = () => {
+            onSelect(rua);
+            container.innerHTML = "";
+        };
+
+        container.appendChild(div);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const ruaInput = document.getElementById("rua");
+    const cidadeSelect = document.getElementById("cidade");
+
+    // cria container de sugestões se não existir
+    let sugestoes = document.getElementById("rua-sugestoes");
+    if (!sugestoes) {
+        sugestoes = document.createElement("div");
+        sugestoes.id = "rua-sugestoes";
+        sugestoes.style.position = "absolute";
+        sugestoes.style.background = "#fff";
+        sugestoes.style.border = "1px solid #ddd";
+        sugestoes.style.zIndex = "999";
+        sugestoes.style.width = "100%";
+        sugestoes.style.maxHeight = "180px";
+        sugestoes.style.overflowY = "auto";
+        ruaInput.parentNode.appendChild(sugestoes);
+    }
+
+    ruaInput.addEventListener("input", () => {
+        const cidade = cidadeSelect.value;
+        const texto = ruaInput.value.replace(/[0-9]/g, "").trim();
+
+        if (!cidade) {
+            sugestoes.innerHTML = "";
+            return;
+        }
+
+        autocompleteRua(texto, cidade, sugestoes, ruaSelecionada => {
+            ruaInput.value = ruaSelecionada;
+            sugestoes.innerHTML = "";
+            document.getElementById("numero").focus();
+        });
+    });
+});
