@@ -164,7 +164,7 @@ const bairrosJaragua = [
     "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
     "Czerniewicz", "Ilha da Figueira", "Jaraguá 84", "Jaraguá Esquerdo", "João Pessoa",
     "Nova Brasília", "Nereu Ramos", "Rau", "Rio Cerro I", "Rio Cerro II",
-    "Rio da Luz", "Tifa Martins","Vila nova", "Três Rios do Sul", "Vieira", "Vila Lenzi"
+    "Rio da Luz", "Tifa Martins","Vila nova", "Três Rios do Sul", "Três Rios do Norte", "Vieira", "Vila Lenzi"
 ];
 
 const bairrosGuaramirim = [
@@ -258,6 +258,7 @@ function calcularTaxaEntrega(cidade, bairro) {
     if (cidade === "jaragua") {
         switch (bairro) {
             case "vila nova": return 5;
+            case "Três Rios do Norte": return 14;
             case "ilha da figueira": return 8;
             case "boa vista": return 6;
             case "centro": return 7;
@@ -366,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMenuMobile();
     initSplash(); // desbloqueia splash
 });
+
 
 
 
