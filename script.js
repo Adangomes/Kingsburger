@@ -1,16 +1,7 @@
 // ==================================================
-// GEOAPIFY
+// GEOAPIFY (AUTOCOMPLETE DE RUA REAL)
 // ==================================================
-const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; // usa a do Netlify
-
-// ==================================================
-// UTIL
-// ==================================================
-function normalizar(txt) {
-    return txt
-        ? txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-        : "";
-}
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 
 // ==================================================
 // CONFIGURAÇÕES GLOBAIS
@@ -18,6 +9,15 @@ function normalizar(txt) {
 let LOJA_ABERTA = true;
 let MENSAGEM_FECHADA = "Estamos fechados no momento 😔";
 const carrinho = [];
+
+// ==================================================
+// NORMALIZA TEXTO
+// ==================================================
+function normalizar(txt) {
+    return txt
+        ? txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        : "";
+}
 
 // ==================================================
 // STATUS DA LOJA
@@ -41,47 +41,13 @@ async function carregarStatusLoja() {
 }
 
 // ==================================================
-// PRODUTOS
-// ==================================================
-async function carregarProdutos() {
-    try {
-        const res = await fetch("/content/produtos.json");
-        const data = await res.json();
-
-        const burgers = document.getElementById("burgers");
-        const bebidas = document.getElementById("bebidas");
-
-        data.produtos.forEach(p => {
-            const card = document.createElement("div");
-            card.className = "product-card";
-
-            card.innerHTML = `
-                <img src="${p.image}" alt="${p.title}">
-                <h3>${p.title}</h3>
-                <p class="desc">${p.ingredientes || ""}</p>
-                <p class="price">R$ ${p.price.toFixed(2).replace(".", ",")}</p>
-                <button onclick="adicionarAoCarrinho('${p.title}', ${p.price})">
-                    Adicionar
-                </button>
-            `;
-
-            if (p.categoria === "burger" && burgers) burgers.appendChild(card);
-            if (p.categoria === "bebida" && bebidas) bebidas.appendChild(card);
-        });
-    } catch (e) {
-        console.error("Erro produtos", e);
-    }
-}
-
-// ==================================================
 // CARRINHO
 // ==================================================
-function adicionarAoCarrinho(nome, preco) {
+function adicionarAoCarrinho(nome, codigo, preco) {
     if (!LOJA_ABERTA) return alert(MENSAGEM_FECHADA);
 
     const item = carrinho.find(i => i.nome === nome);
-    if (item) item.qtd++;
-    else carrinho.push({ nome, preco, qtd: 1 });
+    item ? item.quantidade++ : carrinho.push({ nome, codigo, preco, quantidade: 1 });
 
     salvarCarrinho();
     atualizarCarrinho();
@@ -89,26 +55,23 @@ function adicionarAoCarrinho(nome, preco) {
 }
 
 function atualizarCarrinho() {
-    const el = document.getElementById("cart-items");
-    if (!el) return;
+    const box = document.getElementById("cart-items");
+    if (!box) return;
 
-    el.innerHTML = "";
+    box.innerHTML = "";
     let subtotal = 0;
 
     carrinho.forEach((i, idx) => {
-        subtotal += i.preco * i.qtd;
-        el.innerHTML += `
+        subtotal += i.preco * i.quantidade;
+        box.innerHTML += `
             <div class="cart-item">
-                <span>${i.qtd}x ${i.nome}</span>
+                <span>${i.quantidade}x ${i.nome}</span>
                 <button onclick="removerItem(${idx})">Excluir</button>
-            </div>
-        `;
+            </div>`;
     });
 
-    document.getElementById("subtotal").innerText =
-        `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
-    document.getElementById("total").innerText =
-        `Total: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("subtotal").innerText = `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
+    document.getElementById("total").innerText = `Total: R$ ${subtotal.toFixed(2).replace(".", ",")}`;
 }
 
 function removerItem(i) {
@@ -124,6 +87,12 @@ function salvarCarrinho() {
 function carregarCarrinhoSalvo() {
     const salvo = localStorage.getItem("meuCarrinho");
     if (salvo) carrinho.push(...JSON.parse(salvo));
+}
+
+function limparCarrinho() {
+    carrinho.length = 0;
+    localStorage.removeItem("meuCarrinho");
+    atualizarCarrinho();
 }
 
 // ==================================================
@@ -144,89 +113,82 @@ function fecharDelivery() {
 }
 
 // ==================================================
-// BAIRROS
+// PRODUTOS
+// ==================================================
+async function carregarProdutos() {
+    const res = await fetch("/content/produtos.json");
+    const data = await res.json();
+
+    data.produtos.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+            <img src="${p.image}">
+            <h3>${p.title}</h3>
+            <p>${p.ingredientes || ""}</p>
+            <strong>R$ ${p.price.toFixed(2).replace(".", ",")}</strong>
+            <button onclick="adicionarAoCarrinho('${p.title}','${p.title}',${p.price})">
+                Adicionar
+            </button>
+        `;
+        document.getElementById(p.categoria === "burger" ? "burgers" : "bebidas")
+            ?.appendChild(card);
+    });
+}
+
+// ==================================================
+// BAIRROS (NÃO APAGUEI NADA 😅)
 // ==================================================
 const bairrosJaragua = [
-    "Centro", "Amizade", "Baependi", "Barra do Rio Cerro", "Boa Vista",
-    "Ilha da Figueira", "Jaraguá Esquerdo", "Nova Brasília", "Rau",
-    "Três Rios do Norte", "Vila Nova"
+    "Centro","Amizade","Baependi","Barra do Rio Cerro","Boa Vista",
+    "Czerniewicz","Ilha da Figueira","Jaraguá 84","Jaraguá Esquerdo",
+    "João Pessoa","Nova Brasília","Nereu Ramos","Rau","Rio Cerro I",
+    "Rio Cerro II","Rio da Luz","Tifa Martins","Vila Nova",
+    "Três Rios do Sul","Três Rios do Norte","Vieira","Vila Lenzi"
 ];
 
 const bairrosGuaramirim = [
-    "Centro", "Avaí", "Corticeira", "Escolinha"
+    "Centro","Amizade","Avaí","Bananal do Sul","Corticeira",
+    "Figueirinha","Guamiranga","Imigrantes","João Pessoa",
+    "Nova Esperança","Recanto Feliz","Rio Branco","Rua Nova",
+    "Seleção","Escolinha"
 ];
 
 function carregarBairros() {
     const cidade = document.getElementById("cidade").value;
     const bairro = document.getElementById("bairro");
-
     bairro.innerHTML = "<option value=''>Selecione</option>";
+
     const lista = cidade === "jaragua" ? bairrosJaragua : bairrosGuaramirim;
-
-    lista.forEach(b => {
-        const o = document.createElement("option");
-        o.value = b;
-        o.textContent = b;
-        bairro.appendChild(o);
-    });
+    lista.forEach(b => bairro.innerHTML += `<option>${b}</option>`);
 }
 
 // ==================================================
-// TAXA ENTREGA
-// ==================================================
-function calcularTaxaEntrega(cidade, bairro) {
-    cidade = normalizar(cidade);
-    bairro = normalizar(bairro);
-
-    if (cidade === "jaragua") {
-        if (bairro === "vila nova") return 5;
-        if (bairro === "centro") return 7;
-        if (bairro === "baependi") return 6;
-        return 12;
-    }
-
-    if (cidade === "guaramirim") {
-        if (bairro === "centro") return 15;
-        if (bairro === "corticeira") return 30;
-        return 22;
-    }
-    return 0;
-}
-
-// ==================================================
-// AUTOCOMPLETE DE RUA (GEOAPIFY)
+// AUTOCOMPLETE DE RUA REAL (FUNCIONAL)
 // ==================================================
 async function autocompleteRua(texto, cidade, container, onSelect) {
-    if (texto.length < 2) return (container.innerHTML = "");
+    if (texto.length < 3) return container.innerHTML = "";
 
     const cidadeFiltro =
-        cidade === "jaragua" ? "Jaraguá do Sul" :
-        cidade === "guaramirim" ? "Guaramirim" : "";
+        cidade === "jaragua" ? "Jaraguá do Sul SC" :
+        cidade === "guaramirim" ? "Guaramirim SC" : "";
 
     if (!cidadeFiltro) return;
 
     const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-        texto + " " + cidadeFiltro
+        texto + ", " + cidadeFiltro
     )}&filter=countrycode:br&limit=6&apiKey=${GEOAPIFY_KEY}`;
 
     const res = await fetch(url);
     const data = await res.json();
 
     container.innerHTML = "";
-    if (!data.features) return;
-
-    data.features.forEach(f => {
-        const rua = f.properties.address_line1;
-        if (!rua) return;
-
+    data.features?.forEach(f => {
+        const endereco = f.properties.formatted;
         const div = document.createElement("div");
         div.className = "sugestao-rua";
-        div.textContent = rua;
-
-        div.onclick = () => {
-            onSelect(rua);
-            container.innerHTML = "";
-        };
+        div.textContent = endereco;
+        div.onclick = () => onSelect(endereco);
         container.appendChild(div);
     });
 }
@@ -235,17 +197,16 @@ async function autocompleteRua(texto, cidade, container, onSelect) {
 // SPLASH
 // ==================================================
 function initSplash() {
-    const splash = document.getElementById("splash");
-    if (!splash) return;
-
+    const s = document.getElementById("splash");
+    if (!s) return;
     setTimeout(() => {
-        splash.classList.add("hide");
-        setTimeout(() => splash.remove(), 500);
+        s.classList.add("hide");
+        setTimeout(() => s.style.display = "none", 500);
     }, 1500);
 }
 
 // ==================================================
-// INIT
+// INIT FINAL
 // ==================================================
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
@@ -257,25 +218,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const rua = document.getElementById("rua");
     const cidade = document.getElementById("cidade");
 
-    if (rua && cidade) {
-        const sug = document.createElement("div");
-        sug.id = "rua-sugestoes";
-        sug.style.position = "absolute";
-        sug.style.background = "#fff";
-        sug.style.zIndex = "999";
-        rua.parentNode.style.position = "relative";
-        rua.parentNode.appendChild(sug);
+    const sug = document.createElement("div");
+    sug.id = "rua-sugestoes";
+    sug.className = "sugestoes";
+    rua.parentNode.appendChild(sug);
 
-        rua.addEventListener("input", () => {
-            autocompleteRua(
-                rua.value.replace(/[0-9]/g, ""),
-                cidade.value,
-                sug,
-                r => {
-                    rua.value = r;
-                    document.getElementById("numero").focus();
-                }
-            );
+    rua.addEventListener("input", () => {
+        autocompleteRua(rua.value, cidade.value, sug, r => {
+            rua.value = r;
+            sug.innerHTML = "";
+            document.getElementById("numero").focus();
         });
-    }
+    });
 });
