@@ -2,7 +2,7 @@
   "produtos": [
     {
       "title": "Kings Burger Tradicional",
-      "price": 25.9,
+      "price": 24,
       "categoria": "burger",
       "ingredientes": "Hambúrguer artesanal 140g, duas fatias de queijo e pão brioche",
       "image": "/imagens/kingstradicional.jpg"
