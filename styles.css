@@ -505,7 +505,7 @@ body {
 .splash-logo {
     width: 300px;
     max-width: 90%;
-    animation: softPulse 2.8s ease-in-out infinite;
+    animation: softPulse 3.35s ease-in-out infinite;
 }
 
 @keyframes softPulse {
@@ -720,4 +720,5 @@ body {
 .cart-box .buttons button:hover {
     background-color: #b00610;
 }
+
 
