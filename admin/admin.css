@@ -1,0 +1,149 @@
+:root {
+    --primary: #ffcc00;
+    --success: #27ae60;
+    --info: #3498db;
+    --warning: #f39c12;
+    --bg: #000000;
+    --card-bg: #1a1a1a;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: white;
+    margin: 0;
+    padding-bottom: 30px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #111;
+    border-bottom: 2px solid var(--primary);
+}
+
+.admin-header h1 { font-size: 1.4rem; margin: 0; font-weight: 800; }
+.admin-header span { color: var(--primary); }
+.btn-refresh { background: var(--primary); border: none; padding: 10px; border-radius: 5px; font-size: 1.2rem; cursor: pointer; }
+
+/* ABAS */
+.tabs {
+    display: flex;
+    background: #222;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px 5px;
+    background: none;
+    border: none;
+    color: #888;
+    font-weight: bold;
+    font-size: 0.8rem;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: rgba(255, 204, 0, 0.05);
+}
+
+.btn-hist { color: #5dade2 !important; }
+
+/* RELATÓRIO */
+.btn-pdf { width: 92%; background: #e74c3c; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 15px auto; display: block; }
+
+/* CARDS */
+#pedidos-container { padding: 15px; list-style: none; margin: 0; }
+
+.pedido-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 6px solid var(--primary);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.cliente-nome { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
+.hora { font-size: 0.9rem; color: #888; }
+
+.info { font-size: 1rem; margin: 6px 0; color: #ddd; }
+
+.itens-box {
+    background: rgba(255,255,255,0.05);
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    border: 1px solid #333;
+}
+
+.total-area {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-align: right;
+    color: var(--primary);
+    margin: 10px 0;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+}
+
+/* BOTÕES */
+.btn-actions { display: flex; flex-direction: column; gap: 10px; }
+
+button {
+    padding: 18px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    font-size: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.btn-success { background: var(--success); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-info { background: var(--info); color: white; }
+
+/* TELA INICIAL (AJUSTADA) */
+#container-ativacao {
+    position: fixed;
+    top: 0; 
+    left: 0; /* ADICIONE ISSO PARA CENTRALIZAR */
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.98);
+    z-index: 9999;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
+
+#container-ativacao button { 
+    width: 85%; 
+    background: var(--primary); 
+    color: black; 
+    border-radius: 50px; 
+    font-size: 1.2rem; 
+    padding: 25px; 
+    font-weight: 900;
+    box-shadow: 0 0 20px var(--primary);
+    animation: pulsar 1.5s infinite; /* EFEITO PARA VOCÊ VER O BOTÃO */
+}
+
+@keyframes pulsar {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
