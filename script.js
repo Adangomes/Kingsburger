@@ -367,9 +367,7 @@ function fecharModalEntrega() {
     document.getElementById('delivery-modal').style.display = 'none';
     document.body.style.overflow = 'auto'; 
     const nav = document.querySelector('.bottom-nav-container');
-    if (nav) {
-        nav.style.display = 'flex';
-    }
+    if (nav) nav.style.display = 'flex'; // <--- AQUI ELE VOLTA!
 }
 
 
@@ -391,8 +389,12 @@ function fecharDelivery() {
 
 function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none";
                               document.querySelector('.bottom-nav-container').style.display = 'flex';}
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none";
-                          document.querySelector('.bottom-nav-container').style.display = 'flex';}
+function fecharCarrinho() { 
+    document.getElementById("cart-modal").style.display = "none";
+    document.body.style.overflow = 'auto';
+    const nav = document.querySelector('.bottom-nav-container');
+    if (nav) nav.style.display = 'flex'; // <--- AQUI ELE VOLTA TAMBÉM!
+}
 function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex";
                          document.querySelector('.bottom-nav-container').style.display = 'none';}
 function mostrarToast(t) { 
@@ -445,31 +447,30 @@ function inicializarFirebase() {
 const db = inicializarFirebase();
 
 function salvarPedidoFirebase(dados) {
-    if (!db) {
-        console.error("Firebase não carregado!");
-        return Promise.resolve(); // Deixa seguir para o Zap mesmo com erro
-    }
+    if (!db) return Promise.resolve();
     
-    const novoPedidoRef = db.ref('pedidos').push();
+    const novoPedidoRef = db.ref('pedidos_kings').push(); // Usei 'pedidos_kings' para bater com o admin
+    const novoId = novoPedidoRef.key;
+    
+    // SALVA O ID NO CELULAR DO CLIENTE PARA RASTREIO
+    localStorage.setItem('ultimoPedidoId', novoId);
+
     return novoPedidoRef.set({
+        id: novoId,
         cliente: dados.nome,
         endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
         referencia: document.getElementById("referencia")?.value || "Não informada",
         pagamento: dados.pag,
+        status: 'pendente', // Status inicial obrigatório
         itens: carrinho.map(item => ({
             produto: item.title,
             qtd: 1,
             precoUn: item.price
         })),
-        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
-        taxaEntrega: taxaEntregaCalculada,
-        desconto: descontoAplicado,
         total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
-        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma"
+        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
     });
 }
-
 
 //ACOMPANHAR PEDIDOS
 // Função para alternar entre Cardápio e Pedidos
@@ -533,6 +534,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
