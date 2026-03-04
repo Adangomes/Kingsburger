@@ -237,51 +237,51 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     border: none;
 }
 /* Container do Rodapé */
+/* Container do Rodapé - Agora colado na base e Preto */
 .bottom-nav-container {
     position: fixed;
-    bottom: 15px; /* Flutuando acima da borda */
+    bottom: 0; /* Colado no fim da tela */
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    z-index: 2000; /* Garante que fique acima dos modais se necessário */
-    padding: 0 15px;
+    z-index: 2000;
+    background-color: #000000; /* Preto igual ao topo */
+    border-top: 1px solid #333; /* Linha sutil de separação */
 }
-/* A Barra Vermelha */
+/* A Barra de Navegação */
 .bottom-nav {
-    background-color: #d31b27; /* Vermelho Kings Burger */
+    background-color: #000000; 
     display: flex;
     justify-content: space-around;
     align-items: center;
     width: 100%;
-    max-width: 400px; /* Mantém formato de pílula em telas grandes */
-    height: 65px;
-    border-radius: 35px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    max-width: 500px; 
+    height: 60px;
+    border-radius: 0; /* Quadrado para encaixar na tela */
 }
 /* Itens do Menu */
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: white !important;
+    color: #888 !important; /* Cinza para itens não selecionados */
     text-decoration: none !important;
-    transition: transform 0.2s;
+    flex: 1;
+}
+/* Ícone e Texto quando ATIVO (onde o usuário está) */
+.nav-item.active {
+    color: #f37021 !important; /* Laranja da Kings Burger */
 }
 .nav-item i {
-    font-size: 20px;
+    font-size: 18px;
+    margin-bottom: 2px;
 }
 .nav-label {
-    font-size: 10px;
-    margin-top: 4px;
+    font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
 }
-/* Feedback visual ao clicar */
-.nav-item:active {
-    transform: scale(0.9);
-}
-/* Ajuste no corpo para o conteúdo não ficar escondido atrás da barra */
+/* Ajuste no corpo para não cobrir o último item da lista */
 body {
-    padding-bottom: 90px;
+    padding-bottom: 70px;
 }
