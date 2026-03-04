@@ -249,69 +249,58 @@ async function processarResumoGeo() {
 
 // FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
 // --- FUNÇÃO ENVIAR CORRIGIDA ---
-function enviarWhatsApp() {
+async function enviarPedidoFinal() {
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
     const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
     const pag = document.getElementById("pagamento")?.value || "A combinar";
-    const totalMsg = document.getElementById("resumo-total")?.innerText || "";
 
-    if (!nome || !rua) return alert("Preencha os dados de entrega!");
+    if (!nome || !rua) return alert("Por favor, preencha os dados de entrega!");
 
-    // 1. MONTAGEM DA MENSAGEM
-    let msg = `*NOVO PEDIDO - SNOOP LANCHE*\n`;
-    msg += `------------------------------\n`;
-    msg += ` *Cliente:* ${nome}\n`;
-    msg += ` *Endereço:* ${rua}, ${num}\n`;
-    msg += ` *Bairro:* ${bairro}\n`;
-    msg += ` *Pagamento:* ${pag}\n`;
-    msg += `------------------------------\n`;
-    msg += ` *ITENS:*\n`;
-    carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
-    msg += `------------------------------\n`;
-    msg += ` *Taxa de Entrega:* R$ ${taxaEntregaCalculada.toFixed(2)}\n`;
-    msg += ` *${totalMsg}*`;
-
-    const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
-
-    // 2. INTERFACE: Trava o botão para não clicar duas vezes
-    const btnWhats = document.querySelector("#resumo-pedido button");
-    if(btnWhats) {
-        btnWhats.innerText = "PROCESSANDO...";
-        btnWhats.disabled = true;
+    // 1. ATIVA O LOADING (O Círculo)
+    const loader = document.getElementById("loading-geral");
+    const loaderText = loader.querySelector("p"); // O texto abaixo do círculo
+    
+    if (loader) {
+        loader.style.display = "flex";
+        loaderText.innerText = "AGUARDE: Processando seu pedido...";
     }
 
-    // 3. FUNÇÃO PARA LIMPAR E REINICIAR O SITE
-    const finalizarEVoltarInicio = () => {
-        localStorage.removeItem("carrinho"); // Limpa o carrinho no banco do navegador
-        window.location.href = urlZap; // Abre o WhatsApp
-        
-        // Dá um tempo para o celular abrir o Zap e depois reseta o site ao fundo
+    try {
+        // 2. SALVA NO FIREBASE (pedidos_kings)
+        // O salvarPedidoFirebase já deve estar configurado para salvar em 'pedidos_kings'
+        await salvarPedidoFirebase({ nome, rua, num, bairro, pag });
+
+        // 3. MUDANÇA DE TEXTO (Após 1,5 segundos)
         setTimeout(() => {
-            location.reload(); 
+            if (loaderText) {
+                loaderText.innerHTML = "<strong>PEDIDO ENVIADO!</strong><br>ACOMPANHE O STATUS NO MENU 'PEDIDOS'";
+                loaderText.style.color = "#f37021"; // Deixa o texto em laranja
+            }
         }, 1500);
-    };
 
-    // 4. ENVIO COM SEGURANÇA (FIREBASE + WHATSAPP)
-    if (typeof salvarPedidoFirebase === 'function') {
-        // Se o Firebase falhar ou demorar mais de 4s, ele envia o Zap do mesmo jeito
-        const segurancaTimeout = setTimeout(() => {
-            finalizarEVoltarInicio();
-        }, 4000);
+        // 4. FINALIZAÇÃO (Após 3,5 segundos no total)
+        setTimeout(() => {
+            // Limpa o carrinho
+            carrinho = [];
+            localStorage.removeItem("carrinho");
+            atualizarCarrinho();
 
-        salvarPedidoFirebase({ nome, rua, num, bairro, pag })
-            .then(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            })
-            .catch(err => {
-                console.error("Erro Firebase:", err);
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            });
-    } else {
-        finalizarEVoltarInicio();
+            // Esconde o loader e as modais
+            if (loader) loader.style.display = "none";
+            document.getElementById("delivery-modal").style.display = "none";
+            document.getElementById("resumo-pedido").style.display = "none";
+
+            // Mostra o rodapé e pula para a tela de acompanhamento
+            document.querySelector('.bottom-nav-container').style.display = 'flex';
+            mostrarTela('pedidos'); // Troca a tela automaticamente
+        }, 3500);
+
+    } catch (e) {
+        console.error("Erro ao salvar pedido:", e);
+        alert("Ocorreu um erro ao enviar seu pedido. Tente novamente.");
+        if (loader) loader.style.display = "none";
     }
 }
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -510,6 +499,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
