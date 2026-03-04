@@ -445,6 +445,62 @@ function salvarPedidoFirebase(dados) {
 }
 
 
+//ACOMPANHAR PEDIDOS
+// Função para alternar entre Cardápio e Pedidos
+function mostrarTela(tela) {
+    const cardapio = document.getElementById('cardapio-corpo');
+    const categorias = document.getElementById('categorias-nav');
+    const pedidos = document.getElementById('view-pedidos');
+    const header = document.querySelector('.header');
+
+    // Remove a classe 'active' de todos os itens do rodapé
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    if (tela === 'inicio') {
+        cardapio.style.display = 'block';
+        categorias.style.display = 'block';
+        header.style.display = 'block';
+        pedidos.style.display = 'none';
+        document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+    } else if (tela === 'pedidos') {
+        cardapio.style.display = 'none';
+        categorias.style.display = 'none';
+        header.style.display = 'none'; // Esconde o logo para focar no pedido
+        pedidos.style.display = 'block';
+        document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+        carregarStatusTempoReal(); // Chama a função do Firebase
+    }
+}
+
+// Função que lê o Firebase e atualiza o status pro cliente
+function carregarStatusTempoReal() {
+    const container = document.getElementById('lista-pedidos-cliente');
+    // Pega o ID do último pedido que salvamos no navegador do cliente
+    const ultimoId = localStorage.getItem('ultimoPedidoId');
+    if (!ultimoId) {
+        container.innerHTML = `<p class="text-center text-muted">Você ainda não fez nenhum pedido hoje.</p>`;
+        return;
+    }
+    // Escuta mudanças na tabela 'pedidos_kings' do seu Firebase
+    firebase.database().ref('pedidos_kings/' + ultimoId).on('value', (snapshot) => {
+        const dados = snapshot.val();  
+        if (!dados) {
+            container.innerHTML = `<p class="text-center text-success">Seu pedido foi finalizado! ✅</p>`;
+            return;
+        }
+        // Define a cor baseada no status
+        let corStatus = dados.status === 'pendente' ? '#ffc107' : (dados.status === 'preparando' ? '#0dcaf0' : '#198754');
+        container.innerHTML = `
+            <div class="text-center">
+                <h4 style="color: ${corStatus}">${dados.status.toUpperCase()}</h4>
+                <p><b>Cliente:</b> ${dados.cliente}</p>
+                <p><b>Total:</b> R$ ${parseFloat(dados.total).toFixed(2)}</p>
+                <hr style="background-color: #333">
+                <p class="small text-muted">Esta tela atualiza automaticamente quando a loja mudar o status do seu pedido.</p>
+            </div>
+        `;
+    });
+}
 
 
 
