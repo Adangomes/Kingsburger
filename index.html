@@ -91,8 +91,11 @@
 <div id="delivery-modal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
         <div id="form-entrega">
-            <div class="modal-header-clean"><h3>Entrega</h3>
+            <div class="modal-header-clean">
+                <h3>Entrega</h3>
                 <button onclick="fecharModalEntrega()" class="btn-fechar-modal">✕</button>
+            </div> 
+
             <div class="form-grid">
                 <input type="text" id="nomeCliente" placeholder="Seu Nome">
                 <select id="cidade">
@@ -117,10 +120,11 @@
             <button class="btn-principal w-100 mt-3" onclick="processarResumoGeo()">Próximo</button>
         </div>
 
-        
-
         <div id="resumo-pedido" style="display:none;">
-            <div class="modal-header-clean"><h3>Resumo Final</h3></div>
+            <div class="modal-header-clean">
+                <h3>Resumo Final</h3>
+                <button onclick="fecharModalEntrega()" class="btn-fechar-modal">✕</button>
+            </div>
             <div id="resumo-itens" class="resumo-lista"></div>
             <div id="resumo-taxa" class="resumo-valores p-2 bg-light rounded"></div>
             <h4 id="resumo-total" class="resumo-total-final text-center mt-3"></h4>
@@ -166,6 +170,7 @@
 <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
