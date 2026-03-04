@@ -250,54 +250,73 @@ async function processarResumoGeo() {
 // FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
 // --- FUNÇÃO ENVIAR CORRIGIDA ---
 async function enviarPedidoFinal() {
-    // 1. CAPTURA DOS DADOS
-    const nome = document.getElementById("nomeCliente")?.value;
-    const rua = document.getElementById("rua")?.value;
-    const num = document.getElementById("numero")?.value;
-    const bairro = document.getElementById("bairro")?.value;
+    // 1. CAPTURA DOS DADOS (Com verificação de IDs comuns)
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
     const pag = document.getElementById("pagamento")?.value;
-    if (!nome || !rua) return alert("Por favor, preencha Nome e Rua!");
-    // 2. ACESSA O LOADING (Usando seu ID #loading-geral)
-    const loader = document.getElementById("loading-geral");
-    const loaderText = loader.querySelector("p"); // O parágrafo que já existe no seu HTML   
-    if (loader) {
-        loader.style.display = "flex"; // Ativa o fundo branco semi-transparente
-        loaderText.innerText = "AGUARDE: Processando seu pedido...";
-        loaderText.style.color = "#222"; // Cor padrão inicial
+
+    if (!nome || !rua) {
+        return alert("Por favor, preencha Nome e Rua para a entrega!");
     }
+
+    // 2. ACESSA E ATIVA O LOADING
+    const loader = document.getElementById("loading-geral");
+    const loaderText = loader?.querySelector("p");
+    
+    if (loader) {
+        loader.style.zIndex = "10000"; // Garante que fica na frente da modal
+        loader.style.display = "flex";
+        if (loaderText) {
+            loaderText.innerText = "AGUARDE: Processando seu pedido...";
+            loaderText.style.color = "#222";
+        }
+    }
+
     try {
-        // 3. SALVA NO FIREBASE
-        // Note: A função salvarPedidoFirebase já deve estar configurada para usar 'pedidos_kings'
+        // 3. SALVA NO FIREBASE (pedidos_kings)
         await salvarPedidoFirebase({ nome, rua, num, bairro, pag });
-        // 4. PRIMEIRA TROCA DE TEXTO (Após 1,5 segundos)
+
+        // 4. MUDANÇA DE TEXTO (Após 1,5 segundos)
         setTimeout(() => {
             if (loaderText) {
-                loaderText.innerHTML = "<strong>PEDIDO ENVIADO COM SUCESSO!</strong><br><span style='font-size: 12px;'>ACOMPANHE O STATUS NO MENU 'PEDIDOS'</span>";
-                loaderText.style.color = "#f37021"; // Laranja Snoop/Kings Burger
+                loaderText.innerHTML = "<strong>PEDIDO ENVIADO COM SUCESSO!</strong><br><span style='font-size: 13px;'>Voltando ao cardápio...</span>";
+                loaderText.style.color = "#f37021"; // Laranja Kings Burger
             }
         }, 1500);
 
-        // 5. FINALIZAÇÃO E REDIRECIONAMENTO (Após 3,5 segundos no total)
+        // 5. FINALIZAÇÃO TOTAL E RESET (Após 3,5 segundos)
         setTimeout(() => {
-            // Limpa o carrinho e o armazenamento
+            // Limpa o carrinho e memória local
             carrinho = [];
             localStorage.removeItem("carrinho");
-            atualizarCarrinho();
-            // Esconde o loader e as modais abertas
+            if (typeof atualizarCarrinho === 'function') atualizarCarrinho();
+
+            // Esconde o loader e todas as modais de checkout
             if (loader) loader.style.display = "none";
             document.getElementById("delivery-modal").style.display = "none";
             document.getElementById("resumo-pedido").style.display = "none";
-            // Mostra o rodapé (caso estivesse escondido) e troca para a tela de pedidos
-            const navContainer = document.querySelector('.bottom-nav-container');
-            if (navContainer) navContainer.style.display = 'flex';
+
+            // --- DESTRAVA O SITE ---
+            document.body.style.overflow = 'auto'; // Libera o scroll da tela
             
-            mostrarTela('pedidos'); // Chama sua função que alterna as abas
+            const navContainer = document.querySelector('.bottom-nav-container');
+            if (navContainer) navContainer.style.display = 'flex'; // Volta o rodapé
+            
+            // Volta para a tela principal (Cardápio)
+            mostrarTela('inicio'); 
+            
+            // Sobe a tela para o topo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
         }, 3500);
 
     } catch (e) {
-        console.error("Erro crítico ao salvar:", e);
-        alert("Ocorreu um erro ao processar seu pedido no banco de dados.");
+        console.error("Erro ao salvar pedido:", e);
+        alert("Erro de conexão ao salvar no banco de dados. Tente novamente.");
         if (loader) loader.style.display = "none";
+        document.body.style.overflow = 'auto';
     }
 }
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -344,11 +363,13 @@ function carregarStatusLoja() {
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
-function fecharDelivery() {
-    document.getElementById('delivery-modal').style.display = 'none';
-    document.body.style.overflow = 'auto'; // Devolve o scroll da página
-    document.querySelector('.bottom-nav-container').style.display = 'flex';
+function fecharModalEntrega() {
+    document.getElementById("delivery-modal").style.display = "none";
+    document.body.style.overflow = 'auto'; // Destrava o scroll  
+    const navContainer = document.querySelector('.bottom-nav-container');
+    if (navContainer) navContainer.style.display = 'flex'; // Destrava o rodapé
 }
+
 
 function abrirDelivery() {
     if (carrinho.length === 0) return alert("Carrinho vazio!");
@@ -356,6 +377,14 @@ function abrirDelivery() {
     document.getElementById("delivery-modal").style.display = "flex";
     document.body.style.overflow = "hidden"; // Fix bug teclado
     document.querySelector('.bottom-nav-container').style.display = 'none';
+}
+function fecharDelivery() {
+    document.getElementById('delivery-modal').style.display = 'none';
+    document.body.style.overflow = 'auto'; 
+    const navContainer = document.querySelector('.bottom-nav-container');
+    if (navContainer) {
+        navContainer.style.display = 'flex';
+    }
 }
 
 function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none";
@@ -496,6 +525,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
