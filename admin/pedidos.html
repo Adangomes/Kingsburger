@@ -6,10 +6,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel Kings Burger - Gestão</title>
     <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Estilos da Tela de Login */
+        #tela-login {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .login-box {
+            background: #111;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #f37021;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(243, 112, 33, 0.2);
+        }
+        .login-box h2 { color: #f37021; margin-bottom: 20px; font-family: sans-serif; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #222;
+            color: white;
+            box-sizing: border-box;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #f37021;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-box button:active { transform: scale(0.98); }
+        #msg-erro { color: #ff4444; font-size: 14px; margin-top: 10px; display: none; }
+    </style>
 </head>
 
 <body>
-    <div id="container-ativacao">
+    <div id="tela-login">
+        <div class="login-box">
+            <h2>KINGS <span>ADMIN</span></h2>
+            <input type="text" id="user-id" placeholder="ID do Usuário">
+            <input type="password" id="user-pass" placeholder="Senha de Acesso">
+            <button onclick="validarAcesso()">ACESSAR PAINEL</button>
+            <p id="msg-erro">Acesso negado. Verifique os dados.</p>
+        </div>
+    </div>
+
+    <div id="container-ativacao" style="display: none;">
         <div style="text-align: center;">
             <h2 style="color: #ffcc00; margin-bottom: 20px;">KINGS BURGER</h2>
             <button onclick="ativarSom()">INICIAR PAINEL</button>
@@ -18,7 +74,10 @@
 
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
-        <button class="btn-refresh" onclick="location.reload()">🔄</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-refresh" onclick="location.reload()">🔄</button>
+            <button class="btn-refresh" onclick="logout()" style="background: #444;">🚪</button>
+        </div>
     </header>
 
     <nav class="tabs">
@@ -29,7 +88,7 @@
     </nav>
 
     <div id="area-relatorio" style="display:none; padding: 15px;">
-        <button class="btn-pdf" onclick="gerarPDF()">📄 GERAR PDF DO HISTÓRICO</button>
+        <button class="btn-pdf" onclick="gerarPDF()">GERAR PDF DO HISTÓRICO</button>
     </div>
 
     <ul id="pedidos-container"></ul>
@@ -40,6 +99,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
+        // --- CONFIGURAÇÃO DE ACESSO ---
+        const CREDENCIAIS = {
+            usuario: "kings##26burger",      // Mude seu usuário aqui
+            senha: "35Op89Bk190"           // Mude sua senha aqui
+        };
+
         const firebaseConfig = {
             apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
             authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -64,10 +129,40 @@
             }
         };
 
-        audioAlerta.onerror = function() {
-            audioAlerta.src = "https://raw.githubusercontent.com/rafaelbotazini/admin-painel/main/alert.mp3";
+        // --- FUNÇÕES DE SEGURANÇA ---
+        function validarAcesso() {
+            const user = document.getElementById('user-id').value;
+            const pass = document.getElementById('user-pass').value;
+            const erro = document.getElementById('msg-erro');
+
+            if (user === CREDENCIAIS.usuario && pass === CREDENCIAIS.senha) {
+                // Gera um "Token" simples de sessão
+                const sessionToken = btoa(user + ":" + pass); 
+                localStorage.setItem('kings_session', sessionToken);
+                
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('container-ativacao').style.display = 'flex';
+            } else {
+                erro.style.display = 'block';
+                setTimeout(() => erro.style.display = 'none', 3000);
+            }
+        }
+
+        // Verifica se já está logado ao carregar a página
+        window.onload = function() {
+            const token = localStorage.getItem('kings_session');
+            if (token === btoa(CREDENCIAIS.usuario + ":" + CREDENCIAIS.senha)) {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('container-ativacao').style.display = 'flex';
+            }
         };
 
+        function logout() {
+            localStorage.removeItem('kings_session');
+            location.reload();
+        }
+
+        // --- LÓGICA DO PAINEL ---
         let abaAtiva = 'pendente';
         let iniciado = false;
 
@@ -93,8 +188,6 @@
 
         function carregarDados() {
             if (!iniciado) return;
-
-            // REFERÊNCIA EXCLUSIVA KINGS BURGER
             const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
 
             db.ref(path).on('value', (snapshot) => {
@@ -112,7 +205,7 @@
 
                     if (abaAtiva === 'historico') {
                         if (agora - timestamp > trintaDias) {
-                            db.ref('relatorios_kings/' + id).remove(); //
+                            db.ref('relatorios_kings/' + id).remove();
                             return;
                         }
                     } else {
@@ -125,15 +218,15 @@
 
                     let botoes = "";
                     if (abaAtiva === 'pendente') {
-                        botoes = `<button class="btn-success" onclick="db.ref('pedidos_kings/${id}').update({status:'preparando'})">ACEITAR PEDIDO</button>`; //
+                        botoes = `<button class="btn-success" onclick="db.ref('pedidos_kings/${id}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
                     } else if (abaAtiva === 'preparando') {
                         botoes = `
                             <button class="btn-warning" onclick="imprimirPedido('${id}', 'pedidos_kings')">IMPRIMIR CUPOM</button>
-                            <button class="btn-info" onclick="db.ref('pedidos_kings/${id}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`; //
+                            <button class="btn-info" onclick="db.ref('pedidos_kings/${id}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
                     } else if (abaAtiva === 'entrega') {
                         botoes = `<button class="btn-success" onclick="concluirPedido('${id}')">CONCLUIR E FINALIZAR</button>`;
                     } else {
-                        botoes = `<button class="btn-warning" style="width:100%" onclick="imprimirPedido('${id}', 'relatorios_kings')">REIMPRIMIR CUPOM</button>`; //
+                        botoes = `<button class="btn-warning" style="width:100%" onclick="imprimirPedido('${id}', 'relatorios_kings')">REIMPRIMIR CUPOM</button>`;
                     }
 
                     li.innerHTML = `
@@ -142,11 +235,10 @@
                             <span class="hora">${p.horario || ''}</span>
                         </div>
                         <p class="info"><b>Endereço:</b> ${p.endereco}</p>
-                        <p class="info"><b>Taxa Entrega:</b> R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}</p>
+                        <p class="info"><b>Total:</b> R$ ${parseFloat(p.total).toFixed(2)}</p>
                         <div class="itens-box">
                             ${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : 'Sem itens'}
                         </div>
-                        <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
                         <div class="btn-actions">${botoes}</div>
                     `;
                     container.appendChild(li);
@@ -166,12 +258,12 @@
         }
 
         function concluirPedido(id) {
-            // MOVE DE PEDIDOS_KINGS PARA RELATORIOS_KINGS
             db.ref('pedidos_kings/' + id).once('value', s => {
                 const dados = s.val();
                 if(!dados) return;
                 dados.concluidoEm = Date.now();
-                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove()); //
+                dados.status = 'concluido';
+                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
             });
         }
 
@@ -210,58 +302,38 @@
         }
 
         function gerarPDF() {
-    // 1. Criamos o cabeçalho da tabela
-    let conteudoTabela = `
-        <table style="width:100%; border-collapse: collapse; margin-top: 20px; font-family: Arial, sans-serif;">
-            <thead>
-                <tr style="background-color: #f2f2f2; text-align: left;">
+            let conteudoTabela = `<table style="width:100%; border-collapse: collapse; margin-top: 20px; font-family: Arial, sans-serif;">
+                <thead><tr style="background-color: #f2f2f2; text-align: left;">
                     <th style="border: 1px solid #ddd; padding: 12px;">Hora</th>
                     <th style="border: 1px solid #ddd; padding: 12px;">Cliente</th>
                     <th style="border: 1px solid #ddd; padding: 12px;">Itens</th>
                     <th style="border: 1px solid #ddd; padding: 12px;">Total (R$)</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+                </tr></thead><tbody>`;
 
-    // 2. Buscamos os dados direto do Firebase (Snapshot atual da aba histórico)
-    const cards = document.querySelectorAll('.pedido-card');
-    
-    cards.forEach(card => {
-        const nome = card.querySelector('.cliente-nome').innerText;
-        const hora = card.querySelector('.hora').innerText;
-        const itens = card.querySelector('.itens-box').innerText.replace(/\n/g, ', ');
-        const total = card.querySelector('.total-area').innerText.replace('TOTAL: ', '');
+            const cards = document.querySelectorAll('.pedido-card');
+            cards.forEach(card => {
+                const nome = card.querySelector('.cliente-nome').innerText;
+                const hora = card.querySelector('.hora').innerText;
+                const itens = card.querySelector('.itens-box').innerText.replace(/\n/g, ', ');
+                const total = card.querySelector('.info:nth-of-type(2)').innerText.replace('Total: R$ ', '');
 
-        conteudoTabela += `
-            <tr>
-                <td style="border: 1px solid #ddd; padding: 10px;">${hora}</td>
-                <td style="border: 1px solid #ddd; padding: 10px;"><b>${nome}</b></td>
-                <td style="border: 1px solid #ddd; padding: 10px; font-size: 12px;">${itens}</td>
-                <td style="border: 1px solid #ddd; padding: 10px;">${total}</td>
-            </tr>
-        `;
-    });
+                conteudoTabela += `<tr>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${hora}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;"><b>${nome}</b></td>
+                    <td style="border: 1px solid #ddd; padding: 10px; font-size: 12px;">${itens}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${total}</td>
+                </tr>`;
+            });
+            conteudoTabela += `</tbody></table>`;
 
-    conteudoTabela += `</tbody></table>`;
-
-    // 3. Abrimos a janela de impressão com o novo visual de tabela
-    const win = window.open('', '', 'height=700,width=900');
-    win.document.write('<html><head><title>Relatório Kings Burger</title>');
-    win.document.write('<style>body{padding:20px;} h1{text-align:center; font-family:sans-serif;}</style>');
-    win.document.write('</head><body>');
-    win.document.write('<h1>Relatório de Pedidos - Kings Burger</h1>');
-    win.document.write('<p style="text-align:center;">Gerado em: ' + new Date().toLocaleDateString('pt-BR') + '</p>');
-    win.document.write(conteudoTabela);
-    win.document.write('</body></html>');
-    
-    win.document.close();
-    
-    // Pequeno delay para garantir que o estilo carregue antes de imprimir/gerar PDF
-    setTimeout(() => {
-        win.print();
-    }, 500);
-}
+            const win = window.open('', '', 'height=700,width=900');
+            win.document.write('<html><head><title>Relatório Kings Burger</title></head><body>');
+            win.document.write('<h1 style="text-align:center;">Relatório de Pedidos - Kings Burger</h1>');
+            win.document.write(conteudoTabela);
+            win.document.write('</body></html>');
+            win.document.close();
+            setTimeout(() => { win.print(); }, 500);
+        }
     </script>
 </body>
 </html>
