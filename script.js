@@ -512,33 +512,65 @@ function mostrarTela(tela) {
 // Função que lê o Firebase e atualiza o status pro cliente
 function carregarStatusTempoReal() {
     const container = document.getElementById('lista-pedidos-cliente');
-    // Pega o ID do último pedido que salvamos no navegador do cliente
     const ultimoId = localStorage.getItem('ultimoPedidoId');
+    
     if (!ultimoId) {
         container.innerHTML = `<p class="text-center text-muted">Você ainda não fez nenhum pedido hoje.</p>`;
         return;
     }
-    // Escuta mudanças na tabela 'pedidos_kings' do seu Firebase
+
     firebase.database().ref('pedidos_kings/' + ultimoId).on('value', (snapshot) => {
         const dados = snapshot.val();  
         if (!dados) {
             container.innerHTML = `<p class="text-center text-success">Seu pedido foi finalizado! ✅</p>`;
             return;
         }
-        // Define a cor baseada no status
-        let corStatus = dados.status === 'pendente' ? '#ffc107' : (dados.status === 'preparando' ? '#0dcaf0' : '#198754');
+
+        // --- 1. TRADUTOR DE STATUS ---
+        // Aqui você define o que o cliente lê baseado no que está no Firebase
+        let textoStatus = "";
+        let corStatus = "";
+
+        switch(dados.status) {
+            case 'pendente':
+                textoStatus = "AGUARDANDO CONFIRMAÇÃO";
+                corStatus = "#ffc107"; // Amarelo
+                break;
+            case 'preparando':
+                textoStatus = "SEU PEDIDO ESTÁ SENDO PREPARADO";
+                corStatus = "#0dcaf0"; // Azul
+                break;
+            case 'entrega':
+            case 'saiu': // Caso você use 'saiu' ou 'entrega' no Admin
+                textoStatus = "SAIU PARA ENTREGA!";
+                corStatus = "#f37021"; // Laranja Kings
+                break;
+            case 'concluido':
+                textoStatus = "PEDIDO ENTREGUE";
+                corStatus = "#198754"; // Verde
+                break;
+            default:
+                textoStatus = dados.status.toUpperCase();
+                corStatus = "#ffffff";
+        }
+
+        // --- 2. RENDERIZAÇÃO DA TELA ---
         container.innerHTML = `
             <div class="text-center">
-                <h4 style="color: ${corStatus}">${dados.status.toUpperCase()}</h4>
-                <p><b>Cliente:</b> ${dados.cliente}</p>
-                <p><b>Total:</b> R$ ${parseFloat(dados.total).toFixed(2)}</p>
-                <hr style="background-color: #333">
-                <p class="small text-muted">Esta tela atualiza automaticamente quando a loja mudar o status do seu pedido.</p>
+                <h4 style="color: ${corStatus}; font-weight: bold; text-shadow: 1px 1px 2px #000;">
+                    ${textoStatus}
+                </h4>
+                <div style="background: #222; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: left; border: 1px solid #333;">
+                    <p style="margin-bottom: 5px;"><b>Cliente:</b> ${dados.cliente}</p>
+                    <p style="margin-bottom: 5px;"><b>Total:</b> <span style="color: #00a650;">R$ ${parseFloat(dados.total).toFixed(2)}</span></p>
+                    <p style="font-size: 12px; color: #888; margin-top: 10px;">ID: ${dados.id}</p>
+                </div>
+                <hr style="background-color: #444; margin: 20px 0;">
+                <p class="small text-muted">Esta tela atualiza sozinha. Não precisa atualizar a página!</p>
             </div>
         `;
     });
 }
-
 
 
 // FORÇAR RENDERIZAÇÃO DO RODAPÉ AO CARREGAR
@@ -550,6 +582,7 @@ window.addEventListener('load', () => {
         console.log("Rodapé forçado via Script");
     }
 });
+
 
 
 
