@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Kings Burger - Gestão Pro</title>
+    <title>Painel Kings Burger - Gestao Pro</title>
     <link rel="stylesheet" href="admin.css">
     <style>
-        /* Removendo qualquer animação pulsante que possa estar no CSS externo */
         .status-loja-btn, .btn-refresh, #container-ativacao button {
             animation: none !important;
             box-shadow: none !important;
         }
+        .info-entrega p { margin: 4px 0; font-size: 14px; line-height: 1.4; }
+        .cliente-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px; }
+        .btn-whatsapp { background: #25D366; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .taxa-destaque { color: #f37021; font-weight: bold; }
     </style>
 </head>
 
@@ -18,7 +21,7 @@
     <div id="tela-login">
         <div class="login-box">
             <h2>KINGS <span>ADMIN</span></h2>
-            <input type="text" id="user-id" placeholder="ID do Usuário">
+            <input type="text" id="user-id" placeholder="ID do Usuario">
             <input type="password" id="user-pass" placeholder="Senha de Acesso">
             <button onclick="validarAcesso()">ACESSAR PAINEL</button>
             <p id="msg-erro" style="color:red; display:none; margin-top: 10px;">Acesso negado.</p>
@@ -28,7 +31,7 @@
     <div id="modal-editor">
         <div class="editor-content">
             <div class="editor-header">
-                <h2 style="color: white; margin: 0;">Configurações</h2>
+                <h2 style="color: white; margin: 0;">Configuracoes</h2>
                 <button class="btn-fechar-modal" onclick="fecharEditor()">X SAIR</button>
             </div>
 
@@ -45,70 +48,52 @@
                     <div id="status-loja-container"></div>
                 </div>
                 <div class="secao-edit" style="border-left-color: #28a745;">
-                    <h3>Sincronização do Cardápio</h3>
-                    <p style="color: #888; font-size: 11px;">Carrega os produtos oficiais do Kings Burger.</p>
-                    <button onclick="sincronizarTudo()" style="background:#28a745; color:white; border:none; padding:10px; border-radius:5px; width:100%; cursor:pointer;">🔄 CARREGAR PRODUTOS DO SITE</button>
+                    <h3>Sincronizacao</h3>
+                    <button onclick="sincronizarTudo()" style="background:#28a745; color:white; border:none; padding:10px; border-radius:5px; width:100%; cursor:pointer;">RESETAR E CARREGAR PADRAO</button>
                 </div>
             </div>
 
             <div id="tab-produtos" class="e-content" style="display:none;">
                 <div class="secao-edit">
-                    <h3 style="color: #f37021;">+ NOVO PRODUTO</h3>
+                    <h3 style="color: #f37021;">NOVO PRODUTO</h3>
                     <div class="item-edit-card">
-                        <input type="text" id="add-p-titulo" placeholder="Nome do Produto">
-                        <input type="number" id="add-p-preco" placeholder="Preço (Ex: 25.90)">
-                        <select id="add-p-cat">
-                            </select>
+                        <input type="text" id="add-p-titulo" placeholder="Nome">
+                        <input type="number" id="add-p-preco" placeholder="Preco">
+                        <select id="add-p-cat"></select>
                         <textarea id="add-p-desc" placeholder="Ingredientes"></textarea>
-                        <input type="text" id="add-p-img" placeholder="Caminho da Imagem (Ex: imagens/foto.jpg)">
-                        <button onclick="salvarNovoProduto()" style="background:#f37021; color:white; border:none; padding:12px; border-radius:5px; width:100%; font-weight: bold;">CADASTRAR PRODUTO</button>
+                        <input type="text" id="add-p-img" placeholder="Caminho da Imagem">
+                        <button onclick="salvarNovoProduto()" style="background:#f37021; color:white; border:none; padding:12px; border-radius:5px; width:100%; font-weight: bold;">CADASTRAR</button>
                     </div>
                 </div>
-                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-                <div class="secao-edit">
-                    <h3>Editar Existentes</h3>
-                    <div id="lista-produtos-editor"></div>
-                </div>
+                <div id="lista-produtos-editor"></div>
             </div>
 
             <div id="tab-categorias" class="e-content" style="display:none;">
                 <div class="secao-edit">
-                    <h3>Gerenciar Categorias</h3>
+                    <h3>Categorias</h3>
                     <div style="display:flex; gap:5px; margin-bottom: 15px;">
-                        <input type="text" id="nova-categoria" placeholder="Nova Categoria (Ex: Sobremesas)" style="flex:1;">
-                        <button onclick="addCategoria()" style="background:#f37021; border:none; color:white; padding:0 20px; border-radius:5px; font-weight: bold;">+</button>
+                        <input type="text" id="nova-categoria" placeholder="Ex: Bebidas" style="flex:1;">
+                        <button onclick="addCategoria()" style="background:#f37021; border:none; color:white; padding:0 20px; border-radius:5px;">+</button>
                     </div>
                     <div id="lista-categorias-gerir"></div>
                 </div>
             </div>
 
             <div id="tab-cupons" class="e-content" style="display:none;">
-                <div class="secao-edit">
-                    <h3>Novo Cupom</h3>
-                    <div class="item-edit-card">
-                        <input type="text" id="cup-codigo" placeholder="CÓDIGO (Ex: KINGS10)">
-                        <select id="cup-tipo">
-                            <option value="porcentagem">Porcentagem (%)</option>
-                            <option value="fixo">Valor Fixo (R$)</option>
-                        </select>
-                        <input type="number" id="cup-valor" placeholder="Valor">
-                        <button onclick="salvarCupom()" style="background:#f37021; color:white; border:none; padding:10px; border-radius:5px; width:100%;">CRIAR CUPOM</button>
-                    </div>
-                </div>
                 <div id="lista-cupons-editor"></div>
             </div>
         </div>
     </div>
 
     <div id="container-ativacao" style="display: none; justify-content: center; align-items: center; height: 100vh; background: rgba(0,0,0,0.9); position: fixed; width: 100%; z-index: 9999;">
-        <button onclick="ativarSom()" style="padding: 20px 50px; background: #f37021; color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer;">INICIAR PAINEL</button>
+        <button onclick="ativarSom()" style="padding: 20px 50px; background: #f37021; color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold;">INICIAR PAINEL</button>
     </div>
 
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-refresh" onclick="abrirEditor()">⚙️</button>
-            <button class="btn-refresh" onclick="location.reload()">🔄</button>
+            <button class="btn-refresh" onclick="abrirEditor()">CONFIG</button>
+            <button class="btn-refresh" onclick="location.reload()">ATUALIZAR</button>
             <button class="btn-refresh" onclick="logout()" style="background: #cc0000;">SAIR</button>
         </div>
     </header>
@@ -117,13 +102,13 @@
         <button class="tab-btn active" onclick="mudarAba('pendente', this)">NOVOS</button>
         <button class="tab-btn" onclick="mudarAba('preparando', this)">COZINHA</button>
         <button class="tab-btn" onclick="mudarAba('entrega', this)">ENTREGA</button>
-        <button class="tab-btn btn-hist" onclick="mudarAba('historico', this)">HISTÓRICO</button>
+        <button class="tab-btn btn-hist" onclick="mudarAba('historico', this)">HISTORICO</button>
     </nav>
 
     <div id="area-relatorio" style="display:none;">
         <div id="resumo-box" class="resumo-financeiro">
             <div class="resumo-item"><span>Bruto:</span> <span id="res-bruto">R$ 0,00</span></div>
-            <div class="resumo-item comissao-destaque"><span>Comissão:</span> <span id="res-comissao">R$ 0,00</span></div>
+            <div class="resumo-item comissao-destaque"><span>Comissao:</span> <span id="res-comissao">R$ 0,00</span></div>
         </div>
     </div>
 
@@ -176,9 +161,78 @@
             ouvirCupons();
         }
 
+        function carregarDados() {
+            if (!iniciado) return;
+            const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
+            db.ref(path).on('value', (snapshot) => {
+                const container = document.getElementById('pedidos-container');
+                container.innerHTML = "";
+                let somaBruto = 0;
+
+                snapshot.forEach(child => {
+                    const p = child.val();
+                    if (abaAtiva !== 'historico' && p.status !== abaAtiva) return;
+
+                    somaBruto += parseFloat(p.total || 0);
+                    const li = document.createElement('li');
+                    li.className = `pedido-card`;
+
+                    let acaoHtml = "";
+                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
+                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
+                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
+
+                    li.innerHTML = `
+                        <div class="cliente-header">
+                            <span class="cliente-nome">CLIENTE: ${p.cliente}</span>
+                            <a href="https://wa.me/55${p.whatsapp}" target="_blank" class="btn-whatsapp">WHATSAPP</a>
+                        </div>
+                        
+                        <div class="info-entrega" style="background: #111; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                            <p><b>ENDERECO:</b> ${p.rua}, ${p.numero}</p>
+                            <p><b>BAIRRO:</b> ${p.bairro} | ${p.cidade}</p>
+                            <p><b>OBSERVACOES:</b> ${p.observacoes || 'Nenhuma'}</p>
+                            <p><b>PAGAMENTO:</b> ${p.metodoPagamento}</p>
+                        </div>
+
+                        <div class="itens-box">
+                            ${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : ''}
+                        </div>
+                        
+                        <div class="total-area" style="border-top: 1px solid #333; margin-top: 10px; padding-top: 5px;">
+                            <p style="font-size: 12px; margin:0;">TAXA ENTREGA: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}</p>
+                            <p style="font-size: 18px; color: #f37021; margin:0; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</p>
+                        </div>
+
+                        <div class="btn-actions">${acaoHtml}</div>`;
+                    
+                    container.appendChild(li);
+                });
+
+                if(abaAtiva === 'historico'){
+                    document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
+                    document.getElementById('res-comissao').innerText = `R$ ${(somaBruto * 0.1).toFixed(2)}`;
+                }
+            });
+        }
+
+        function mudarAba(aba, btn) {
+            abaAtiva = aba;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('area-relatorio').style.display = (aba === 'historico') ? 'block' : 'none';
+            carregarDados();
+        }
+
+        function concluirPedido(id) {
+            db.ref('pedidos_kings/' + id).once('value', s => {
+                const dados = s.val(); dados.status = 'concluido';
+                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
+            });
+        }
+
         function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; }
         function fecharEditor() { document.getElementById('modal-editor').style.display = 'none'; }
-        
         function tabEditor(aba, btn) {
             document.querySelectorAll('.e-content').forEach(c => c.style.display = 'none');
             document.querySelectorAll('.e-tab').forEach(t => t.classList.remove('active'));
@@ -186,23 +240,40 @@
             btn.classList.add('active');
         }
 
-        // --- FIREBASE: CARDÁPIO E CATEGORIAS ---
+        function ouvirStatusLoja() {
+            db.ref('status_kings').on('value', snap => {
+                const s = snap.val() || { aberto: true };
+                document.getElementById('status-loja-container').innerHTML = `<button class="status-loja-btn ${s.aberto ? 'aberta' : 'fechada'}" onclick="alternarLoja(${!s.aberto})">LOJA ESTA ${s.aberto ? 'ABERTA' : 'FECHADA'}</button>`;
+            });
+        }
+        function alternarLoja(status) { db.ref('status_kings').update({ aberto: status }); }
+
+        function ouvirCategorias() {
+            db.ref('cardapio_kings/categorias').on('value', snap => {
+                const lista = document.getElementById('lista-categorias-gerir');
+                const select = document.getElementById('add-p-cat');
+                lista.innerHTML = ""; select.innerHTML = "";
+                snap.forEach(c => {
+                    const nome = c.val().nome;
+                    lista.innerHTML += `<div style="display:flex; justify-content:space-between; background:#222; padding:10px; margin-bottom:5px; border-radius:5px;">${nome} <button onclick="deletarItem('categorias', '${c.key}')">X</button></div>`;
+                    select.innerHTML += `<option value="${nome}">${nome}</option>`;
+                });
+            });
+        }
+
+        function addCategoria() {
+            const nome = document.getElementById('nova-categoria').value;
+            if(nome) db.ref('cardapio_kings/categorias').push({ nome: nome });
+            document.getElementById('nova-categoria').value = "";
+        }
+
         function ouvirCardapio() {
             db.ref('cardapio_kings/produtos').on('value', snap => {
                 const lista = document.getElementById('lista-produtos-editor');
-                lista.innerHTML = "";
+                lista.innerHTML = "<h3>Existentes</h3>";
                 snap.forEach(item => {
-                    const p = item.val(); const key = item.key;
-                    lista.innerHTML += `
-                        <div class="item-edit-card">
-                            <input type="text" value="${p.title}" onchange="atualizarItem('${key}', 'title', this.value)">
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" step="0.01" value="${p.price}" onchange="atualizarItem('${key}', 'price', this.value)" style="flex:1">
-                                <input type="text" value="${p.categoria}" readonly style="flex:1; background:#111; color:#777;">
-                            </div>
-                            <textarea onchange="atualizarItem('${key}', 'ingredientes', this.value)">${p.ingredientes}</textarea>
-                            <button class="btn-danger-sm" onclick="deletarItem('produtos', '${key}')">Excluir Produto</button>
-                        </div>`;
+                    const p = item.val();
+                    lista.innerHTML += `<div class="item-edit-card"><b>${p.title}</b> - R$ ${p.price} <button onclick="deletarItem('produtos', '${item.key}')">Excluir</button></div>`;
                 });
             });
         }
@@ -215,143 +286,24 @@
                 ingredientes: document.getElementById('add-p-desc').value,
                 image: document.getElementById('add-p-img').value || "imagens/default.jpg"
             };
-            if(!p.title || !p.price) return alert("Preencha ao menos o nome e o preço!");
-            db.ref('cardapio_kings/produtos').push(p).then(() => {
-                alert("Produto Adicionado!");
-                document.getElementById('add-p-titulo').value = "";
-                document.getElementById('add-p-preco').value = "";
-                document.getElementById('add-p-desc').value = "";
-            });
-        }
-
-        function atualizarItem(id, campo, valor) {
-            let v = (campo === 'price') ? parseFloat(valor) : valor;
-            db.ref(`cardapio_kings/produtos/${id}`).update({ [campo]: v });
-        }
-
-        function ouvirCategorias() {
-            db.ref('cardapio_kings/categorias').on('value', snap => {
-                const lista = document.getElementById('lista-categorias-gerir');
-                const select = document.getElementById('add-p-cat');
-                lista.innerHTML = ""; select.innerHTML = "";
-                snap.forEach(c => {
-                    const nome = c.val().nome;
-                    lista.innerHTML += `<div style="display:flex; justify-content:space-between; background:#222; padding:10px; margin-bottom:5px; border-radius:5px; align-items:center;">${nome} <button class="btn-danger-sm" onclick="deletarItem('categorias', '${c.key}')" style="margin:0; padding:5px 10px;">X</button></div>`;
-                    select.innerHTML += `<option value="${nome}">${nome}</option>`;
-                });
-            });
-        }
-
-        function addCategoria() {
-            const nome = document.getElementById('nova-categoria').value;
-            if(!nome) return;
-            db.ref('cardapio_kings/categorias').push({ nome: nome });
-            document.getElementById('nova-categoria').value = "";
+            if(p.title && p.price) db.ref('cardapio_kings/produtos').push(p).then(() => alert("Adicionado"));
         }
 
         function deletarItem(path, id) {
-            if(confirm("Tem certeza? Isso apagará o item permanentemente.")) db.ref(`cardapio_kings/${path}/${id}`).remove();
-        }
-
-        // --- SINCRONIZAÇÃO COM OS SEUS DADOS ---
-        function sincronizarTudo() {
-            if(!confirm("Isso irá carregar os 7 produtos padrão do site. Deseja continuar?")) return;
-            
-            const dadosSite = {
-                categorias: {
-                    "cat1": { nome: "burger" },
-                    "cat2": { nome: "bebida" }
-                },
-                produtos: {
-                    "p1": { "title": "Kings Burger Tradicional", "price": 23.99, "categoria": "burger", "ingredientes": "Hambúrguer artesanal 140g, duas fatias de queijo e pão brioche", "image": "imagens/kingstradicional.jpg" },
-                    "p2": { "title": "Kings Duplo Bacon", "price": 34.99, "categoria": "burger", "ingredientes": "Dois hambúrgueres artesanais de 140g cada, queijo derretido, bacon crocante e pão brioche", "image": "imagens/kingsduplo.jpg" },
-                    "p3": { "title": "Kings Calabresa", "price": 31.99, "categoria": "burger", "ingredientes": "Hambúrguer artesanal 140g, calabresa grelhada, queijo e pão brioche", "image": "imagens/kingscalabresa.jpg" },
-                    "p4": { "title": "Coca-Cola Lata", "price": 6.99, "categoria": "bebida", "ingredientes": "350ml", "image": "imagens/E36FDF00-9626-485C-B2CF-BC089FAC11B8.jpg" },
-                    "p5": { "title": "Guaraná Lata", "price": 6.5, "categoria": "bebida", "ingredientes": "350ml", "image": "imagens/75B8E700-7AB5-41EF-8491-35D2B544A5C8.jpeg" },
-                    "p6": { "title": "Coca-Cola 600ml", "price": 8.5, "categoria": "bebida", "ingredientes": "600ml", "image": "imagens/16F3F6E1-7CC0-4093-9723-96310FC8EED8.jpeg" },
-                    "p7": { "title": "kings burger classic", "price": 28.99, "categoria": "burger", "ingredientes": "hamburguer artesanal 140g, queijo prato, pão brioche", "image": "imagens/kingsclassic.jpg" }
-                }
-            };
-
-            db.ref('cardapio_kings').set(dadosSite).then(() => alert("Cardápio sincronizado com sucesso!"));
-        }
-
-        // --- DEMAIS FUNÇÕES DO PAINEL ---
-        function ouvirStatusLoja() {
-            db.ref('status_kings').on('value', snap => {
-                const s = snap.val() || { aberto: true };
-                document.getElementById('status-loja-container').innerHTML = `<button class="status-loja-btn ${s.aberto ? 'aberta' : 'fechada'}" onclick="alternarLoja(${!s.aberto})">LOJA ESTÁ ${s.aberto ? 'ABERTA' : 'FECHADA'}</button>`;
-            });
-        }
-        function alternarLoja(status) { db.ref('status_kings').update({ aberto: status }); }
-
-        function carregarDados() {
-            if (!iniciado) return;
-            const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
-            db.ref(path).on('value', (snapshot) => {
-                const container = document.getElementById('pedidos-container');
-                container.innerHTML = "";
-                let somaBruto = 0;
-                snapshot.forEach(child => {
-                    const p = child.val();
-                    if (abaAtiva !== 'historico' && p.status !== abaAtiva) return;
-                    somaBruto += parseFloat(p.total || 0);
-                    const li = document.createElement('li');
-                    li.className = `pedido-card`;
-                    let acaoHtml = "";
-                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR</button>`;
-                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">ENTREGA</button>`;
-                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
-                    li.innerHTML = `
-                        <div class="card-header"><span class="cliente-nome">${p.cliente}</span></div>
-                        <div class="itens-box">${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : ''}</div>
-                        <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
-                        <div class="btn-actions">${acaoHtml}</div>`;
-                    container.appendChild(li);
-                });
-                if(abaAtiva === 'historico'){
-                    document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
-                    document.getElementById('res-comissao').innerText = `R$ ${(somaBruto * 0.1).toFixed(2)}`;
-                }
-            });
-        }
-
-        function concluirPedido(id) {
-            db.ref('pedidos_kings/' + id).once('value', s => {
-                const dados = s.val(); dados.status = 'concluido';
-                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
-            });
-        }
-
-        function mudarAba(aba, btn) {
-            abaAtiva = aba;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('area-relatorio').style.display = (aba === 'historico') ? 'block' : 'none';
-            carregarDados();
+            if(confirm("Excluir item?")) db.ref(`cardapio_kings/${path}/${id}`).remove();
         }
 
         function ouvirCupons() {
             db.ref('cardapio_kings/cupons').on('value', snap => {
                 const lista = document.getElementById('lista-cupons-editor');
-                lista.innerHTML = "<h3>Cupons Ativos</h3>";
+                lista.innerHTML = "<h3>Cupons</h3>";
                 snap.forEach(c => {
                     const cup = c.val();
-                    lista.innerHTML += `<div class="item-edit-card"><b style="color:#f37021">${cup.codigo}</b> - ${cup.tipo === 'porcentagem' ? cup.valor+'%' : 'R$ '+cup.valor}<button class="btn-danger-sm" onclick="deletarItem('cupons', '${c.key}')" style="display:block">Remover</button></div>`;
+                    lista.innerHTML += `<div class="item-edit-card">${cup.codigo} (${cup.valor}%) <button onclick="deletarItem('cupons', '${c.key}')">Remover</button></div>`;
                 });
             });
-        }
-
-        function salvarCupom() {
-            const cup = {
-                codigo: document.getElementById('cup-codigo').value.toUpperCase(),
-                tipo: document.getElementById('cup-tipo').value,
-                valor: parseFloat(document.getElementById('cup-valor').value),
-                ativo: true
-            };
-            if(!cup.codigo || !cup.valor) return alert("Preencha o cupom!");
-            db.ref('cardapio_kings/cupons').push(cup);
         }
     </script>
 </body>
 </html>
+
