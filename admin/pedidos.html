@@ -210,14 +210,58 @@
         }
 
         function gerarPDF() {
-            const container = document.getElementById('pedidos-container').cloneNode(true);
-            const win = window.open('', '', 'height=700,width=900');
-            win.document.write('<html><head><title>Relatório Kings Burger</title>');
-            win.document.write('<style>body{font-family:sans-serif; color:black;} .pedido-card{border-bottom:2px solid black; padding:20px; list-style:none;} .btn-actions{display:none;}</style>');
-            win.document.write('</head><body><h1>Relatório Histórico - Kings Burger</h1>' + container.innerHTML + '</body></html>');
-            win.document.close();
-            win.print();
-        }
+    // 1. Criamos o cabeçalho da tabela
+    let conteudoTabela = `
+        <table style="width:100%; border-collapse: collapse; margin-top: 20px; font-family: Arial, sans-serif;">
+            <thead>
+                <tr style="background-color: #f2f2f2; text-align: left;">
+                    <th style="border: 1px solid #ddd; padding: 12px;">Hora</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">Cliente</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">Itens</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">Total (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    // 2. Buscamos os dados direto do Firebase (Snapshot atual da aba histórico)
+    const cards = document.querySelectorAll('.pedido-card');
+    
+    cards.forEach(card => {
+        const nome = card.querySelector('.cliente-nome').innerText;
+        const hora = card.querySelector('.hora').innerText;
+        const itens = card.querySelector('.itens-box').innerText.replace(/\n/g, ', ');
+        const total = card.querySelector('.total-area').innerText.replace('TOTAL: ', '');
+
+        conteudoTabela += `
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;">${hora}</td>
+                <td style="border: 1px solid #ddd; padding: 10px;"><b>${nome}</b></td>
+                <td style="border: 1px solid #ddd; padding: 10px; font-size: 12px;">${itens}</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">${total}</td>
+            </tr>
+        `;
+    });
+
+    conteudoTabela += `</tbody></table>`;
+
+    // 3. Abrimos a janela de impressão com o novo visual de tabela
+    const win = window.open('', '', 'height=700,width=900');
+    win.document.write('<html><head><title>Relatório Kings Burger</title>');
+    win.document.write('<style>body{padding:20px;} h1{text-align:center; font-family:sans-serif;}</style>');
+    win.document.write('</head><body>');
+    win.document.write('<h1>Relatório de Pedidos - Kings Burger</h1>');
+    win.document.write('<p style="text-align:center;">Gerado em: ' + new Date().toLocaleDateString('pt-BR') + '</p>');
+    win.document.write(conteudoTabela);
+    win.document.write('</body></html>');
+    
+    win.document.close();
+    
+    // Pequeno delay para garantir que o estilo carregue antes de imprimir/gerar PDF
+    setTimeout(() => {
+        win.print();
+    }, 500);
+}
     </script>
 </body>
 </html>
