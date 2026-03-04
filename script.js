@@ -177,6 +177,8 @@ function atualizarCarrinho() {
     const box = document.getElementById("cart-items");
     box.innerHTML = "";
     let sub = 0;
+
+    // 1. Soma os itens do carrinho
     carrinho.forEach((item, index) => {
         sub += item.price;
         box.innerHTML += `
@@ -188,8 +190,15 @@ function atualizarCarrinho() {
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
+    const valorDesconto = calcularValorDesconto(sub); 
+    const totalComDesconto = sub - valorDesconto;
     document.getElementById("subtotal").innerText = `R$ ${sub.toFixed(2)}`;
-    document.getElementById("total").innerText = `R$ ${(sub - descontoAplicado).toFixed(2)}`;
+    const feedback = document.getElementById('msg-cupom-feedback');
+    if (valorDesconto > 0) {
+        feedback.innerHTML = `Desconto aplicado: - R$ ${valorDesconto.toFixed(2)} ✅`;
+        feedback.style.color = "#28a745";
+    }
+    document.getElementById("total").innerText = `R$ ${totalComDesconto.toFixed(2)}`;
     document.getElementById("cart-count").innerText = carrinho.length;
     localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
@@ -588,6 +597,64 @@ window.addEventListener('load', () => {
 });
 
 
+
+// ==========================================
+// SISTEMA DE CUPONS - KINGS BURGER
+// ==========================================
+
+let cupomAtivo = null; // Guarda o cupom que o cliente usou
+
+// 1. Sua lista de cupons (conforme você enviou)
+const baseCupons = [
+    { "codigo": "SNOOP10", "tipo": "porcentagem", "valor": 10, "ativo": true },
+    { "codigo": "DESCONTO5", "tipo": "fixo", "valor": 5, "ativo": true }
+];
+
+// 2. Função que o botão "Ok" do cupom chama
+document.getElementById('btn-aplicar-cupom')?.addEventListener('click', () => {
+    const input = document.getElementById('input-cupom');
+    const msg = document.getElementById('msg-cupom-feedback');
+    const codigo = input.value.trim().toUpperCase();
+
+    if (!codigo) {
+        msg.innerText = "Digite um código!";
+        msg.style.color = "orange";
+        return;
+    }
+
+    // Procura o cupom na lista
+    const achou = baseCupons.find(c => c.codigo === codigo && c.ativo);
+
+    if (achou) {
+        cupomAtivo = achou;
+        msg.innerText = `Cupom ${achou.codigo} aplicado! ✅`;
+        msg.style.color = "#28a745";
+        
+        // Dispara a atualização do carrinho para mostrar o novo total
+        if (typeof atualizarCarrinho === "function") {
+            atualizarCarrinho();
+        }
+    } else {
+        cupomAtivo = null;
+        msg.innerText = "Cupom inválido ou expirado! ❌";
+        msg.style.color = "#ff4d4d";
+        if (typeof atualizarCarrinho === "function") {
+            atualizarCarrinho();
+        }
+    }
+});
+
+// 3. Função auxiliar para calcular o valor do desconto
+function calcularValorDesconto(subtotal) {
+    if (!cupomAtivo) return 0;
+
+    if (cupomAtivo.tipo === "porcentagem") {
+        return subtotal * (cupomAtivo.valor / 100);
+    } else if (cupomAtivo.tipo === "fixo") {
+        return cupomAtivo.valor;
+    }
+    return 0;
+}
 
 
 
