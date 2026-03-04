@@ -478,23 +478,29 @@ function mostrarTela(tela) {
     const categorias = document.getElementById('categorias-nav');
     const pedidos = document.getElementById('view-pedidos');
     const header = document.querySelector('.header');
+    const navContainer = document.querySelector('.bottom-nav-container'); // Capturei o rodapé
 
     // Remove a classe 'active' de todos os itens do rodapé
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    // DESTRAVA O SITE SEMPRE QUE TROCAR DE TELA
+    document.body.style.overflow = 'auto';
 
     if (tela === 'inicio') {
         cardapio.style.display = 'block';
         categorias.style.display = 'block';
         header.style.display = 'block';
         pedidos.style.display = 'none';
+        if (navContainer) navContainer.style.display = 'flex'; // Garante o rodapé
         document.querySelector('.nav-item:nth-child(1)').classList.add('active');
     } else if (tela === 'pedidos') {
         cardapio.style.display = 'none';
         categorias.style.display = 'none';
-        header.style.display = 'none'; // Esconde o logo para focar no pedido
+        header.style.display = 'none'; 
         pedidos.style.display = 'block';
+        if (navContainer) navContainer.style.display = 'flex'; // Garante o rodapé
         document.querySelector('.nav-item:nth-child(2)').classList.add('active');
-        carregarStatusTempoReal(); // Chama a função do Firebase
+        carregarStatusTempoReal(); 
     }
 }
 
@@ -527,6 +533,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
