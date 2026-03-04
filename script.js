@@ -374,9 +374,10 @@ function fecharModalEntrega() {
 function abrirDelivery() {
     if (carrinho.length === 0) return alert("Carrinho vazio!");
     fecharCarrinho();
+    const nav = document.querySelector('.bottom-nav-container');
+    if (nav) nav.style.display = 'none'; // Esconde no formulário
     document.getElementById("delivery-modal").style.display = "flex";
-    document.body.style.overflow = "hidden"; // Fix bug teclado
-    document.querySelector('.bottom-nav-container').style.display = 'none';
+    document.body.style.overflow = "hidden"; 
 }
 function fecharDelivery() {
     document.getElementById('delivery-modal').style.display = 'none';
@@ -395,8 +396,11 @@ function fecharCarrinho() {
     const nav = document.querySelector('.bottom-nav-container');
     if (nav) nav.style.display = 'flex'; // <--- AQUI ELE VOLTA TAMBÉM!
 }
-function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex";
-                         document.querySelector('.bottom-nav-container').style.display = 'none';}
+function abrirCarrinho() { 
+    const nav = document.querySelector('.bottom-nav-container');
+    if (nav) nav.style.display = 'none'; // Esconde para não atrapalhar o teclado
+    document.getElementById("cart-modal").style.display = "flex";
+}
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
     el.innerText = t + " adicionado! ✅"; el.style.display = "block";
@@ -537,6 +541,15 @@ function carregarStatusTempoReal() {
 
 
 
+// FORÇAR RENDERIZAÇÃO DO RODAPÉ AO CARREGAR
+window.addEventListener('load', () => {
+    const nav = document.querySelector('.bottom-nav-container');
+    if (nav) {
+        nav.style.setProperty('display', 'flex', 'important');
+        nav.style.opacity = '1';
+        console.log("Rodapé forçado via Script");
+    }
+});
 
 
 
