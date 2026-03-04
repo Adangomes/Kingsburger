@@ -358,17 +358,26 @@ function carregarStatusLoja() {
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
+function fecharDelivery() {
+    document.getElementById('delivery-modal').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Devolve o scroll da página
+    document.querySelector('.bottom-nav-container').style.display = 'flex';
+}
 
 function abrirDelivery() {
     if (carrinho.length === 0) return alert("Carrinho vazio!");
     fecharCarrinho();
     document.getElementById("delivery-modal").style.display = "flex";
     document.body.style.overflow = "hidden"; // Fix bug teclado
+    document.querySelector('.bottom-nav-container').style.display = 'none';
 }
 
-function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
-function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
+function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none";
+                              document.querySelector('.bottom-nav-container').style.display = 'flex';}
+function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none";
+                          document.querySelector('.bottom-nav-container').style.display = 'flex';}
+function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex";
+                         document.querySelector('.bottom-nav-container').style.display = 'none';}
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
     el.innerText = t + " adicionado! ✅"; el.style.display = "block";
@@ -501,6 +510,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
