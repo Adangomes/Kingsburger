@@ -325,4 +325,27 @@
                     container.appendChild(li);
                 });
                 if(abaAtiva === 'historico'){
-                    document.getElementById('res-bruto').
+                    document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
+                    document.getElementById('res-entrega').innerText = `R$ ${somaEntrega.toFixed(2)}`;
+                    document.getElementById('res-comissao').innerText = `R$ ${( (somaBruto - somaEntrega) * 0.1).toFixed(2)}`;
+                }
+            });
+        }
+
+        function concluirPedido(id) {
+            db.ref('pedidos_kings/' + id).once('value', s => {
+                const dados = s.val(); dados.status = 'concluido';
+                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
+            });
+        }
+
+        function mudarAba(aba, btn) {
+            abaAtiva = aba;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('area-relatorio').style.display = (aba === 'historico') ? 'block' : 'none';
+            carregarDados();
+        }
+    </script>
+</body>
+</html>
