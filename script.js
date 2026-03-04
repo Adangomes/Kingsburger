@@ -250,56 +250,53 @@ async function processarResumoGeo() {
 // FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
 // --- FUNÇÃO ENVIAR CORRIGIDA ---
 async function enviarPedidoFinal() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
-    const pag = document.getElementById("pagamento")?.value || "A combinar";
-
-    if (!nome || !rua) return alert("Por favor, preencha os dados de entrega!");
-
-    // 1. ATIVA O LOADING (O Círculo)
+    // 1. CAPTURA DOS DADOS
+    const nome = document.getElementById("nomeCliente")?.value;
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
+    const bairro = document.getElementById("bairro")?.value;
+    const pag = document.getElementById("pagamento")?.value;
+    if (!nome || !rua) return alert("Por favor, preencha Nome e Rua!");
+    // 2. ACESSA O LOADING (Usando seu ID #loading-geral)
     const loader = document.getElementById("loading-geral");
-    const loaderText = loader.querySelector("p"); // O texto abaixo do círculo
-    
+    const loaderText = loader.querySelector("p"); // O parágrafo que já existe no seu HTML   
     if (loader) {
-        loader.style.display = "flex";
+        loader.style.display = "flex"; // Ativa o fundo branco semi-transparente
         loaderText.innerText = "AGUARDE: Processando seu pedido...";
+        loaderText.style.color = "#222"; // Cor padrão inicial
     }
-
     try {
-        // 2. SALVA NO FIREBASE (pedidos_kings)
-        // O salvarPedidoFirebase já deve estar configurado para salvar em 'pedidos_kings'
+        // 3. SALVA NO FIREBASE
+        // Note: A função salvarPedidoFirebase já deve estar configurada para usar 'pedidos_kings'
         await salvarPedidoFirebase({ nome, rua, num, bairro, pag });
-
-        // 3. MUDANÇA DE TEXTO (Após 1,5 segundos)
+        // 4. PRIMEIRA TROCA DE TEXTO (Após 1,5 segundos)
         setTimeout(() => {
             if (loaderText) {
-                loaderText.innerHTML = "<strong>PEDIDO ENVIADO!</strong><br>ACOMPANHE O STATUS NO MENU 'PEDIDOS'";
-                loaderText.style.color = "#f37021"; // Deixa o texto em laranja
+                loaderText.innerHTML = "<strong>PEDIDO ENVIADO COM SUCESSO!</strong><br><span style='font-size: 12px;'>ACOMPANHE O STATUS NO MENU 'PEDIDOS'</span>";
+                loaderText.style.color = "#f37021"; // Laranja Snoop/Kings Burger
             }
         }, 1500);
 
-        // 4. FINALIZAÇÃO (Após 3,5 segundos no total)
+        // 5. FINALIZAÇÃO E REDIRECIONAMENTO (Após 3,5 segundos no total)
         setTimeout(() => {
-            // Limpa o carrinho
+            // Limpa o carrinho e o armazenamento
             carrinho = [];
             localStorage.removeItem("carrinho");
             atualizarCarrinho();
-
-            // Esconde o loader e as modais
+            // Esconde o loader e as modais abertas
             if (loader) loader.style.display = "none";
             document.getElementById("delivery-modal").style.display = "none";
             document.getElementById("resumo-pedido").style.display = "none";
-
-            // Mostra o rodapé e pula para a tela de acompanhamento
-            document.querySelector('.bottom-nav-container').style.display = 'flex';
-            mostrarTela('pedidos'); // Troca a tela automaticamente
+            // Mostra o rodapé (caso estivesse escondido) e troca para a tela de pedidos
+            const navContainer = document.querySelector('.bottom-nav-container');
+            if (navContainer) navContainer.style.display = 'flex';
+            
+            mostrarTela('pedidos'); // Chama sua função que alterna as abas
         }, 3500);
 
     } catch (e) {
-        console.error("Erro ao salvar pedido:", e);
-        alert("Ocorreu um erro ao enviar seu pedido. Tente novamente.");
+        console.error("Erro crítico ao salvar:", e);
+        alert("Ocorreu um erro ao processar seu pedido no banco de dados.");
         if (loader) loader.style.display = "none";
     }
 }
@@ -499,6 +496,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
