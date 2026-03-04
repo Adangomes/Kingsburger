@@ -282,3 +282,7 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 body {
     padding-bottom: 75px !important;
 }
+.bottom-nav-container {
+    /* ... seu código anterior ... */
+    transition: opacity 0.2s ease-in-out; /* Deixa o sumiço suave */
+}
