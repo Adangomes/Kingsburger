@@ -8,120 +8,40 @@
     <link rel="stylesheet" href="admin.css">
     <style>
         /* Estilos da Tela de Login */
+        #tela-login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .login-box { background: #111; padding: 30px; border-radius: 15px; border: 2px solid #f37021; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 0 20px rgba(243, 112, 33, 0.2); }
+        .login-box h2 { color: #f37021; margin-bottom: 20px; font-family: sans-serif; }
+        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 12px; background: #f37021; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        #tela-login {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
+        /* MODAL DE EDIÇÃO (O QUE VOCÊ PEDIU) */
+        #modal-editor {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9999; display: none;
+            overflow-y: auto; padding: 20px; box-sizing: border-box;
         }
+        .editor-content { max-width: 600px; margin: 0 auto; background: #111; padding: 20px; border-radius: 15px; border: 1px solid #444; }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .btn-fechar-modal { background: #ff4444; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
         
-        .login-box {
-            background: #111;
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #f37021;
-            width: 90%;
-            max-width: 380px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(243, 112, 33, 0.2);
-        }
+        .secao-edit { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #f37021; }
+        .secao-edit h3 { margin-top: 0; color: #f37021; font-size: 16px; }
         
-        .login-box h2 {
-            color: #f37021;
-            margin-bottom: 20px;
-            font-family: sans-serif;
-        }
+        .item-edit-card { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
+        .item-edit-card input { width: 100%; background: #333; border: 1px solid #444; color: white; padding: 8px; margin: 5px 0; border-radius: 5px; box-sizing: border-box; }
         
-        .login-box input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #222;
-            color: white;
-            box-sizing: border-box;
-        }
-        
-        .login-box button {
-            width: 100%;
-            padding: 12px;
-            background: #f37021;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
-        #msg-erro {
-            color: #ff4444;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-        }
         /* Estilos do Filtro e Resumo */
+        .filtro-container { background: #1a1a1a; padding: 15px; margin: 10px; border-radius: 8px; border: 1px solid #333; }
+        .filtro-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .btn-filtro { padding: 8px; border-radius: 5px; border: 1px solid #f37021; background: transparent; color: #fff; cursor: pointer; font-size: 12px; }
+        .btn-filtro.active { background: #f37021; }
+        .resumo-financeiro { background: #222; padding: 15px; border-radius: 8px; margin: 10px; color: #fff; border-left: 5px solid #ffcc00; }
+        .resumo-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .comissao-destaque { color: #ffcc00; font-weight: bold; font-size: 16px; border-top: 1px solid #444; padding-top: 5px; }
         
-        .filtro-container {
-            background: #1a1a1a;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 8px;
-            border: 1px solid #333;
-        }
-        
-        .filtro-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .btn-filtro {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #f37021;
-            background: transparent;
-            color: #fff;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .btn-filtro.active {
-            background: #f37021;
-        }
-        
-        .resumo-financeiro {
-            background: #222;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px;
-            color: #fff;
-            border-left: 5px solid #ffcc00;
-        }
-        
-        .resumo-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .comissao-destaque {
-            color: #ffcc00;
-            font-weight: bold;
-            font-size: 16px;
-            border-top: 1px solid #444;
-            pt: 5px;
-        }
+        .status-loja-btn { width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; margin-bottom: 20px; }
+        .aberta { background: #2e7d32; color: white; }
+        .fechada { background: #c62828; color: white; }
     </style>
 </head>
 
@@ -132,20 +52,51 @@
             <input type="text" id="user-id" placeholder="ID do Usuário">
             <input type="password" id="user-pass" placeholder="Senha de Acesso">
             <button onclick="validarAcesso()">ACESSAR PAINEL</button>
-            <p id="msg-erro">Acesso negado.</p>
+            <p id="msg-erro" style="color:red; display:none;">Acesso negado.</p>
         </div>
     </div>
 
-    <div id="container-ativacao" style="display: none;">
+    <div id="modal-editor">
+        <div class="editor-content">
+            <div class="editor-header">
+                <h2 style="color: white; margin: 0;">Configurações</h2>
+                <button class="btn-fechar-modal" onclick="fecharEditor()">X SAIR</button>
+            </div>
+
+            <div class="secao-edit">
+                <h3>Status do Restaurante</h3>
+                <div id="status-loja-container">
+                    </div>
+            </div>
+
+            <div class="secao-edit">
+                <h3>Gerenciar Categorias</h3>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="nova-categoria" placeholder="Nome da Categoria" style="flex:1; padding:8px; border-radius:5px; border:none;">
+                    <button onclick="addCategoria()" style="background:#f37021; border:none; color:white; padding:0 15px; border-radius:5px;">+</button>
+                </div>
+                <div id="lista-categorias" style="margin-top:10px; color:white; font-size:12px;"></div>
+            </div>
+
+            <div class="secao-edit">
+                <h3>Editar Produtos e Preços</h3>
+                <div id="lista-produtos-editor">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="container-ativacao" style="display: none; height: 100vh; align-items: center; justify-content: center; background: #000;">
         <div style="text-align: center;">
             <h2 style="color: #ffcc00; margin-bottom: 20px;">KINGS BURGER</h2>
-            <button onclick="ativarSom()">INICIAR PAINEL</button>
+            <button onclick="ativarSom()" style="padding: 15px 30px; background: #f37021; border: none; color: white; font-weight: bold; border-radius: 10px;">INICIAR PAINEL</button>
         </div>
     </div>
 
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
         <div style="display: flex; gap: 10px;">
+            <button class="btn-refresh" onclick="abrirEditor()" style="background: #f37021;">⚙️ EDITAR</button>
             <button class="btn-refresh" onclick="location.reload()">🔄</button>
             <button class="btn-refresh" onclick="logout()" style="background: #444;">🚪</button>
         </div>
@@ -166,7 +117,7 @@
                 <button class="btn-filtro" onclick="setFiltro('mes', this)">MÊS</button>
                 <button class="btn-filtro" onclick="setFiltro('ano', this)">ANO</button>
             </div>
-            <input type="date" id="filtro-data" onchange="setFiltro('especifico', this)" style="width:100%; padding:8px; border-radius:5px;">
+            <input type="date" id="filtro-data" onchange="setFiltro('especifico', this)" style="width:100%; padding:8px; border-radius:5px; background: #222; color: white; border: 1px solid #444;">
         </div>
 
         <div id="resumo-box" class="resumo-financeiro">
@@ -176,7 +127,7 @@
         </div>
 
         <div style="padding: 0 15px;">
-            <button class="btn-pdf" onclick="gerarPDF()" style="width: 100%; background: #d32f2f;">📄 BAIXAR RELATÓRIO PDF</button>
+            <button class="btn-pdf" onclick="gerarPDF()" style="width: 100%; background: #d32f2f; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold;">📄 BAIXAR RELATÓRIO PDF</button>
         </div>
     </div>
 
@@ -187,18 +138,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
-        const CREDENCIAIS = {
-            usuario: "kings##26burger",
-            senha: "35Op89Bk190"
-        };
+        const CREDENCIAIS = { usuario: "kings##26burger", senha: "35Op89Bk190" };
         const firebaseConfig = {
             apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
             databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+            projectId: "myproject26-10f0e"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -206,8 +150,8 @@
         let abaAtiva = 'pendente';
         let iniciado = false;
         let filtroAtual = 'hoje';
-        const audioAlerta = new Audio('alert.mpeg');
 
+        // --- CONTROLE DE ACESSO ---
         function validarAcesso() {
             const user = document.getElementById('user-id').value;
             const pass = document.getElementById('user-pass').value;
@@ -227,20 +171,69 @@
             }
         };
 
-        function logout() {
-            localStorage.removeItem('kings_session');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('kings_session'); location.reload(); }
 
         function ativarSom() {
             document.getElementById('container-ativacao').style.display = 'none';
             iniciado = true;
-            audioAlerta.play().then(() => {
-                audioAlerta.pause();
-                carregarDados();
-            }).catch(() => carregarDados());
+            carregarDados();
+            ouvirStatusLoja();
+            ouvirCardapio();
         }
 
+        // --- FUNÇÕES DO EDITOR (MODAL) ---
+        function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; }
+        function fecharEditor() { document.getElementById('modal-editor').style.display = 'none'; }
+
+        function ouvirStatusLoja() {
+            db.ref('status_kings').on('value', snap => {
+                const s = snap.val() || { aberto: true };
+                const container = document.getElementById('status-loja-container');
+                container.innerHTML = `
+                    <button class="status-loja-btn ${s.aberto ? 'aberta' : 'fechada'}" onclick="alternarLoja(${!s.aberto})">
+                        LOJA ESTÁ ${s.aberto ? 'ABERTA' : 'FECHADA'} (CLIQUE PARA MUDAR)
+                    </button>
+                `;
+            });
+        }
+
+        function alternarLoja(status) {
+            db.ref('status_kings').update({ aberto: status, mensagem: status ? "" : "Estamos fechados no momento 😔" });
+        }
+
+        function ouvirCardapio() {
+            db.ref('cardapio_kings/produtos').on('value', snap => {
+                const lista = document.getElementById('lista-produtos-editor');
+                const catLista = document.getElementById('lista-categorias');
+                lista.innerHTML = "";
+                let cats = new Set();
+
+                snap.forEach(item => {
+                    const p = item.val();
+                    const key = item.key;
+                    cats.add(p.categoria);
+                    
+                    lista.innerHTML += `
+                        <div class="item-edit-card">
+                            <small style="color:#f37021">Título:</small>
+                            <input type="text" value="${p.title}" onchange="atualizarItem('${key}', 'title', this.value)">
+                            <small style="color:#f37021">Preço (R$):</small>
+                            <input type="number" step="0.01" value="${p.price}" onchange="atualizarItem('${key}', 'price', this.value)">
+                            <small style="color:#f37021">Categoria:</small>
+                            <input type="text" value="${p.categoria}" onchange="atualizarItem('${key}', 'categoria', this.value)">
+                        </div>
+                    `;
+                });
+                catLista.innerHTML = "Categorias ativas: " + Array.from(cats).join(", ");
+            });
+        }
+
+        function atualizarItem(id, campo, valor) {
+            let v = (campo === 'price') ? parseFloat(valor) : valor;
+            db.ref(`cardapio_kings/produtos/${id}`).update({ [campo]: v });
+        }
+
+        // --- FUNÇÕES PRINCIPAIS DO PAINEL (PEDIDOS/FINANCEIRO) ---
         function mudarAba(aba, btn) {
             abaAtiva = aba;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -261,50 +254,39 @@
         function carregarDados() {
             if (!iniciado) return;
             const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
-
             db.ref(path).on('value', (snapshot) => {
-                        const container = document.getElementById('pedidos-container');
-                        container.innerHTML = "";
-                        let somaBruto = 0,
-                            somaEntrega = 0,
-                            temPendente = false;
+                const container = document.getElementById('pedidos-container');
+                container.innerHTML = "";
+                let somaBruto = 0, somaEntrega = 0;
 
-                        snapshot.forEach(child => {
-                                    const p = child.val();
-                                    const dataPedido = new Date(p.concluidoEm || Date.now());
-                                    const hoje = new Date();
+                snapshot.forEach(child => {
+                    const p = child.val();
+                    const dataPedido = new Date(p.concluidoEm || Date.now());
+                    const hoje = new Date();
 
-                                    // Lógica de Filtro
-                                    if (abaAtiva === 'historico') {
-                                        let exibir = false;
-                                        if (filtroAtual === 'hoje') exibir = dataPedido.toDateString() === hoje.toDateString();
-                                        else if (filtroAtual === 'semana') exibir = (hoje - dataPedido) < 7 * 24 * 60 * 60 * 1000;
-                                        else if (filtroAtual === 'mes') exibir = dataPedido.getMonth() === hoje.getMonth() && dataPedido.getFullYear() === hoje.getFullYear();
-                                        else if (filtroAtual === 'ano') exibir = dataPedido.getFullYear() === hoje.getFullYear();
-                                        else if (filtroAtual === 'especifico') exibir = dataPedido.toDateString() === new Date(document.getElementById('filtro-data').value + "T12:00:00").toDateString();
+                    if (abaAtiva === 'historico') {
+                        let exibir = false;
+                        if (filtroAtual === 'hoje') exibir = dataPedido.toDateString() === hoje.toDateString();
+                        else if (filtroAtual === 'semana') exibir = (hoje - dataPedido) < 7 * 24 * 60 * 60 * 1000;
+                        else if (filtroAtual === 'mes') exibir = dataPedido.getMonth() === hoje.getMonth();
+                        else if (filtroAtual === 'especifico') exibir = dataPedido.toDateString() === new Date(document.getElementById('filtro-data').value + "T12:00:00").toDateString();
+                        if (!exibir) return;
+                    } else if (p.status !== abaAtiva) return;
 
-                                        if (!exibir) return;
-                                    } else {
-                                        if (p.status === 'pendente') temPendente = true;
-                                        if (p.status !== abaAtiva) return;
-                                    }
+                    const valorItens = parseFloat(p.total) - parseFloat(p.taxaEntrega || 0);
+                    somaBruto += parseFloat(p.total);
+                    somaEntrega += parseFloat(p.taxaEntrega || 0);
 
-                                    // Cálculos
-                                    const valorItens = parseFloat(p.total) - parseFloat(p.taxaEntrega || 0);
-                                    somaBruto += parseFloat(p.total);
-                                    somaEntrega += parseFloat(p.taxaEntrega || 0);
+                    const li = document.createElement('li');
+                    li.className = `pedido-card`;
+                    let acaoHtml = "";
+                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR</button>`;
+                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">ENTREGA</button>`;
+                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
+                    else acaoHtml = `<div style="color:#888;">Comissão: R$ ${(valorItens * 0.1).toFixed(2)}</div>`;
 
-                                    const li = document.createElement('li');
-                                    li.className = `pedido-card`;
-
-                                    let acaoHtml = "";
-                                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
-                                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-warning" onclick="imprimirPedido('${child.key}', 'pedidos_kings')">IMPRIMIR</button><button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">ENTREGA</button>`;
-                                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
-                                    else acaoHtml = `<div style="color:#888; font-size:12px;">Comissão: R$ ${(valorItens * 0.1).toFixed(2)}</div>`;
-
-                                    li.innerHTML = `
-                        <div class="card-header"><span class="cliente-nome">${p.cliente}</span><span class="hora">${p.horario || ''}</span></div>
+                    li.innerHTML = `
+                        <div class="card-header"><span class="cliente-nome">${p.cliente}</span><span>${p.horario || ''}</span></div>
                         <div class="itens-box">${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : ''}</div>
                         <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
                         <div class="btn-actions">${acaoHtml}</div>
@@ -312,12 +294,10 @@
                     container.appendChild(li);
                 });
 
-                // Atualiza Painel Financeiro
                 if(abaAtiva === 'historico'){
-                    const comissao = (somaBruto - somaEntrega) * 0.10;
                     document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
                     document.getElementById('res-entrega').innerText = `R$ ${somaEntrega.toFixed(2)}`;
-                    document.getElementById('res-comissao').innerText = `R$ ${comissao.toFixed(2)}`;
+                    document.getElementById('res-comissao').innerText = `R$ ${( (somaBruto - somaEntrega) * 0.1).toFixed(2)}`;
                 }
             });
         }
@@ -330,176 +310,6 @@
                 db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
             });
         }
-
-        function gerarPDF() {
-            const bruto = document.getElementById('res-bruto').innerText;
-            const entrega = document.getElementById('res-entrega').innerText;
-            const comissao = document.getElementById('res-comissao').innerText;
-            
-            let tabela = `<table style="width:100%; border-collapse:collapse; font-family:sans-serif;">
-                <tr style="background:#eee;">
-                    <th style="border:1px solid #ddd; padding:8px;">Cliente</th>
-                    <th style="border:1px solid #ddd; padding:8px;">Valor Total</th>
-                    <th style="border:1px solid #ddd; padding:8px;">10% (S/ Frete)</th>
-                </tr>`;
-
-            document.querySelectorAll('.pedido-card').forEach(card => {
-                const nome = card.querySelector('.cliente-nome').innerText;
-                const total = card.querySelector('.total-area').innerText.replace('TOTAL: ', '');
-                const valorComissao = card.querySelector('.btn-actions div').innerText.replace('Comissão: ', '');
-                tabela += `<tr>
-                    <td style="border:1px solid #ddd; padding:8px;">${nome}</td>
-                    <td style="border:1px solid #ddd; padding:8px;">${total}</td>
-                    <td style="border:1px solid #ddd; padding:8px;">${valorComissao}</td>
-                </tr>`;
-            });
-            tabela += `</table>`;
-
-            const win = window.open('', '');
-            win.document.write(`<html><body>
-                <h2 style="text-align:center;">Relatório Kings Burger - Período: ${filtroAtual.toUpperCase()}</h2>
-                <div style="background:#f9f9f9; padding:15px; border-radius:10px; margin-bottom:20px;">
-                    <p><b>Bruto Total:</b> ${bruto}</p>
-                    <p><b>Total Fretes:</b> ${entrega}</p>
-                    <p style="color:red; font-size:20px;"><b>COMISSÃO A PAGAR: ${comissao}</b></p>
-                </div>
-                ${tabela}
-            </body></html>`);
-            win.document.close();
-            win.print();
-        }
-
-        function imprimirPedido(id, pasta) {
-            db.ref(pasta + '/' + id).once('value', (snapshot) => {
-                const p = snapshot.val();
-                const cupom = `<html><body style="font-family:Arial; width:80mm;">
-                    <center><b>KINGS BURGER</b><br>CUPOM DE ENTREGA</center><hr>
-                    <b>CLIENTE:</b> ${p.cliente.toUpperCase()}<br>
-                    <b>ENDEREÇO:</b> ${p.endereco}<br><hr>
-                    ${p.itens ? p.itens.map(i => `${i.qtd}x ${i.produto}`).join('<br>') : ''}<hr>
-                    <center><b style="font-size:20px;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</b></center>
-                </body></html>`;
-                const frame = document.getElementById('iframe-impressao');
-                frame.contentWindow.document.open();
-                frame.contentWindow.document.write(cupom);
-                frame.contentWindow.document.close();
-                setTimeout(() => frame.contentWindow.print(), 500);
-            });
-        }
     </script>
 </body>
-
-</html>                                 let exibir = false;
-                                        if (filtroAtual === 'hoje') exibir = dataPedido.toDateString() === hoje.toDateString();
-                                        else if (filtroAtual === 'semana') exibir = (hoje - dataPedido) < 7 * 24 * 60 * 60 * 1000;
-                                        else if (filtroAtual === 'mes') exibir = dataPedido.getMonth() === hoje.getMonth() && dataPedido.getFullYear() === hoje.getFullYear();
-                                        else if (filtroAtual === 'ano') exibir = dataPedido.getFullYear() === hoje.getFullYear();
-                                        else if (filtroAtual === 'especifico') exibir = dataPedido.toDateString() === new Date(document.getElementById('filtro-data').value + "T12:00:00").toDateString();
-
-                                        if (!exibir) return;
-                                    } else {
-                                        if (p.status === 'pendente') temPendente = true;
-                                        if (p.status !== abaAtiva) return;
-                                    }
-
-                                    // Cálculos
-                                    const valorItens = parseFloat(p.total) - parseFloat(p.taxaEntrega || 0);
-                                    somaBruto += parseFloat(p.total);
-                                    somaEntrega += parseFloat(p.taxaEntrega || 0);
-
-                                    const li = document.createElement('li');
-                                    li.className = `pedido-card`;
-
-                                    let acaoHtml = "";
-                                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
-                                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-warning" onclick="imprimirPedido('${child.key}', 'pedidos_kings')">IMPRIMIR</button><button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">ENTREGA</button>`;
-                                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
-                                    else acaoHtml = `<div style="color:#888; font-size:12px;">Comissão: R$ ${(valorItens * 0.1).toFixed(2)}</div>`;
-
-                                    li.innerHTML = `
-                        <div class="card-header"><span class="cliente-nome">${p.cliente}</span><span class="hora">${p.horario || ''}</span></div>
-                        <div class="itens-box">${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : ''}</div>
-                        <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
-                        <div class="btn-actions">${acaoHtml}</div>
-                    `;
-                    container.appendChild(li);
-                });
-
-                // Atualiza Painel Financeiro
-                if(abaAtiva === 'historico'){
-                    const comissao = (somaBruto - somaEntrega) * 0.10;
-                    document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
-                    document.getElementById('res-entrega').innerText = `R$ ${somaEntrega.toFixed(2)}`;
-                    document.getElementById('res-comissao').innerText = `R$ ${comissao.toFixed(2)}`;
-                }
-            });
-        }
-
-        function concluirPedido(id) {
-            db.ref('pedidos_kings/' + id).once('value', s => {
-                const dados = s.val();
-                dados.concluidoEm = Date.now();
-                dados.status = 'concluido';
-                db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
-            });
-        }
-
-        function gerarPDF() {
-            const bruto = document.getElementById('res-bruto').innerText;
-            const entrega = document.getElementById('res-entrega').innerText;
-            const comissao = document.getElementById('res-comissao').innerText;
-            
-            let tabela = `<table style="width:100%; border-collapse:collapse; font-family:sans-serif;">
-                <tr style="background:#eee;">
-                    <th style="border:1px solid #ddd; padding:8px;">Cliente</th>
-                    <th style="border:1px solid #ddd; padding:8px;">Valor Total</th>
-                    <th style="border:1px solid #ddd; padding:8px;">10% (S/ Frete)</th>
-                </tr>`;
-
-            document.querySelectorAll('.pedido-card').forEach(card => {
-                const nome = card.querySelector('.cliente-nome').innerText;
-                const total = card.querySelector('.total-area').innerText.replace('TOTAL: ', '');
-                const valorComissao = card.querySelector('.btn-actions div').innerText.replace('Comissão: ', '');
-                tabela += `<tr>
-                    <td style="border:1px solid #ddd; padding:8px;">${nome}</td>
-                    <td style="border:1px solid #ddd; padding:8px;">${total}</td>
-                    <td style="border:1px solid #ddd; padding:8px;">${valorComissao}</td>
-                </tr>`;
-            });
-            tabela += `</table>`;
-
-            const win = window.open('', '');
-            win.document.write(`<html><body>
-                <h2 style="text-align:center;">Relatório Kings Burger - Período: ${filtroAtual.toUpperCase()}</h2>
-                <div style="background:#f9f9f9; padding:15px; border-radius:10px; margin-bottom:20px;">
-                    <p><b>Bruto Total:</b> ${bruto}</p>
-                    <p><b>Total Fretes:</b> ${entrega}</p>
-                    <p style="color:red; font-size:20px;"><b>COMISSÃO A PAGAR: ${comissao}</b></p>
-                </div>
-                ${tabela}
-            </body></html>`);
-            win.document.close();
-            win.print();
-        }
-
-        function imprimirPedido(id, pasta) {
-            db.ref(pasta + '/' + id).once('value', (snapshot) => {
-                const p = snapshot.val();
-                const cupom = `<html><body style="font-family:Arial; width:80mm;">
-                    <center><b>KINGS BURGER</b><br>CUPOM DE ENTREGA</center><hr>
-                    <b>CLIENTE:</b> ${p.cliente.toUpperCase()}<br>
-                    <b>ENDEREÇO:</b> ${p.endereco}<br><hr>
-                    ${p.itens ? p.itens.map(i => `${i.qtd}x ${i.produto}`).join('<br>') : ''}<hr>
-                    <center><b style="font-size:20px;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</b></center>
-                </body></html>`;
-                const frame = document.getElementById('iframe-impressao');
-                frame.contentWindow.document.open();
-                frame.contentWindow.document.write(cupom);
-                frame.contentWindow.document.close();
-                setTimeout(() => frame.contentWindow.print(), 500);
-            });
-        }
-    </script>
-</body>
-
 </html>
