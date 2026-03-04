@@ -236,3 +236,52 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     text-align: center;
     border: none;
 }
+/* Container do Rodapé */
+.bottom-nav-container {
+    position: fixed;
+    bottom: 15px; /* Flutuando acima da borda */
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    z-index: 2000; /* Garante que fique acima dos modais se necessário */
+    padding: 0 15px;
+}
+/* A Barra Vermelha */
+.bottom-nav {
+    background-color: #d31b27; /* Vermelho Kings Burger */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    max-width: 400px; /* Mantém formato de pílula em telas grandes */
+    height: 65px;
+    border-radius: 35px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+/* Itens do Menu */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white !important;
+    text-decoration: none !important;
+    transition: transform 0.2s;
+}
+.nav-item i {
+    font-size: 20px;
+}
+.nav-label {
+    font-size: 10px;
+    margin-top: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+/* Feedback visual ao clicar */
+.nav-item:active {
+    transform: scale(0.9);
+}
+/* Ajuste no corpo para o conteúdo não ficar escondido atrás da barra */
+body {
+    padding-bottom: 90px;
+}
