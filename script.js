@@ -205,9 +205,12 @@ async function processarResumoGeo() {
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const whats = document.getElementById('whatsappCliente')?.value || "";
 
     if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
-    
+    if (whats.length < 10) {
+        return alert("Por favor, insira um WhatsApp válido com DDD (mínimo 10 dígitos).");
+    }
 // 1. ATIVA O EFEITO (O Círculo Girando)
     const loader = document.getElementById("loading-geral");
     if (loader) {
@@ -252,6 +255,7 @@ async function processarResumoGeo() {
 async function enviarPedidoFinal() {
     // 1. CAPTURA DOS DADOS (Com verificação de IDs comuns)
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const whats = document.getElementById("whatsappCliente")?.value || ""; 
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
     const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
@@ -582,6 +586,7 @@ window.addEventListener('load', () => {
         console.log("Rodapé forçado via Script");
     }
 });
+
 
 
 
