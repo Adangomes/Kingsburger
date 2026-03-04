@@ -364,10 +364,12 @@ function carregarStatusLoja() {
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
 function fecharModalEntrega() {
-    document.getElementById("delivery-modal").style.display = "none";
-    document.body.style.overflow = 'auto'; // Destrava o scroll  
-    const navContainer = document.querySelector('.bottom-nav-container');
-    if (navContainer) navContainer.style.display = 'flex'; // Destrava o rodapé
+    document.getElementById('delivery-modal').style.display = 'none';
+    document.body.style.overflow = 'auto'; 
+    const nav = document.querySelector('.bottom-nav-container');
+    if (nav) {
+        nav.style.display = 'flex';
+    }
 }
 
 
@@ -525,6 +527,7 @@ function carregarStatusTempoReal() {
         `;
     });
 }
+
 
 
 
