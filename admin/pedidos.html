@@ -10,10 +10,18 @@
             animation: none !important;
             box-shadow: none !important;
         }
-        .info-entrega p { margin: 4px 0; font-size: 14px; line-height: 1.4; }
-        .cliente-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px; }
-        .btn-whatsapp { background: #25D366; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .taxa-destaque { color: #f37021; font-weight: bold; }
+        .info-entrega p { margin: 4px 0; font-size: 14px; line-height: 1.4; color: #ccc; }
+        .cliente-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 8px; 
+            margin-bottom: 8px; 
+        }
+        .pedido-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 20px; list-style: none; }
+        .itens-box { background: #222; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #f37021; }
+        .contato-destaque { color: #25D366; font-weight: bold; }
     </style>
 </head>
 
@@ -21,78 +29,19 @@
     <div id="tela-login">
         <div class="login-box">
             <h2>KINGS <span>ADMIN</span></h2>
-            <input type="text" id="user-id" placeholder="ID do Usuario">
-            <input type="password" id="user-pass" placeholder="Senha de Acesso">
-            <button onclick="validarAcesso()">ACESSAR PAINEL</button>
-            <p id="msg-erro" style="color:red; display:none; margin-top: 10px;">Acesso negado.</p>
-        </div>
-    </div>
-
-    <div id="modal-editor">
-        <div class="editor-content">
-            <div class="editor-header">
-                <h2 style="color: white; margin: 0;">Configuracoes</h2>
-                <button class="btn-fechar-modal" onclick="fecharEditor()">X SAIR</button>
-            </div>
-
-            <div class="editor-tabs">
-                <button class="e-tab active" onclick="tabEditor('loja', this)">LOJA</button>
-                <button class="e-tab" onclick="tabEditor('produtos', this)">PRODUTOS</button>
-                <button class="e-tab" onclick="tabEditor('categorias', this)">CATEGORIAS</button>
-                <button class="e-tab" onclick="tabEditor('cupons', this)">CUPONS</button>
-            </div>
-
-            <div id="tab-loja" class="e-content">
-                <div class="secao-edit">
-                    <h3>Status do Restaurante</h3>
-                    <div id="status-loja-container"></div>
-                </div>
-                <div class="secao-edit" style="border-left-color: #28a745;">
-                    <h3>Sincronizacao</h3>
-                    <button onclick="sincronizarTudo()" style="background:#28a745; color:white; border:none; padding:10px; border-radius:5px; width:100%; cursor:pointer;">RESETAR E CARREGAR PADRAO</button>
-                </div>
-            </div>
-
-            <div id="tab-produtos" class="e-content" style="display:none;">
-                <div class="secao-edit">
-                    <h3 style="color: #f37021;">NOVO PRODUTO</h3>
-                    <div class="item-edit-card">
-                        <input type="text" id="add-p-titulo" placeholder="Nome">
-                        <input type="number" id="add-p-preco" placeholder="Preco">
-                        <select id="add-p-cat"></select>
-                        <textarea id="add-p-desc" placeholder="Ingredientes"></textarea>
-                        <input type="text" id="add-p-img" placeholder="Caminho da Imagem">
-                        <button onclick="salvarNovoProduto()" style="background:#f37021; color:white; border:none; padding:12px; border-radius:5px; width:100%; font-weight: bold;">CADASTRAR</button>
-                    </div>
-                </div>
-                <div id="lista-produtos-editor"></div>
-            </div>
-
-            <div id="tab-categorias" class="e-content" style="display:none;">
-                <div class="secao-edit">
-                    <h3>Categorias</h3>
-                    <div style="display:flex; gap:5px; margin-bottom: 15px;">
-                        <input type="text" id="nova-categoria" placeholder="Ex: Bebidas" style="flex:1;">
-                        <button onclick="addCategoria()" style="background:#f37021; border:none; color:white; padding:0 20px; border-radius:5px;">+</button>
-                    </div>
-                    <div id="lista-categorias-gerir"></div>
-                </div>
-            </div>
-
-            <div id="tab-cupons" class="e-content" style="display:none;">
-                <div id="lista-cupons-editor"></div>
-            </div>
+            <input type="text" id="user-id" placeholder="Usuario">
+            <input type="password" id="user-pass" placeholder="Senha">
+            <button onclick="validarAcesso()">ACESSAR</button>
         </div>
     </div>
 
     <div id="container-ativacao" style="display: none; justify-content: center; align-items: center; height: 100vh; background: rgba(0,0,0,0.9); position: fixed; width: 100%; z-index: 9999;">
-        <button onclick="ativarSom()" style="padding: 20px 50px; background: #f37021; color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold;">INICIAR PAINEL</button>
+        <button onclick="ativarSom()" style="padding: 20px 50px; background: #f37021; color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer;">INICIAR PAINEL</button>
     </div>
 
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-refresh" onclick="abrirEditor()">CONFIG</button>
             <button class="btn-refresh" onclick="location.reload()">ATUALIZAR</button>
             <button class="btn-refresh" onclick="logout()" style="background: #cc0000;">SAIR</button>
         </div>
@@ -105,14 +54,7 @@
         <button class="tab-btn btn-hist" onclick="mudarAba('historico', this)">HISTORICO</button>
     </nav>
 
-    <div id="area-relatorio" style="display:none;">
-        <div id="resumo-box" class="resumo-financeiro">
-            <div class="resumo-item"><span>Bruto:</span> <span id="res-bruto">R$ 0,00</span></div>
-            <div class="resumo-item comissao-destaque"><span>Comissao:</span> <span id="res-comissao">R$ 0,00</span></div>
-        </div>
-    </div>
-
-    <ul id="pedidos-container"></ul>
+    <ul id="pedidos-container" style="padding: 10px;"></ul>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -137,9 +79,7 @@
                 localStorage.setItem('kings_session', btoa(user + ":" + pass));
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('container-ativacao').style.display = 'flex';
-            } else {
-                document.getElementById('msg-erro').style.display = 'block';
-            }
+            } else { alert("Acesso negado"); }
         }
 
         window.onload = () => {
@@ -155,64 +95,61 @@
             document.getElementById('container-ativacao').style.display = 'none';
             iniciado = true;
             carregarDados();
-            ouvirStatusLoja();
-            ouvirCardapio();
-            ouvirCategorias();
-            ouvirCupons();
         }
 
         function carregarDados() {
             if (!iniciado) return;
             const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
+            
             db.ref(path).on('value', (snapshot) => {
                 const container = document.getElementById('pedidos-container');
                 container.innerHTML = "";
-                let somaBruto = 0;
-
+                
                 snapshot.forEach(child => {
                     const p = child.val();
                     if (abaAtiva !== 'historico' && p.status !== abaAtiva) return;
 
-                    somaBruto += parseFloat(p.total || 0);
                     const li = document.createElement('li');
                     li.className = `pedido-card`;
+                    
+                    const nome = p.nomeCliente || "Nao informado";
+                    const whatsapp = p.whatsappCliente || "Nao informado";
+                    const rua = p.rua || "Nao informada";
+                    const num = p.numero || "S/N";
+                    const bairro = p.bairro || "Nao informado";
+                    const obs = p.obsPedido || "Nenhuma";
+                    const pag = p.pagamento || "Nao informado";
 
                     let acaoHtml = "";
-                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
-                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
-                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
+                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
+                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%; padding:12px; background:#17a2b8; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
+                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
 
                     li.innerHTML = `
                         <div class="cliente-header">
-                            <span class="cliente-nome">CLIENTE: ${p.cliente}</span>
-                            <a href="https://wa.me/55${p.whatsapp}" target="_blank" class="btn-whatsapp">WHATSAPP</a>
+                            <span style="color: #f37021; font-weight: bold; font-size: 16px;">${nome.toUpperCase()}</span>
                         </div>
                         
-                        <div class="info-entrega" style="background: #111; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                            <p><b>ENDERECO:</b> ${p.rua}, ${p.numero}</p>
-                            <p><b>BAIRRO:</b> ${p.bairro} | ${p.cidade}</p>
-                            <p><b>OBSERVACOES:</b> ${p.observacoes || 'Nenhuma'}</p>
-                            <p><b>PAGAMENTO:</b> ${p.metodoPagamento}</p>
+                        <div class="info-entrega">
+                            <p><b>ENDERECO:</b> ${rua}, ${num}</p>
+                            <p><b>BAIRRO:</b> ${bairro}</p>
+                            <p><b>PAGAMENTO:</b> ${pag}</p>
+                            <p class="contato-destaque">WHATSAPP: ${whatsapp}</p>
+                            <p><b>OBS:</b> ${obs}</p>
                         </div>
 
                         <div class="itens-box">
-                            ${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : ''}
+                            ${p.itens ? p.itens.map(i => `<div style="margin-bottom:5px;"><b>${i.qtd}x</b> ${i.produto}</div>`).join('') : ''}
                         </div>
                         
-                        <div class="total-area" style="border-top: 1px solid #333; margin-top: 10px; padding-top: 5px;">
-                            <p style="font-size: 12px; margin:0;">TAXA ENTREGA: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}</p>
-                            <p style="font-size: 18px; color: #f37021; margin:0; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</p>
+                        <div style="text-align: right; margin-top:10px;">
+                             <span style="font-size:18px; color: #f37021; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</span>
                         </div>
 
-                        <div class="btn-actions">${acaoHtml}</div>`;
+                        <div style="margin-top:15px;">${acaoHtml}</div>`;
                     
                     container.appendChild(li);
                 });
-
-                if(abaAtiva === 'historico'){
-                    document.getElementById('res-bruto').innerText = `R$ ${somaBruto.toFixed(2)}`;
-                    document.getElementById('res-comissao').innerText = `R$ ${(somaBruto * 0.1).toFixed(2)}`;
-                }
             });
         }
 
@@ -220,7 +157,6 @@
             abaAtiva = aba;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('area-relatorio').style.display = (aba === 'historico') ? 'block' : 'none';
             carregarDados();
         }
 
@@ -230,80 +166,8 @@
                 db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
             });
         }
-
-        function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; }
-        function fecharEditor() { document.getElementById('modal-editor').style.display = 'none'; }
-        function tabEditor(aba, btn) {
-            document.querySelectorAll('.e-content').forEach(c => c.style.display = 'none');
-            document.querySelectorAll('.e-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + aba).style.display = 'block';
-            btn.classList.add('active');
-        }
-
-        function ouvirStatusLoja() {
-            db.ref('status_kings').on('value', snap => {
-                const s = snap.val() || { aberto: true };
-                document.getElementById('status-loja-container').innerHTML = `<button class="status-loja-btn ${s.aberto ? 'aberta' : 'fechada'}" onclick="alternarLoja(${!s.aberto})">LOJA ESTA ${s.aberto ? 'ABERTA' : 'FECHADA'}</button>`;
-            });
-        }
-        function alternarLoja(status) { db.ref('status_kings').update({ aberto: status }); }
-
-        function ouvirCategorias() {
-            db.ref('cardapio_kings/categorias').on('value', snap => {
-                const lista = document.getElementById('lista-categorias-gerir');
-                const select = document.getElementById('add-p-cat');
-                lista.innerHTML = ""; select.innerHTML = "";
-                snap.forEach(c => {
-                    const nome = c.val().nome;
-                    lista.innerHTML += `<div style="display:flex; justify-content:space-between; background:#222; padding:10px; margin-bottom:5px; border-radius:5px;">${nome} <button onclick="deletarItem('categorias', '${c.key}')">X</button></div>`;
-                    select.innerHTML += `<option value="${nome}">${nome}</option>`;
-                });
-            });
-        }
-
-        function addCategoria() {
-            const nome = document.getElementById('nova-categoria').value;
-            if(nome) db.ref('cardapio_kings/categorias').push({ nome: nome });
-            document.getElementById('nova-categoria').value = "";
-        }
-
-        function ouvirCardapio() {
-            db.ref('cardapio_kings/produtos').on('value', snap => {
-                const lista = document.getElementById('lista-produtos-editor');
-                lista.innerHTML = "<h3>Existentes</h3>";
-                snap.forEach(item => {
-                    const p = item.val();
-                    lista.innerHTML += `<div class="item-edit-card"><b>${p.title}</b> - R$ ${p.price} <button onclick="deletarItem('produtos', '${item.key}')">Excluir</button></div>`;
-                });
-            });
-        }
-
-        function salvarNovoProduto() {
-            const p = {
-                title: document.getElementById('add-p-titulo').value,
-                price: parseFloat(document.getElementById('add-p-preco').value),
-                categoria: document.getElementById('add-p-cat').value,
-                ingredientes: document.getElementById('add-p-desc').value,
-                image: document.getElementById('add-p-img').value || "imagens/default.jpg"
-            };
-            if(p.title && p.price) db.ref('cardapio_kings/produtos').push(p).then(() => alert("Adicionado"));
-        }
-
-        function deletarItem(path, id) {
-            if(confirm("Excluir item?")) db.ref(`cardapio_kings/${path}/${id}`).remove();
-        }
-
-        function ouvirCupons() {
-            db.ref('cardapio_kings/cupons').on('value', snap => {
-                const lista = document.getElementById('lista-cupons-editor');
-                lista.innerHTML = "<h3>Cupons</h3>";
-                snap.forEach(c => {
-                    const cup = c.val();
-                    lista.innerHTML += `<div class="item-edit-card">${cup.codigo} (${cup.valor}%) <button onclick="deletarItem('cupons', '${c.key}')">Remover</button></div>`;
-                });
-            });
-        }
     </script>
 </body>
-</html> 
+</html>
+
 
