@@ -9,6 +9,7 @@ let carrinho = [];
 let produtosGeral = [];
 let taxaEntregaCalculada = 0;
 let descontoAplicado = 0;
+let cupomAtivo = null;
 
 let itemMestreTemporario = null; 
 let saboresSelecionados = [];
@@ -17,47 +18,50 @@ let tamanhoSelecionadoGlobal = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
-    carregarCardapioCompleto();
+    carregarCardapioCompleto(); // Agora puxa do JSON
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
-// --- CARREGAMENTO DO CARDÁPIO VIA FIREBASE (Sincronizado com Admin) ---
+// --- 1. CARREGAMENTO DO CARDÁPIO VIA JSON LOCAL ---
 function carregarCardapioCompleto() {
     const corpo = document.getElementById("cardapio-corpo");
     if (!corpo) return;
 
-    // LER DO FIREBASE EM TEMPO REAL
-    db.ref('produtos_db').on('value', (snapshot) => {
-        const data = snapshot.val();
-        produtosGeral = [];
+    fetch('produtos.json')
+        .then(response => {
+            if (!response.ok) throw new Error("Erro ao carregar produtos.json");
+            return response.json();
+        })
+        .then(data => {
+            // Mapeia os dados do JSON para o padrão do app
+            produtosGeral = data.map((p, index) => ({
+                id: p.id || index,
+                title: p.nome || p.title, 
+                price: parseFloat(p.preco || p.price || 0),
+                categoria: p.categoria,
+                ingredientes: p.ingredientes || "",
+                image: p.foto || p.img || p.image || "imagens/placeholder.png",
+                prices: p.prices || null,
+                ativo: p.ativo !== undefined ? p.ativo : true
+            }));
 
-        if (data) {
-            produtosGeral = Object.keys(data).map(key => {
-                const p = data[key];
-                return {
-                    id: key,
-                    title: p.nome || p.title, 
-                    price: parseFloat(p.preco || p.price || 0),
-                    categoria: p.categoria,
-                    ingredientes: p.ingredientes || "",
-                    image: p.foto || p.img || p.image || "imagens/placeholder.png",
-                    prices: p.prices || null,
-                    ativo: p.ativo !== undefined ? p.ativo : true
-                };
-            });
-
-            // Filtro de segurança: Só mostra o que estiver ativo no Admin
+            // Filtra apenas o que está ativo
             produtosGeral = produtosGeral.filter(p => p.ativo);
-            renderizarCardapio();
-        } else {
-            corpo.innerHTML = "<p class='text-center mt-5'>Cardápio sendo atualizado...</p>";
-        }
-    });
+            
+            if (produtosGeral.length > 0) {
+                renderizarCardapio();
+            } else {
+                corpo.innerHTML = "<p class='text-center mt-5'>Cardápio vazio ou em atualização...</p>";
+            }
+        })
+        .catch(error => {
+            console.error("Erro:", error);
+            corpo.innerHTML = "<p class='text-center mt-5 text-danger'>Erro ao carregar o arquivo de produtos.</p>";
+        });
 }
 
-// --- ENVIO DE PEDIDO COMPLETO PARA O ADMIN ---
+// --- SALVAR PEDIDO NO FIREBASE (Mantido para o Admin funcionar) ---
 function salvarPedidoFirebase(dados) {
     if (!db) return Promise.resolve();
     const novoPedidoRef = db.ref('pedidos_kings').push();
@@ -69,7 +73,6 @@ function salvarPedidoFirebase(dados) {
     const descF = descontoAplicado || 0;
     const totalF = subtotalF + taxaF - descF;
     
-    // Pega o cupom digitado se houver
     const cupomTexto = document.getElementById("input-cupom")?.value || "Nenhum";
 
     return novoPedidoRef.set({
@@ -79,7 +82,7 @@ function salvarPedidoFirebase(dados) {
         endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
         referencia: document.getElementById("referencia")?.value || "",
         pagamento: dados.pag,
-        status: "pendente", // O Admin verá na aba "NOVOS"
+        status: "pendente",
         itens: carrinho.map(item => ({ 
             produto: item.title, 
             qtd: 1, 
@@ -93,6 +96,7 @@ function salvarPedidoFirebase(dados) {
         horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     });
 }
+
 // --- 2. RENDERIZAÇÃO DO CARDÁPIO ---
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
@@ -103,11 +107,9 @@ function renderizarCardapio() {
     corpo.innerHTML = "";
     nav.innerHTML = "";
 
-    // Filtra categorias únicas
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))].filter(c => c);
 
     categorias.forEach((cat, idx) => {
-        // Criar botão da navegação superior
         const btn = document.createElement("button");
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
         btn.innerText = cat.toUpperCase();
@@ -115,15 +117,13 @@ function renderizarCardapio() {
         btn.setAttribute("data-categoria", cat);
         nav.appendChild(btn);
 
-        // Criar seção da categoria
         const section = document.createElement("section");
         section.className = "secao-categoria";
         section.id = `secao-${cat}`;
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
 
-        // Filtrar e mostrar produtos
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
-            // Mantendo suas travas de segurança para Pizzas e Porções
+            // Travas de segurança para Pizzas e Porções
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
 
@@ -145,9 +145,11 @@ function renderizarCardapio() {
         corpo.appendChild(section);
     });
 }
-// --- 2. LÓGICA DE SELEÇÃO ---
+
+// --- FLUXO DE SELEÇÃO (PIZZAS/BURGERS) ---
 function decidirFluxo(nome) {
     const p = produtosGeral.find(prod => prod.title === nome);
+    if (!p) return;
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
         abrirModalSelecao(nome);
     } else {
@@ -190,6 +192,7 @@ function montarListaSabores(n, tipo) {
     document.getElementById("secao-sabores").style.display = "block";
     const grid = document.getElementById("lista-sabores-meia");
     grid.innerHTML = "";
+    
     const opcoes = (tipo === 'pizza') 
         ? produtosGeral.filter(p => p.categoria === 'pizza' && !p.title.includes("PIZZA ")) 
         : produtosGeral.filter(p => p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg"));
@@ -205,12 +208,12 @@ function montarListaSabores(n, tipo) {
 
 function toggleSabor(nome) {
     const idx = saboresSelecionados.indexOf(nome);
-    if (idx > -1) { saboresSelecionados.splice(idx, 1); } 
-    else if (saboresSelecionados.length < limiteSabores) {
+    if (idx > -1) { 
+        saboresSelecionados.splice(idx, 1); 
+    } else if (saboresSelecionados.length < limiteSabores) {
         if (limiteSabores === 1) saboresSelecionados = [];
         saboresSelecionados.push(nome);
     }
-    document.getElementById("lista-sabores-meia").classList.toggle("limite-atingido", saboresSelecionados.length >= limiteSabores);
     document.querySelectorAll(".item-sabor-wizard").forEach(el => {
         const txt = el.querySelector("strong").innerText;
         const sel = saboresSelecionados.includes(txt);
@@ -223,6 +226,7 @@ function confirmarSelecao() {
     if (saboresSelecionados.length === 0) return alert("Selecione uma opção!");
     let precoFinal = 0;
     let tituloItem = itemMestreTemporario.title;
+    
     if (itemMestreTemporario.categoria === 'pizza') {
         precoFinal = itemMestreTemporario.prices[tamanhoSelecionadoGlobal];
         tituloItem += ` (${saboresSelecionados.join("/")})`;
@@ -259,6 +263,7 @@ function atualizarCarrinho() {
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
+
     const valorDesconto = calcularValorDesconto(sub); 
     descontoAplicado = valorDesconto;
     const totalComDesconto = sub - valorDesconto;
@@ -279,19 +284,15 @@ function removerItem(idx) {
     atualizarCarrinho();
 }
 
-// --- 4. RESUMO E ENTREGA (GEOAPIFY + LOADING) ---
+// --- 4. ENTREGA E GEO ---
 async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const nome = document.getElementById("nomeCliente")?.value;
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
     const celularVal = document.getElementById('celularCliente')?.value || "";
 
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
-    
-    // Validação de telefone ignorando a máscara
-    if (celularVal.replace(/\D/g, "").length < 10) {
-        return alert("Por favor, insira um número de celular válido com DDD.");
-    }
+    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+    if (celularVal.replace(/\D/g, "").length < 10) return alert("Celular inválido!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex"; 
@@ -301,8 +302,6 @@ async function processarResumoGeo() {
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
             const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
@@ -310,11 +309,8 @@ async function processarResumoGeo() {
         } else {
             taxaEntregaCalculada = TAXA_BASE;
         }
-
         mostrarResumoFinal();
-
     } catch (e) {
-        console.error("Erro ao calcular taxa:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
@@ -322,56 +318,26 @@ async function processarResumoGeo() {
     }
 }
 
-// --- FUNÇÃO ENVIAR FINAL (FIREBASE) ---
 async function enviarPedidoFinal() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const nome = document.getElementById("nomeCliente")?.value;
     const celular = document.getElementById("celularCliente")?.value || ""; 
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
+    const bairro = document.getElementById("bairro")?.value;
     const pag = document.getElementById("pagamento")?.value;
 
-    if (!nome || !rua) return alert("Por favor, preencha os dados de entrega!");
-
     const loader = document.getElementById("loading-geral");
-    const loaderText = loader?.querySelector("p");
-    
-    if (loader) {
-        loader.style.zIndex = "10000";
-        loader.style.display = "flex";
-        if (loaderText) loaderText.innerText = "AGUARDE: Processando seu pedido...";
-    }
+    if (loader) loader.style.display = "flex";
 
     try {
-        // Passamos 'celular' no objeto para o Firebase
         await salvarPedidoFirebase({ nome, celular, rua, num, bairro, pag });
-
-        setTimeout(() => {
-            if (loaderText) {
-                loaderText.innerHTML = "<strong>PEDIDO ENVIADO COM SUCESSO!</strong><br><span style='font-size: 13px;'>Voltando ao cardápio...</span>";
-                loaderText.style.color = "#f37021";
-            }
-        }, 1500);
-
-        setTimeout(() => {
-            carrinho = [];
-            localStorage.removeItem("carrinho");
-            atualizarCarrinho();
-            if (loader) loader.style.display = "none";
-            document.getElementById("delivery-modal").style.display = "none";
-            document.getElementById("resumo-pedido").style.display = "none";
-            document.body.style.overflow = 'auto'; 
-            
-            const navContainer = document.querySelector('.bottom-nav-container');
-            if (navContainer) navContainer.style.display = 'flex';
-            
-            mostrarTela('inicio'); 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 3500);
-
+        alert("PEDIDO ENVIADO COM SUCESSO!");
+        carrinho = [];
+        localStorage.removeItem("carrinho");
+        location.reload(); 
     } catch (e) {
-        console.error("Erro ao salvar pedido:", e);
-        alert("Erro de conexão. Tente novamente.");
+        alert("Erro ao enviar pedido.");
+    } finally {
         if (loader) loader.style.display = "none";
     }
 }
@@ -387,92 +353,51 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
-    if(!resumoItens) return;
-
     resumoItens.innerHTML = "";
     let sub = 0;
     carrinho.forEach(i => {
         sub += i.price;
         resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
-
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `
-        Subtotal: R$ ${sub.toFixed(2)}<br>
-        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
-    `;
+    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa: R$ ${taxaEntregaCalculada.toFixed(2)}<br>Desconto: -R$ ${descontoAplicado.toFixed(2)}`;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
-    
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-// --- UTILITÁRIOS E TELAS ---
+// --- AUXILIARES ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
-    if(!el) return;
     const agora = new Date();
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; 
+    const tempo = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempo >= 1080 && tempo <= 1430; // Ex: 18h às 23h50
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
 
-function fecharModalEntrega() {
-    document.getElementById('delivery-modal').style.display = 'none';
-    document.body.style.overflow = 'auto'; 
-    const nav = document.querySelector('.bottom-nav-container');
-    if (nav) nav.style.display = 'flex';
-}
-
-function abrirDelivery() {
-    if (carrinho.length === 0) return alert("Carrinho vazio!");
+function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
+function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
+function fecharModalEntrega() { document.getElementById('delivery-modal').style.display = 'none'; }
+function abrirDelivery() { 
+    if(carrinho.length === 0) return;
     fecharCarrinho();
-    const nav = document.querySelector('.bottom-nav-container');
-    if (nav) nav.style.display = 'none';
-    document.getElementById("delivery-modal").style.display = "flex";
-    document.getElementById("form-entrega").style.display = "block";
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.body.style.overflow = "hidden"; 
+    document.getElementById("delivery-modal").style.display = "flex"; 
 }
-
-function fecharModalSelecao() { 
-    document.getElementById("pizza-options-modal").style.display = "none";
-    const nav = document.querySelector('.bottom-nav-container');
-    if (nav) nav.style.display = 'flex';
-}
-
-function fecharCarrinho() { 
-    document.getElementById("cart-modal").style.display = "none";
-    document.body.style.overflow = 'auto';
-    const nav = document.querySelector('.bottom-nav-container');
-    if (nav) nav.style.display = 'flex';
-}
-
-function abrirCarrinho() { 
-    const nav = document.querySelector('.bottom-nav-container');
-    if (nav) nav.style.display = 'none';
-    document.getElementById("cart-modal").style.display = "flex";
-}
-
+function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
-    if(!el) return;
     el.innerText = t + " adicionado! ✅"; el.style.display = "block";
     setTimeout(() => el.style.display = "none", 2000);
 }
-
 function carregarCarrinhoStorage() {
     const s = localStorage.getItem("carrinho");
     if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
 }
-
 function scrollToCategoria(cat) {
     const el = document.getElementById(`secao-${cat}`);
     if(el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
 }
-
 function sincronizarScrollMenu() {
     const secoes = document.querySelectorAll(".secao-categoria");
     const botoes = document.querySelectorAll(".cat-item");
@@ -481,125 +406,35 @@ function sincronizarScrollMenu() {
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
 
-function voltarParaEntrega() {
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.getElementById("form-entrega").style.display = "block";
-}
-
-// --- FIREBASE ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        return firebase.database();
-    }
-    return null;
-}
-const db = inicializarFirebase();
+// --- FIREBASE INIT ---
+const db = firebase.database();
 
 function mostrarTela(tela) {
     const cardapio = document.getElementById('cardapio-corpo');
     const categorias = document.getElementById('categorias-nav');
     const pedidos = document.getElementById('view-pedidos');
     const header = document.querySelector('.header');
-    const navContainer = document.querySelector('.bottom-nav-container');
-
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.body.style.overflow = 'auto';
-
     if (tela === 'inicio') {
-        if(cardapio) cardapio.style.display = 'block';
-        if(categorias) categorias.style.display = 'block';
-        if(header) header.style.display = 'block';
-        if(pedidos) pedidos.style.display = 'none';
-        document.querySelector('.nav-item:nth-child(1)')?.classList.add('active');
-    } else if (tela === 'pedidos') {
-        if(cardapio) cardapio.style.display = 'none';
-        if(categorias) categorias.style.display = 'none';
-        if(header) header.style.display = 'none'; 
-        if(pedidos) pedidos.style.display = 'block';
-        document.querySelector('.nav-item:nth-child(2)')?.classList.add('active');
-        carregarStatusTempoReal(); 
+        cardapio.style.display = 'block'; categorias.style.display = 'block'; header.style.display = 'block'; pedidos.style.display = 'none';
+    } else {
+        cardapio.style.display = 'none'; categorias.style.display = 'none'; header.style.display = 'none'; pedidos.style.display = 'block';
+        carregarStatusTempoReal();
     }
 }
 
 function carregarStatusTempoReal() {
     const container = document.getElementById('lista-pedidos-cliente');
     const ultimoId = localStorage.getItem('ultimoPedidoId');
-    if (!ultimoId || !container) {
-        if(container) container.innerHTML = `<p class="text-center text-muted">Nenhum pedido hoje.</p>`;
-        return;
-    }
-
-    firebase.database().ref('pedidos_kings/' + ultimoId).on('value', (snapshot) => {
-        const dados = snapshot.val();  
-        if (!dados) return;
-
-        let textoStatus = "PENDENTE";
-        let corStatus = "#ffc107";
-        if(dados.status === 'preparando') { textoStatus = "EM PREPARO"; corStatus = "#0dcaf0"; }
-        if(dados.status === 'saiu' || dados.status === 'entrega') { textoStatus = "SAIU PARA ENTREGA"; corStatus = "#f37021"; }
-        if(dados.status === 'concluido') { textoStatus = "ENTREGUE"; corStatus = "#198745"; }
-
-        container.innerHTML = `
-            <div class="text-center">
-                <h4 style="color: ${corStatus}; font-weight: bold;">${textoStatus}</h4>
-                <div style="background: #222; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: left;">
-                    <p><b>Cliente:</b> ${dados.cliente}</p>
-                    <p><b>Total:</b> R$ ${parseFloat(dados.total).toFixed(2)}</p>
-                </div>
-            </div>`;
+    if (!ultimoId) return;
+    db.ref('pedidos_kings/' + ultimoId).on('value', (snapshot) => {
+        const d = snapshot.val(); if (!d) return;
+        container.innerHTML = `<div class="text-center"><h4>Status: ${d.status.toUpperCase()}</h4><p>Total: R$ ${d.total.toFixed(2)}</p></div>`;
     });
 }
 
-// --- CUPONS ---
-const baseCupons = [
-    { "codigo": "SNOOP10", "tipo": "porcentagem", "valor": 10, "ativo": true },
-    { "codigo": "DESCONTO5", "tipo": "fixo", "valor": 5, "ativo": true }
-];
-
-document.getElementById('btn-aplicar-cupom')?.addEventListener('click', () => {
-    const input = document.getElementById('input-cupom');
-    const msg = document.getElementById('msg-cupom-feedback');
-    const codigo = input.value.trim().toUpperCase();
-    const achou = baseCupons.find(c => c.codigo === codigo && c.ativo);
-
-    if (achou) {
-        cupomAtivo = achou;
-        msg.innerText = `Cupom aplicado! ✅`;
-        msg.style.color = "#28a745";
-    } else {
-        cupomAtivo = null;
-        msg.innerText = "Inválido! ❌";
-        msg.style.color = "#ff4d4d";
-    }
-    atualizarCarrinho();
-});
-
-function calcularValorDesconto(subtotal) {
-    if (!cupomAtivo) return 0;
-    return cupomAtivo.tipo === "porcentagem" ? subtotal * (cupomAtivo.valor / 100) : cupomAtivo.valor;
-}
-
-// --- MÁSCARA CELULAR ---
 function mascaraCelular(input) {
     let v = input.value.replace(/\D/g, "");
-    if (v.length > 0) v = "(" + v;
-    if (v.length > 3) v = v.slice(0, 3) + ") " + v.slice(3);
-    if (v.length > 5) v = v.slice(0, 5) + " " + v.slice(5);
-    if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
-    input.value = v.slice(0, 16);
+    if (v.length > 2) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+    if (v.length > 9) v = v.slice(0,10) + "-" + v.slice(10);
+    input.value = v.slice(0, 15);
 }
-
-
-
-
-
