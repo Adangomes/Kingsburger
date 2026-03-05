@@ -662,6 +662,21 @@ function calcularValorDesconto(subtotal) {
 }
 
 
+function mascaraCelular(input) {
+    let v = input.value;
+    
+    // Remove tudo que não é dígito
+    v = v.replace(/\D/g, "");
+    
+    // Formatação progressiva
+    if (v.length > 0) v = "(" + v;
+    if (v.length > 3) v = v.slice(0, 3) + ") " + v.slice(3);
+    if (v.length > 5) v = v.slice(0, 5) + " " + v.slice(5);
+    if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
+    
+    // Limita o tamanho máximo e atualiza o valor
+    input.value = v.slice(0, 16);
+}
 
 
 
