@@ -144,3 +144,18 @@ button { padding: 18px; border-radius: 12px; border: none; font-weight: bold; cu
         .itens-box { background: #222; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #f37021; }
         .contato-destaque { color: #25D366; font-weight: bold; }
 
+/* Estilo para o botão de Recusar */
+.btn-danger-recusar {
+    background: #cc0000 !important;
+    transition: 0.3s;
+}
+
+.btn-danger-recusar:active {
+    background: #ff0000 !important;
+    transform: scale(0.95);
+}
+
+/* Garante que o container de botões se comporte bem no celular */
+.pedido-card div[style*="display: flex"] {
+    margin-top: 10px;
+}
