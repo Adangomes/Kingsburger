@@ -2,7 +2,7 @@
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 // Coordenadas corrigidas para Guaramirim: [LAT, LON]
-const RESTAURANTE_COORD = [-26.464334, -49.024909]; 
+const RESTAURANTE_COORD = [-26.471, -49.083]; 
 const TAXA_BASE = 5.00;
 const VALOR_POR_KM = 4.00;
 
