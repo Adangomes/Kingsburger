@@ -187,7 +187,6 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     background-color: #ff4d4f !important; /* Fica vermelho ao passar o mouse */
     transform: scale(1.1);
 }
-
 /* --- FIX: SOBREPOSIÇÃO DO LOADING (O QUE ESTAVA FALTANDO) --- */
 #loading-geral {
     display: none; /* O JavaScript vai mudar para 'flex' */
@@ -202,7 +201,6 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     justify-content: center;
     align-items: center;
 }
-
 /* Ajuste do Spinner para garantir visibilidade */
 .spinner {
     width: 60px;
@@ -212,13 +210,10 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-/* --- AJUSTE DOS BOTÕES NO RESUMO --- */
 .modal-actions {
     display: flex;
     flex-direction: column;
@@ -235,4 +230,43 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     font-weight: 700;
     text-align: center;
     border: none;
+}
+.bottom-nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #000000; /* Cor preta como na imagem */
+    border-top: 1px solid #333;
+    z-index: 1000; /* Garante que fique acima do conteúdo, mas abaixo do modal se necessário */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 65px; /* Altura confortável para o polegar */
+    padding-bottom: env(safe-area-inset-bottom); /* Suporte para notch de iPhones */
+}
+.nav-item {
+    text-decoration: none;
+    color: #8e8e93; /* Cor cinza para itens não selecionados */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+    flex: 1;
+}
+.nav-item:active, .nav-item.active {
+    color: #ff4500; 
+}
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+.nav-label {
+    font-weight: 500;
+}
+.bottom-nav-container.hidden {
+    display: none; 
 }
