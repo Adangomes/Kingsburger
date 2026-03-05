@@ -758,4 +758,4 @@ function reabrirAcompanhamento() {
 
     verificarStatusPedido(); // Chama a lógica que já criamos
 
-}
+} 
