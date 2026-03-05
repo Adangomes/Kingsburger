@@ -332,7 +332,7 @@ async function enviarPedidoFirebase() {
         try {
             await salvarPedidoFirebase(objetoParaSalvar);
             if (loader) loader.style.display = "none";
-            alert("✅ Pedido recebido com sucesso!");
+            alert("RESTAURANTE RECEBEU O SEU PEDIDO");
             
             localStorage.removeItem("carrinho");
             location.reload(); 
