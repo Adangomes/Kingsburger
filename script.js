@@ -289,69 +289,64 @@ function mostrarResumoFinal() {
 
 // --- 5. FINALIZAÇÃO COM FIREBASE + WHATSAPP ---
 async function enviarPedidoFirebase() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const celular = document.getElementById("celular")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
-    const pag = document.getElementById("pagamento")?.value || "A combinar";
+    // 1. Pegando os valores EXATOS dos IDs do seu HTML
+    const nome = document.getElementById("nomeCliente")?.value;
+    const numCelular = document.getElementById("celular")?.value; // O campo que você apontou!
+    const rua = document.getElementById("rua")?.value;
+    const numCasa = document.getElementById("numero")?.value;
+    const bairro = document.getElementById("bairro")?.value;
+    const cidade = document.getElementById("cidade")?.value;
+    const ref = document.getElementById("referencia")?.value;
+    const obs = document.getElementById("obsPedido")?.value;
+    const pag = document.getElementById("pagamento")?.value;
+    const troco = document.getElementById("trocoPara")?.value;
 
-    if (!nome || !celular || !rua) return alert("Preencha os dados!");
+    if (!nome || !numCelular || !rua) return alert("Preencha Nome, Celular e Rua!");
 
-    localStorage.setItem("cliente_celular", celular);
+    // Salva o celular no navegador para o cliente acompanhar o status depois
+    localStorage.setItem("cliente_celular", numCelular);
 
     const loader = document.getElementById("loading-geral");
-    esconderRodape(); 
-    document.getElementById("delivery-modal").style.display = "none";
-    
-    if (loader) {
-        loader.style.display = "flex";
-        loader.querySelector('p').innerText = "Enviando seu pedido...";
+    if (loader) loader.style.display = "flex";
+
+    try {
+        const totalItens = carrinho.reduce((acc, i) => acc + i.price, 0);
+        const totalFinal = totalItens + taxaEntregaCalculada;
+        
+        // 2. ENVIANDO PARA O FIREBASE (Aqui é onde o Admin lê)
+        const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
+        await novoPedidoRef.set({
+            cliente: nome,
+            contato: numCelular, // <--- AQUI O TELEFONE VAI PARA O ADMIN
+            endereco: `${rua}, ${numCasa} - ${bairro}, ${cidade}`,
+            referencia: ref || "Não informada",
+            pagamento: pag,
+            troco: troco || "Não precisa",
+            obs_cozinha: obs || "Nenhuma",
+            itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
+            taxaEntrega: taxaEntregaCalculada,
+            total: totalFinal,
+            horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+            status: "Pendente"
+        });
+
+        // 3. WHATSAPP (Apenas como aviso)
+        let msgZap = `*NOVO PEDIDO: ${nome}*\n*Fone:* ${numCelular}\n*Endereço:* ${rua}, ${numCasa}\n*Total:* R$ ${totalFinal.toFixed(2)}`;
+        window.open(`https://api.whatsapp.com/send?phone=5547992490513&text=${encodeURIComponent(msgZap)}`, '_blank');
+
+        // Limpeza
+        if (loader) loader.style.display = "none";
+        document.getElementById("delivery-modal").style.display = "none";
+        localStorage.removeItem("carrinho");
+        carrinho = [];
+        atualizarCarrinho();
+        verificarStatusPedido(); // Abre a tela de acompanhamento
+
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao salvar pedido!");
     }
-
-    setTimeout(async () => {
-        try {
-            const totalFinal = carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada;
-            
-            // 1. Salva no Firebase
-            const ref = db.ref(`pedidos/${ID_LOJA}`).push();
-            await ref.set({
-                cliente: nome,
-                contato: celular,
-                endereco: `${rua}, ${num} - ${bairro}`,
-                pagamento: pag,
-                itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
-                taxaEntrega: taxaEntregaCalculada,
-                total: totalFinal,
-                horario: new Date().toLocaleTimeString('pt-BR'),
-                status: "Pendente"
-            });
-
-            // 2. Monta e Abre WhatsApp
-            let msg = `*NOVO PEDIDO - KINGS BURGER*\n`;
-            msg += `------------------------------\n`;
-            msg += `*Cliente:* ${nome}\n*Endereço:* ${rua}, ${num}\n`;
-            msg += `------------------------------\n*ITENS:*\n`;
-            carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
-            msg += `------------------------------\n*Total:* R$ ${totalFinal.toFixed(2)}`;
-
-            const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
-            window.open(urlZap, '_blank');
-
-            if (loader) loader.style.display = "none";
-            
-            // 3. Abre Modal de Acompanhamento (Reutiliza a lógica de status)
-            localStorage.removeItem("carrinho");
-            verificarStatusPedido();
-
-        } catch (err) {
-            console.error(err);
-            alert("Erro ao conectar.");
-            mostrarRodape();
-        }
-    }, 3500);
 }
-
 // --- CONFIGURAÇÃO FIREBASE ---
 function inicializarFirebase() {
     if (typeof firebase !== 'undefined') {
