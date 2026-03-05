@@ -442,22 +442,32 @@ function salvarPedidoFirebase(dados) {
     const novoId = novoPedidoRef.key;
     localStorage.setItem('ultimoPedidoId', novoId);
     
-    const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
-    const totalFinal = subtotal + taxaEntregaCalculada - descontoAplicado;
+    // Garante que os valores são números e existem
+    const subtotalF = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
+    const taxaF = taxaEntregaCalculada || 0;
+    const descF = descontoAplicado || 0;
+    const totalF = subtotalF + taxaF - descF;
     
+    // Captura o telefone direto do input se o objeto dados falhar
+    const telefoneFinal = dados.celular || document.getElementById("celularCliente")?.value || "Não informado";
+
     return novoPedidoRef.set({
         id: novoId,
-        cliente: dados.nome,
-        telefone: dados.celular || "Não informado",
+        cliente: dados.nome || "Cliente Sem Nome",
+        telefone: telefoneFinal, // NOME CORRETO PARA O ADMIN LER
         endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
-        bairro: dados.bairro,
-        pagamento: dados.pag,
+        referencia: document.getElementById("referencia")?.value || "Não informada",
+        pagamento: dados.pag || "A combinar",
         status: "pendente",
-        itens: carrinho.map(item => ({ produto: item.title, qtd: 1, precoUn: item.price })),
-        subtotal: subtotal,
-        taxaEntrega: taxaEntregaCalculada,
-        desconto: descontoAplicado,
-        total: totalFinal,
+        itens: carrinho.map(item => ({ 
+            produto: item.title, 
+            qtd: 1, 
+            precoUn: item.price || 0 
+        })),
+        subtotal: subtotalF,     // Envia como número puro
+        taxaEntrega: taxaF,      // Envia como número puro
+        desconto: descF,         // Envia como número puro
+        total: totalF,           // Envia como número puro
         horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     });
 }
@@ -555,3 +565,4 @@ function mascaraCelular(input) {
     if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
     input.value = v.slice(0, 16);
 }
+
