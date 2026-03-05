@@ -209,3 +209,37 @@ button {
     padding-top: 10px;
     border-top: 1px solid #eee;
 }
+/* --- NOVOS AJUSTES PARA O PAINEL --- */
+
+/* Estilo para as informações menores (Cidade, Bairro, Referência) */
+.info-detalhe { 
+    font-size: 0.9em; 
+    color: #cccccc; 
+    margin: 3px 0; 
+}
+
+/* Caixa de destaque para Observações do Pedido (Ex: Sem cebola) */
+.obs-caixa { 
+    background: #333333; 
+    color: #ffcc00; 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin: 10px 0; 
+    border-left: 4px solid #ffcc00;
+    font-weight: bold;
+}
+
+/* Destaque para quando o cliente precisa de troco */
+.troco-alerta { 
+    color: #25D366; 
+    font-weight: bold; 
+    margin-left: 5px;
+}
+
+/* Ajuste no card para não ficar tudo apertado */
+.pedido-card {
+    border-bottom: 2px solid #444;
+    padding: 15px;
+    background: #222;
+    margin-bottom: 10px;
+}
