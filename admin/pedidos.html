@@ -24,7 +24,7 @@
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-refresh" onclick="location.reload()">ATUALIZAR</button>
+            <button class="btn-refresh" onclick="abrirEditor()" style="background: #f37021;">EDITAR SITE</button>
             <button class="btn-refresh" onclick="logout()" style="background: #cc0000;">SAIR</button>
         </div>
     </header>
@@ -37,6 +37,18 @@
     </nav>
 
     <ul id="pedidos-container" style="padding: 10px;"></ul>
+
+    <div id="modal-editor">
+        <div class="editor-content">
+            <div class="editor-header">
+                <h2>CONFIGURAÇÕES DO SITE</h2>
+                <button class="btn-fechar-modal" onclick="fecharEditor()">X</button>
+            </div>
+            <div id="editor-abas-categorias" class="editor-tabs"></div>
+            <div id="editor-itens-container"></div>
+            <button onclick="salvarConfiguracoes()" style="width: 100%; background: var(--success); margin-top: 20px;">SALVAR ALTERAÇÕES</button>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -94,47 +106,26 @@
                     const li = document.createElement('li');
                     li.className = `pedido-card`;
                     
-                    const nome = p.nomeCliente || "Nao informado";
-                    const whatsapp = p.whatsappCliente || "Nao informado";
-                    const rua = p.rua || "Nao informada";
-                    const num = p.numero || "S/N";
-                    const bairro = p.bairro || "Nao informado";
-                    const obs = p.obsPedido || "Nenhuma";
-                    const pag = p.pagamento || "Nao informado";
-
                     let acaoHtml = "";
                     if (abaAtiva === 'pendente') {
-                        // AJUSTE: Botões lado a lado na aba Pendentes
                         acaoHtml = `
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn-success" style="flex: 3; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>
-                            <button class="btn-danger-recusar" style="flex: 1; padding:12px; background:#cc0000; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="recusarPedido('${child.key}')">RECUSAR</button>
+                            <button class="btn-success" style="flex: 3; padding:12px;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR</button>
+                            <button class="btn-recusar-acao" style="flex: 1; padding:12px;" onclick="recusarPedido('${child.key}')">RECUSAR</button>
                         </div>`;
                     }
-                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%; padding:12px; background:#17a2b8; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
-                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
+                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%; padding:12px;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
+                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
 
                     li.innerHTML = `
-                        <div class="cliente-header">
-                            <span style="color: #f37021; font-weight: bold; font-size: 16px;">${nome.toUpperCase()}</span>
-                        </div>
-                        
+                        <div class="cliente-header"><span style="color: #f37021; font-weight: bold;">${(p.nomeCliente || 'S/N').toUpperCase()}</span></div>
                         <div class="info-entrega">
-                            <p><b>ENDERECO:</b> ${rua}, ${num}</p>
-                            <p><b>BAIRRO:</b> ${bairro}</p>
-                            <p><b>PAGAMENTO:</b> ${pag}</p>
-                            <p class="contato-destaque">WHATSAPP: ${whatsapp}</p>
-                            <p><b>OBS:</b> ${obs}</p>
+                            <p><b>END:</b> ${p.rua || ''}, ${p.numero || ''} - ${p.bairro || ''}</p>
+                            <p><b>PAG:</b> ${p.pagamento || ''} | <b>WHATS:</b> ${p.whatsappCliente || ''}</p>
+                            <p><b>OBS:</b> ${p.obsPedido || 'Nenhuma'}</p>
                         </div>
-
-                        <div class="itens-box">
-                            ${p.itens ? p.itens.map(i => `<div style="margin-bottom:5px;"><b>${i.qtd}x</b> ${i.produto}</div>`).join('') : ''}
-                        </div>
-                        
-                        <div style="text-align: right; margin-top:10px;">
-                             <span style="font-size:18px; color: #f37021; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</span>
-                        </div>
-
+                        <div class="itens-box">${p.itens ? p.itens.map(i => `<div><b>${i.qtd}x</b> ${i.produto}</div>`).join('') : ''}</div>
+                        <div style="text-align: right;"><span style="font-size:18px; color: #f37021; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</span></div>
                         <div style="margin-top:15px;">${acaoHtml}</div>`;
                     
                     container.appendChild(li);
@@ -142,9 +133,8 @@
             });
         }
 
-        // NOVA FUNÇÃO: Recusar Pedido
         function recusarPedido(id) {
-            if (confirm("Deseja realmente recusar este pedido? Ele será apagado do sistema.")) {
+            if (confirm("Deseja realmente apagar este pedido?")) {
                 db.ref('pedidos_kings/' + id).remove();
             }
         }
@@ -160,6 +150,19 @@
             db.ref('pedidos_kings/' + id).once('value', s => {
                 const dados = s.val(); dados.status = 'concluido';
                 db.ref('relatorios_kings').push(dados).then(() => db.ref('pedidos_kings/' + id).remove());
+            });
+        }
+
+        // LÓGICA DO EDITOR DE SITE
+        function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; carregarConfigSite(); }
+        function fecharEditor() { document.getElementById('modal-editor').style.display = 'none'; }
+
+        function carregarConfigSite() {
+            db.ref('configuracoes_site').once('value', snapshot => {
+                const config = snapshot.val();
+                // Aqui você renderiza os inputs para editar preços/produtos
+                // Vou deixar o container pronto para você preencher conforme seu banco
+                document.getElementById('editor-itens-container').innerHTML = "<p style='color:white; text-align:center;'>Carregando dados do cardápio...</p>";
             });
         }
     </script>
