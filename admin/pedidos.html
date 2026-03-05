@@ -103,7 +103,14 @@
                     const pag = p.pagamento || "Nao informado";
 
                     let acaoHtml = "";
-                    if (abaAtiva === 'pendente') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
+                    if (abaAtiva === 'pendente') {
+                        // AJUSTE: Botões lado a lado na aba Pendentes
+                        acaoHtml = `
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-success" style="flex: 3; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR PEDIDO</button>
+                            <button class="btn-danger-recusar" style="flex: 1; padding:12px; background:#cc0000; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="recusarPedido('${child.key}')">RECUSAR</button>
+                        </div>`;
+                    }
                     else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%; padding:12px; background:#17a2b8; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
                     else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
 
@@ -135,6 +142,13 @@
             });
         }
 
+        // NOVA FUNÇÃO: Recusar Pedido
+        function recusarPedido(id) {
+            if (confirm("Deseja realmente recusar este pedido? Ele será apagado do sistema.")) {
+                db.ref('pedidos_kings/' + id).remove();
+            }
+        }
+
         function mudarAba(aba, btn) {
             abaAtiva = aba;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -151,5 +165,3 @@
     </script>
 </body>
 </html>
-
-
