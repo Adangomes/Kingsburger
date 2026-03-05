@@ -24,7 +24,7 @@
     <header class="admin-header">
         <h1>KINGS <span>BURGER</span></h1>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-refresh" onclick="abrirEditor()" style="background: #f37021;">EDITAR SITE</button>
+            <button class="btn-refresh" onclick="abrirEditor()">EDITAR SITE</button>
             <button class="btn-refresh" onclick="logout()" style="background: #cc0000;">SAIR</button>
         </div>
     </header>
@@ -41,12 +41,60 @@
     <div id="modal-editor">
         <div class="editor-content">
             <div class="editor-header">
-                <h2>CONFIGURAÇÕES DO SITE</h2>
-                <button class="btn-fechar-modal" onclick="fecharEditor()">X</button>
+                <h2>CONFIGURAÇÕES</h2>
+                <button class="btn-fechar-modal" onclick="fecharEditor()">FECHAR X</button>
             </div>
-            <div id="editor-abas-categorias" class="editor-tabs"></div>
-            <div id="editor-itens-container"></div>
-            <button onclick="salvarConfiguracoes()" style="width: 100%; background: var(--success); margin-top: 20px;">SALVAR ALTERAÇÕES</button>
+
+            <div class="editor-tabs">
+                <button class="e-tab active" onclick="tabEditor('loja', this)">LOJA</button>
+                <button class="e-tab" onclick="tabEditor('produtos', this)">PRODUTOS</button>
+                <button class="e-tab" onclick="tabEditor('categorias', this)">CATEGORIAS</button>
+                <button class="e-tab" onclick="tabEditor('cupons', this)">CUPONS</button>
+            </div>
+
+            <div id="tab-loja" class="e-content">
+                <div class="item-edit-card">
+                    <h3>Status do Restaurante</h3>
+                    <div id="status-loja-container"></div>
+                </div>
+                <div class="item-edit-card">
+                    <h3>Sincronizar</h3>
+                    <button class="btn-sync" onclick="sincronizarTudo()">CARREGAR PRODUTOS DO SITE</button>
+                </div>
+            </div>
+
+            <div id="tab-produtos" class="e-content" style="display:none;">
+                <div class="item-edit-card">
+                    <h3 class="highlight">+ NOVO PRODUTO</h3>
+                    <input type="text" id="add-p-titulo" placeholder="Nome">
+                    <input type="number" id="add-p-preco" placeholder="Preço">
+                    <select id="add-p-cat"></select>
+                    <textarea id="add-p-desc" placeholder="Ingredientes"></textarea>
+                    <button class="btn-save" onclick="salvarNovoProduto()">CADASTRAR</button>
+                </div>
+                <div id="lista-produtos-editor"></div>
+            </div>
+
+            <div id="tab-categorias" class="e-content" style="display:none;">
+                <div class="item-edit-card">
+                    <input type="text" id="nova-categoria" placeholder="Nome da Categoria">
+                    <button class="btn-save" onclick="addCategoria()">ADICIONAR CATEGORIA</button>
+                </div>
+                <div id="lista-categorias-gerir"></div>
+            </div>
+
+            <div id="tab-cupons" class="e-content" style="display:none;">
+                <div class="item-edit-card">
+                    <input type="text" id="cup-codigo" placeholder="CÓDIGO">
+                    <input type="number" id="cup-valor" placeholder="Valor">
+                    <select id="cup-tipo">
+                        <option value="porcentagem">Porcentagem (%)</option>
+                        <option value="fixo">Valor Fixo (R$)</option>
+                    </select>
+                    <button class="btn-save" onclick="salvarCupom()">CRIAR CUPOM</button>
+                </div>
+                <div id="lista-cupons-editor"></div>
+            </div>
         </div>
     </div>
 
@@ -89,55 +137,52 @@
             document.getElementById('container-ativacao').style.display = 'none';
             iniciado = true;
             carregarDados();
+            ouvirStatusLoja();
+            ouvirCardapio();
+            ouvirCategorias();
+            ouvirCupons();
         }
 
         function carregarDados() {
             if (!iniciado) return;
             const path = (abaAtiva === 'historico') ? 'relatorios_kings' : 'pedidos_kings';
-            
             db.ref(path).on('value', (snapshot) => {
                 const container = document.getElementById('pedidos-container');
                 container.innerHTML = "";
-                
                 snapshot.forEach(child => {
                     const p = child.val();
                     if (abaAtiva !== 'historico' && p.status !== abaAtiva) return;
 
                     const li = document.createElement('li');
                     li.className = `pedido-card`;
-                    
                     let acaoHtml = "";
+
                     if (abaAtiva === 'pendente') {
                         acaoHtml = `
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn-success" style="flex: 3; padding:12px;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR</button>
-                            <button class="btn-recusar-acao" style="flex: 1; padding:12px;" onclick="recusarPedido('${child.key}')">RECUSAR</button>
+                            <button class="btn-success" style="flex: 3;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'preparando'})">ACEITAR</button>
+                            <button class="btn-recusar-acao" style="flex: 1;" onclick="recusarPedido('${child.key}')">RECUSAR</button>
                         </div>`;
                     }
-                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%; padding:12px;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
-                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%; padding:12px;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
+                    else if (abaAtiva === 'preparando') acaoHtml = `<button class="btn-info" style="width:100%;" onclick="db.ref('pedidos_kings/${child.key}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
+                    else if (abaAtiva === 'entrega') acaoHtml = `<button class="btn-success" style="width:100%;" onclick="concluirPedido('${child.key}')">FINALIZAR</button>`;
 
                     li.innerHTML = `
-                        <div class="cliente-header"><span style="color: #f37021; font-weight: bold;">${(p.nomeCliente || 'S/N').toUpperCase()}</span></div>
+                        <div class="cliente-header"><span>${(p.nomeCliente || 'S/N').toUpperCase()}</span></div>
                         <div class="info-entrega">
                             <p><b>END:</b> ${p.rua || ''}, ${p.numero || ''} - ${p.bairro || ''}</p>
                             <p><b>PAG:</b> ${p.pagamento || ''} | <b>WHATS:</b> ${p.whatsappCliente || ''}</p>
                             <p><b>OBS:</b> ${p.obsPedido || 'Nenhuma'}</p>
                         </div>
                         <div class="itens-box">${p.itens ? p.itens.map(i => `<div><b>${i.qtd}x</b> ${i.produto}</div>`).join('') : ''}</div>
-                        <div style="text-align: right;"><span style="font-size:18px; color: #f37021; font-weight: bold;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</span></div>
+                        <div class="total-box">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
                         <div style="margin-top:15px;">${acaoHtml}</div>`;
-                    
                     container.appendChild(li);
                 });
             });
         }
 
-        function recusarPedido(id) {
-            if (confirm("Deseja realmente apagar este pedido?")) {
-                db.ref('pedidos_kings/' + id).remove();
-            }
-        }
+        function recusarPedido(id) { if (confirm("Deseja apagar este pedido?")) db.ref('pedidos_kings/' + id).remove(); }
 
         function mudarAba(aba, btn) {
             abaAtiva = aba;
@@ -153,17 +198,98 @@
             });
         }
 
-        // LÓGICA DO EDITOR DE SITE
-        function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; carregarConfigSite(); }
+        function abrirEditor() { document.getElementById('modal-editor').style.display = 'block'; }
         function fecharEditor() { document.getElementById('modal-editor').style.display = 'none'; }
+        
+        function tabEditor(aba, btn) {
+            document.querySelectorAll('.e-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.e-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + aba).style.display = 'block';
+            btn.classList.add('active');
+        }
 
-        function carregarConfigSite() {
-            db.ref('configuracoes_site').once('value', snapshot => {
-                const config = snapshot.val();
-                // Aqui você renderiza os inputs para editar preços/produtos
-                // Vou deixar o container pronto para você preencher conforme seu banco
-                document.getElementById('editor-itens-container').innerHTML = "<p style='color:white; text-align:center;'>Carregando dados do cardápio...</p>";
+        function ouvirStatusLoja() {
+            db.ref('status_kings').on('value', snap => {
+                const s = snap.val() || { aberto: true };
+                document.getElementById('status-loja-container').innerHTML = `<button class="status-loja-btn ${s.aberto ? 'aberta' : 'fechada'}" onclick="db.ref('status_kings').update({aberto:${!s.aberto}})">LOJA ESTÁ ${s.aberto ? 'ABERTA' : 'FECHADA'}</button>`;
             });
+        }
+
+        function ouvirCardapio() {
+            db.ref('cardapio_kings/produtos').on('value', snap => {
+                const lista = document.getElementById('lista-produtos-editor');
+                lista.innerHTML = "";
+                snap.forEach(item => {
+                    const p = item.val(); const key = item.key;
+                    lista.innerHTML += `
+                        <div class="item-edit-card">
+                            <input type="text" value="${p.title}" onchange="db.ref('cardapio_kings/produtos/${key}').update({title:this.value})">
+                            <input type="number" step="0.01" value="${p.price}" onchange="db.ref('cardapio_kings/produtos/${key}').update({price:parseFloat(this.value)})">
+                            <textarea onchange="db.ref('cardapio_kings/produtos/${key}').update({ingredientes:this.value})">${p.ingredientes}</textarea>
+                            <button class="btn-danger-sm" onclick="db.ref('cardapio_kings/produtos/${key}').remove()">Excluir</button>
+                        </div>`;
+                });
+            });
+        }
+
+        function salvarNovoProduto() {
+            const p = {
+                title: document.getElementById('add-p-titulo').value,
+                price: parseFloat(document.getElementById('add-p-preco').value),
+                categoria: document.getElementById('add-p-cat').value,
+                ingredientes: document.getElementById('add-p-desc').value,
+                image: "imagens/default.jpg"
+            };
+            if(p.title && p.price) db.ref('cardapio_kings/produtos').push(p);
+        }
+
+        function ouvirCategorias() {
+            db.ref('cardapio_kings/categorias').on('value', snap => {
+                const lista = document.getElementById('lista-categorias-gerir');
+                const select = document.getElementById('add-p-cat');
+                lista.innerHTML = ""; select.innerHTML = "";
+                snap.forEach(c => {
+                    const nome = c.val().nome;
+                    lista.innerHTML += `<div class="cat-row"><span>${nome}</span> <button onclick="db.ref('cardapio_kings/categorias/${c.key}').remove()">X</button></div>`;
+                    select.innerHTML += `<option value="${nome}">${nome}</option>`;
+                });
+            });
+        }
+
+        function addCategoria() {
+            const n = document.getElementById('nova-categoria').value;
+            if(n) db.ref('cardapio_kings/categorias').push({nome:n});
+        }
+
+        function ouvirCupons() {
+            db.ref('cardapio_kings/cupons').on('value', snap => {
+                const lista = document.getElementById('lista-cupons-editor');
+                lista.innerHTML = "";
+                snap.forEach(c => {
+                    const cup = c.val();
+                    lista.innerHTML += `<div class="item-edit-card"><b>${cup.codigo}</b> - ${cup.valor}${cup.tipo === 'porcentagem' ? '%' : 'R$'} <button class="btn-danger-sm" onclick="db.ref('cardapio_kings/cupons/${c.key}').remove()">X</button></div>`;
+                });
+            });
+        }
+
+        function salvarCupom() {
+            const cup = {
+                codigo: document.getElementById('cup-codigo').value.toUpperCase(),
+                valor: parseFloat(document.getElementById('cup-valor').value),
+                tipo: document.getElementById('cup-tipo').value
+            };
+            if(cup.codigo) db.ref('cardapio_kings/cupons').push(cup);
+        }
+
+        function sincronizarTudo() {
+            if(!confirm("Restaurar cardápio padrão?")) return;
+            const dados = {
+                categorias: { "c1": {nome: "burger"}, "c2": {nome: "bebida"} },
+                produtos: {
+                    "p1": { title: "Kings Burger Tradicional", price: 23.99, categoria: "burger", ingredientes: "Hambúrguer artesanal 140g, queijo e pão brioche" }
+                }
+            };
+            db.ref('cardapio_kings').set(dados);
         }
     </script>
 </body>
