@@ -1,47 +1,153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>KINGS BURGER - PAINEL</title>
+<title>KINGS BURGER - ADMIN</title>
 
-<link rel="stylesheet" href="admin.css">
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#0f0f0f;
+color:white;
+}
+
+header{
+background:#000;
+padding:15px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+border-bottom:2px solid #ff9800;
+}
+
+header span{
+color:#ff9800;
+}
+
+.tabs{
+display:flex;
+overflow:auto;
+background:#111;
+}
+
+.tab-btn{
+flex:1;
+padding:14px;
+background:#111;
+border:none;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.tab-btn.active{
+background:#ff9800;
+color:black;
+}
+
+#pedidos-container{
+list-style:none;
+padding:10px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:10px;
+}
+
+.pedido-card{
+background:#1a1a1a;
+padding:15px;
+border-radius:10px;
+border:1px solid #333;
+}
+
+.cliente{
+font-size:18px;
+font-weight:bold;
+color:#ff9800;
+}
+
+.info{
+font-size:14px;
+margin-top:4px;
+}
+
+.itens{
+background:#000;
+padding:8px;
+margin-top:8px;
+border-radius:5px;
+}
+
+.total{
+font-size:18px;
+font-weight:bold;
+margin-top:8px;
+}
+
+.btn-area{
+margin-top:10px;
+display:flex;
+gap:5px;
+flex-wrap:wrap;
+}
+
+button{
+border:none;
+padding:8px 10px;
+border-radius:5px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.btn-success{background:#4CAF50;color:white;}
+.btn-danger{background:#f44336;color:white;}
+.btn-info{background:#2196F3;color:white;}
+.btn-warning{background:#ff9800;color:black;}
+
+.painel{
+padding:10px;
+}
+
+input{
+padding:8px;
+margin:5px;
+border:none;
+border-radius:5px;
+}
+
+</style>
 
 </head>
 
 <body>
 
-<header class="admin-header">
-<h1>KINGS <span>BURGER</span></h1>
+<header>
+KINGS <span>BURGER</span> ADMIN
 </header>
 
 <nav class="tabs">
 
-<button class="tab-btn active"
-onclick="mudarAba('pendente',this)">
-NOVOS
-</button>
-
-<button class="tab-btn"
-onclick="mudarAba('preparando',this)">
-COZINHA
-</button>
-
-<button class="tab-btn"
-onclick="mudarAba('entrega',this)">
-ENTREGA
-</button>
-
-<button class="tab-btn"
-onclick="mudarAba('historico',this)">
-HISTÓRICO
-</button>
+<button class="tab-btn active" onclick="mudarAba('pendente',this)">NOVOS</button>
+<button class="tab-btn" onclick="mudarAba('preparando',this)">COZINHA</button>
+<button class="tab-btn" onclick="mudarAba('entrega',this)">ENTREGA</button>
+<button class="tab-btn" onclick="mudarAba('historico',this)">HISTÓRICO</button>
+<button class="tab-btn" onclick="mudarAba('produtos',this)">PRODUTOS</button>
+<button class="tab-btn" onclick="mudarAba('cupons',this)">CUPONS</button>
+<button class="tab-btn" onclick="mudarAba('loja',this)">LOJA</button>
 
 </nav>
 
 <ul id="pedidos-container"></ul>
+
+<div id="painel" class="painel"></div>
+
+<audio id="alerta">
+<source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3">
+</audio>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -60,50 +166,66 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-let abaAtiva="pendente";
+let aba="pendente";
+
+let ultimoTotal=0;
 
 function mudarAba(a,btn){
 
-abaAtiva=a;
+aba=a;
 
 document.querySelectorAll(".tab-btn")
 .forEach(b=>b.classList.remove("active"));
 
 btn.classList.add("active");
 
-carregarPedidos();
+document.getElementById("pedidos-container").innerHTML="";
+document.getElementById("painel").innerHTML="";
+
+if(a=="produtos") painelProdutos();
+else if(a=="cupons") painelCupons();
+else if(a=="loja") painelLoja();
+else carregarPedidos();
+
+}
+
+function tocarSom(){
+
+const audio=document.getElementById("alerta");
+
+audio.play();
+
+setTimeout(()=>audio.play(),1500);
 
 }
 
 function carregarPedidos(){
 
-const path = abaAtiva==="historico"
-? "relatorios_kings"
-: "pedidos_kings";
+const path = aba=="historico" ? "relatorios_kings" : "pedidos_kings";
 
-db.ref(path).on("value",(snap)=>{
+db.ref(path).on("value",snap=>{
 
 const container=document.getElementById("pedidos-container");
 
 container.innerHTML="";
 
+if(snap.size>ultimoTotal && aba=="pendente") tocarSom();
+
+ultimoTotal=snap.size;
+
 snap.forEach(child=>{
 
-const p = child.val();
+const p=child.val();
 
-if(abaAtiva!=="historico" && p.status!==abaAtiva) return;
+if(aba!="historico" && p.status!=aba) return;
 
-let itensHTML="";
+let itens="";
 
 if(p.itens){
 
 p.itens.forEach(i=>{
 
-itensHTML+=`
-<div>
-${i.qtd}x ${i.produto}
-</div>
-`;
+itens+=`<div>${i.qtd}x ${i.produto}</div>`;
 
 });
 
@@ -111,46 +233,27 @@ ${i.qtd}x ${i.produto}
 
 let botoes="";
 
-if(abaAtiva==="pendente"){
+if(aba=="pendente"){
 
 botoes=`
-
-<button class="btn-success"
-onclick="aceitar('${child.key}')">
-ACEITAR
-</button>
-
-<button class="btn-danger"
-onclick="recusar('${child.key}')">
-RECUSAR
-</button>
-
+<button class="btn-success" onclick="aceitar('${child.key}')">ACEITAR</button>
+<button class="btn-danger" onclick="recusar('${child.key}')">RECUSAR</button>
 `;
 
 }
 
-if(abaAtiva==="preparando"){
+if(aba=="preparando"){
 
 botoes=`
-
-<button class="btn-info"
-onclick="entrega('${child.key}')">
-SAIU PARA ENTREGA
-</button>
-
+<button class="btn-info" onclick="entrega('${child.key}')">SAIU ENTREGA</button>
 `;
 
 }
 
-if(abaAtiva==="entrega"){
+if(aba=="entrega"){
 
 botoes=`
-
-<button class="btn-success"
-onclick="finalizar('${child.key}')">
-FINALIZAR
-</button>
-
+<button class="btn-success" onclick="finalizar('${child.key}')">FINALIZAR</button>
 `;
 
 }
@@ -161,71 +264,27 @@ li.className="pedido-card";
 
 li.innerHTML=`
 
-<div class="cliente-nome">
+<div class="cliente">${p.nomeCliente || "Cliente"}</div>
 
-${p.nomeCliente || "Cliente"}
+<div class="info">📞 ${p.whatsappCliente || ""}</div>
 
-</div>
+<div class="info">📍 ${p.rua}, ${p.numero} - ${p.bairro}</div>
 
-<div class="info">
+<div class="info">📌 ${p.referencia || ""}</div>
 
-📍 ${p.rua || ""}, ${p.numero || ""} - ${p.bairro || ""}
+<div class="info">💳 ${p.pagamento}</div>
 
-</div>
+<div class="itens">${itens}</div>
 
-<div class="info">
+<div class="info">Subtotal: R$ ${p.subtotal}</div>
 
-📞 WhatsApp: ${p.whatsappCliente || "não informado"}
+<div class="info">Entrega: R$ ${p.taxaEntrega}</div>
 
-</div>
+<div class="total">TOTAL R$ ${p.total}</div>
 
-<div class="info">
+<div class="info">${p.horario}</div>
 
-💳 Pagamento: ${p.pagamento || "-"}
-
-</div>
-
-<div class="info">
-
-📍 Referência: ${p.referencia || "não informada"}
-
-</div>
-
-<div class="itens-box">
-
-${itensHTML}
-
-</div>
-
-<div class="info">
-
-Subtotal: R$ ${parseFloat(p.subtotal || 0).toFixed(2)}
-
-</div>
-
-<div class="info">
-
-Entrega: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}
-
-</div>
-
-<div class="total-area">
-
-TOTAL: R$ ${parseFloat(p.total || 0).toFixed(2)}
-
-</div>
-
-<div class="info">
-
-⏰ ${p.horario || ""}
-
-</div>
-
-<div class="btn-actions">
-
-${botoes}
-
-</div>
+<div class="btn-area">${botoes}</div>
 
 `;
 
@@ -256,16 +315,15 @@ function finalizar(id){
 db.ref("pedidos_kings/"+id)
 .once("value",s=>{
 
-let dados=s.val();
+let d=s.val();
 
-dados.status="concluido";
+d.status="concluido";
 
 db.ref("relatorios_kings")
-.push(dados)
+.push(d)
 .then(()=>{
 
-db.ref("pedidos_kings/"+id)
-.remove();
+db.ref("pedidos_kings/"+id).remove();
 
 });
 
@@ -277,10 +335,155 @@ function recusar(id){
 
 if(confirm("Recusar pedido?")){
 
-db.ref("pedidos_kings/"+id)
-.remove();
+db.ref("pedidos_kings/"+id).remove();
 
 }
+
+}
+
+/* PRODUTOS */
+
+function painelProdutos(){
+
+const painel=document.getElementById("painel");
+
+painel.innerHTML=`
+
+<h2>Produtos</h2>
+
+<input id="nomeProduto" placeholder="Nome">
+<input id="precoProduto" placeholder="Preço">
+
+<button class="btn-success" onclick="addProduto()">Adicionar</button>
+
+<div id="listaProdutos"></div>
+
+`;
+
+db.ref("produtos").on("value",snap=>{
+
+const lista=document.getElementById("listaProdutos");
+
+lista.innerHTML="";
+
+snap.forEach(c=>{
+
+const p=c.val();
+
+lista.innerHTML+=`
+<div>
+${p.nome} - R$ ${p.preco}
+<button onclick="delProduto('${c.key}')">X</button>
+</div>
+`;
+
+});
+
+});
+
+}
+
+function addProduto(){
+
+const nome=document.getElementById("nomeProduto").value;
+
+const preco=document.getElementById("precoProduto").value;
+
+db.ref("produtos").push({nome,preco});
+
+}
+
+function delProduto(id){
+
+db.ref("produtos/"+id).remove();
+
+}
+
+/* CUPONS */
+
+function painelCupons(){
+
+const painel=document.getElementById("painel");
+
+painel.innerHTML=`
+
+<h2>Cupons</h2>
+
+<input id="cupomNome" placeholder="Código">
+<input id="cupomValor" placeholder="% desconto">
+
+<button onclick="addCupom()">Adicionar</button>
+
+<div id="listaCupons"></div>
+
+`;
+
+db.ref("cupons").on("value",snap=>{
+
+const lista=document.getElementById("listaCupons");
+
+lista.innerHTML="";
+
+snap.forEach(c=>{
+
+const p=c.val();
+
+lista.innerHTML+=`
+<div>
+${p.codigo} - ${p.valor}%
+<button onclick="delCupom('${c.key}')">X</button>
+</div>
+`;
+
+});
+
+});
+
+}
+
+function addCupom(){
+
+const codigo=document.getElementById("cupomNome").value;
+
+const valor=document.getElementById("cupomValor").value;
+
+db.ref("cupons").push({codigo,valor});
+
+}
+
+function delCupom(id){
+
+db.ref("cupons/"+id).remove();
+
+}
+
+/* LOJA */
+
+function painelLoja(){
+
+const painel=document.getElementById("painel");
+
+painel.innerHTML=`
+
+<h2>Status Loja</h2>
+
+<button class="btn-success" onclick="abrir()">ABRIR</button>
+
+<button class="btn-danger" onclick="fechar()">FECHAR</button>
+
+`;
+
+}
+
+function abrir(){
+
+db.ref("config/status").set({aberto:true});
+
+}
+
+function fechar(){
+
+db.ref("config/status").set({aberto:false});
 
 }
 
