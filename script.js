@@ -1,8 +1,10 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
+const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
-const RESTAURANTE_COORD = [-49.024909, -26.464334]; 
-const TAXA_BASE = 5;
-const VALOR_POR_KM = 4.0;
+// Coordenadas corrigidas para Guaramirim: [LAT, LON]
+const RESTAURANTE_COORD = [-26.464334, -49.024909]; 
+const TAXA_BASE = 5.00;
+const VALOR_POR_KM = 4.00;
 
 let carrinho = [];
 let produtosGeral = [];
@@ -153,7 +155,6 @@ function toggleSabor(nome) {
         if (limiteSabores === 1) saboresSelecionados = [];
         saboresSelecionados.push(nome);
     }
-    document.getElementById("lista-sabores-meia").classList.toggle("limite-atingido", saboresSelecionados.length >= limiteSabores);
     document.querySelectorAll(".item-sabor-wizard").forEach(el => {
         const txt = el.querySelector("strong").innerText;
         const sel = saboresSelecionados.includes(txt);
@@ -224,11 +225,10 @@ async function processarResumoGeo() {
     }
     
     const loader = document.getElementById("loading-geral");
-    const msgLoading = loader?.querySelector('p');
-    
     if (loader) {
         loader.style.display = "flex";
-        if(msgLoading) msgLoading.innerText = "Calculando entrega...";
+        const msg = loader.querySelector('p');
+        if(msg) msg.innerText = "Calculando entrega...";
     }
 
     try {
@@ -236,18 +236,18 @@ async function processarResumoGeo() {
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
         
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);   
+            // Cálculo corrigido: [LAT, LON]
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);   
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
         } else {
             taxaEntregaCalculada = TAXA_BASE;
         }
         mostrarResumoFinal();
     } catch (e) {
-        console.error("Erro ao calcular taxa:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
@@ -287,7 +287,7 @@ function mostrarResumoFinal() {
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-// --- 5. FINALIZAÇÃO COM FIREBASE + LOOP DINÂMICO (3,5s) ---
+// --- 5. FINALIZAÇÃO COM FIREBASE + WHATSAPP ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
     const celular = document.getElementById("celular")?.value;
@@ -296,50 +296,57 @@ async function enviarPedidoFirebase() {
     const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
     const pag = document.getElementById("pagamento")?.value || "A combinar";
 
-    if (!nome || !celular || !rua) {
-        return alert("Por favor, preencha Nome, Celular e Endereço!");
-    }
+    if (!nome || !celular || !rua) return alert("Preencha os dados!");
 
-    // Salva o telefone para consultas de status futuras
     localStorage.setItem("cliente_celular", celular);
 
     const loader = document.getElementById("loading-geral");
-    const msgLoading = loader?.querySelector('p');
-    
-    // Início do processo: Esconde o rodapé e o modal de entrega
     esconderRodape(); 
     document.getElementById("delivery-modal").style.display = "none";
     
     if (loader) {
         loader.style.display = "flex";
-        if(msgLoading) msgLoading.innerText = "Enviando seu pedido...";
+        loader.querySelector('p').innerText = "Enviando seu pedido...";
     }
 
-    // Troca mensagem aos 1.5 segundos
-    setTimeout(() => {
-        if(msgLoading) msgLoading.innerText = "Aguarde o restaurante confirmar seu pedido...";
-    }, 1500);
-
-    // Finaliza o processo aos 3.5 segundos (3500ms)
     setTimeout(async () => {
-        const objetoParaSalvar = {
-            cliente: nome,
-            contato: celular,
-            endereco: `${rua}, ${num} - ${bairro}`,
-            pagamento: pag
-        };
-
         try {
-            await salvarPedidoFirebase(objetoParaSalvar);
-            if (loader) loader.style.display = "none";
-            alert("RESTAURANTE RECEBEU O SEU PEDIDO");
+            const totalFinal = carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada;
             
-            localStorage.removeItem("carrinho");
-            location.reload(); 
-        } catch (err) {
-            console.error("Erro Firebase:", err);
+            // 1. Salva no Firebase
+            const ref = db.ref(`pedidos/${ID_LOJA}`).push();
+            await ref.set({
+                cliente: nome,
+                contato: celular,
+                endereco: `${rua}, ${num} - ${bairro}`,
+                pagamento: pag,
+                itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
+                taxaEntrega: taxaEntregaCalculada,
+                total: totalFinal,
+                horario: new Date().toLocaleTimeString('pt-BR'),
+                status: "Pendente"
+            });
+
+            // 2. Monta e Abre WhatsApp
+            let msg = `*NOVO PEDIDO - KINGS BURGER*\n`;
+            msg += `------------------------------\n`;
+            msg += `*Cliente:* ${nome}\n*Endereço:* ${rua}, ${num}\n`;
+            msg += `------------------------------\n*ITENS:*\n`;
+            carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
+            msg += `------------------------------\n*Total:* R$ ${totalFinal.toFixed(2)}`;
+
+            const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
+            window.open(urlZap, '_blank');
+
             if (loader) loader.style.display = "none";
-            alert("❌ Erro ao enviar pedido.");
+            
+            // 3. Abre Modal de Acompanhamento (Reutiliza a lógica de status)
+            localStorage.removeItem("carrinho");
+            verificarStatusPedido();
+
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao conectar.");
             mostrarRodape();
         }
     }, 3500);
@@ -365,71 +372,49 @@ function inicializarFirebase() {
 
 const db = inicializarFirebase();
 
-function salvarPedidoFirebase(dados) {
-    if (!db) return Promise.reject("Firebase não conectado");
-    const novoPedidoRef = db.ref('pedidos').push();
-    return novoPedidoRef.set({
-        cliente: dados.cliente,
-        contato: dados.contato,
-        endereco: dados.endereco,
-        referencia: document.getElementById("referencia")?.value || "Não informada",
-        pagamento: dados.pagamento,
-        itens: carrinho.map(item => ({
-            produto: item.title,
-            qtd: 1,
-            precoUn: item.price
-        })),
-        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
-        taxaEntrega: taxaEntregaCalculada,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
-        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma",
-        status: "Pendente"
-    });
-}
-
 // --- ACOMPANHAMENTO EM TEMPO REAL ---
 function verificarStatusPedido() {
-    const telefoneCliente = localStorage.getItem("cliente_celular");
+    const telefone = localStorage.getItem("cliente_celular");
 
-    if (!telefoneCliente) {
-        alert("Nenhum pedido ativo encontrado.");
+    if (!telefone) {
+        alert("Nenhum pedido recente encontrado.");
         return;
     }
 
     esconderRodape();
-    const loader = document.getElementById("loading-geral");
-    if (loader) {
-        loader.style.display = "flex";
-        loader.querySelector("p").innerText = "Buscando seu pedido...";
-    }
 
-    db.ref('pedidos').orderByChild('contato').equalTo(telefoneCliente).limitToLast(1)
+    // Busca o último pedido daquela loja por aquele telefone
+    db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
         .on('value', (snapshot) => {
-            if (loader) loader.style.display = "none";
-            
             const data = snapshot.val();
             if (data) {
                 const idPedido = Object.keys(data)[0];
                 const pedido = data[idPedido];
                 mostrarTelaStatus(pedido.status);
             } else {
-                alert("Você ainda não fez nenhum pedido.");
+                alert("Pedido não localizado.");
                 mostrarRodape();
             }
         });
 }
 
 function mostrarTelaStatus(status) {
+    // Aqui você pode trocar o Alert por um Modal de verdade se tiver o HTML pronto
     let mensagemStatus = "";
     switch(status) {
-        case "Pendente": mensagemStatus = "Aguardando confirmação do restaurante..."; break;
-        case "Preparando": mensagemStatus = "Seu pedido está sendo preparado!"; break;
-        case "Saiu para Entrega": mensagemStatus = "O motoboy está a caminho!"; break;
-        case "Finalizado": mensagemStatus = "Pedido entregue! Bom apetite."; break;
+        case "Pendente": mensagemStatus = "📝 Aguardando confirmação do restaurante..."; break;
+        case "Preparando": mensagemStatus = "👨‍🍳 Seu pedido está sendo preparado!"; break;
+        case "Saiu para Entrega": mensagemStatus = "🛵 O motoboy está a caminho!"; break;
+        case "Finalizado": mensagemStatus = "✅ Pedido entregue! Bom apetite."; break;
         default: mensagemStatus = status;
     }
-    alert("Status do seu Pedido: \n" + mensagemStatus);
+    
+    // Se quiser que o usuário possa fechar e ver o cardápio de novo
+    if(confirm("STATUS: " + mensagemStatus + "\n\nClique em OK para continuar acompanhando ou Cancelar para voltar ao menu.")) {
+        // Mantém a escuta ativa
+    } else {
+        mostrarRodape();
+    }
 }
 
 // --- UTILITÁRIOS ---
@@ -457,6 +442,7 @@ function abrirCarrinho() {
 
 function fecharCarrinho() { 
     document.getElementById("cart-modal").style.display = "none"; 
+    mostrarRodape();
 }
 
 function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
@@ -490,30 +476,8 @@ function voltarParaEntrega() {
     document.getElementById("resumo-pedido").style.display = "none";
     document.getElementById("form-entrega").style.display = "block";
 }
-function verificarStatusPedido() {
-    const telefoneCliente = localStorage.getItem("cliente_celular");
 
-    if (!telefoneCliente) {
-        alert("Ops! Não encontramos nenhum pedido recente feito por este aparelho.");
-        return;
-    }
-
-    // Esconde o rodapé para focar no modal que vai abrir
-    esconderRodape();
-
-    // Busca o último pedido no Firebase
-    db.ref('pedidos').orderByChild('contato').equalTo(telefoneCliente).limitToLast(1)
-        .on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const idPedido = Object.keys(data)[0];
-                const pedido = data[idPedido];
-                
-                // CHAMA A FUNÇÃO QUE VOCÊ POSTOU
-                mostrarTelaStatus(pedido.status);
-            } else {
-                alert("Nenhum pedido encontrado no sistema.");
-                mostrarRodape();
-            }
-        });
+function fecharModalDelivery() {
+    document.getElementById("delivery-modal").style.display = "none";
+    mostrarRodape();
 }
