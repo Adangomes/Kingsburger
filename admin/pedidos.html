@@ -1,312 +1,231 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KINGS BURGER - ADMIN PROFISSIONAL</title>
-    <style>
-        body{ margin:0; font-family:Arial, sans-serif; background:#0f0f0f; color:white; }
-        header{ background:#000; padding:15px; text-align:center; font-size:22px; font-weight:bold; border-bottom:2px solid #ff9800; }
-        header span{ color:#ff9800; }
-        
-        /* Menu Superior */
-        .tabs{ display:flex; overflow:auto; background:#111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
-        .tab-btn{ flex:1; padding:14px; background:#111; border:none; color:white; font-weight:bold; cursor:pointer; min-width: 100px; transition: 0.3s; }
-        .tab-btn.active{ background:#ff9800; color:black; }
-        
-        /* Container de Pedidos */
-        #pedidos-container{ list-style:none; padding:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; }
-        .pedido-card{ background:#1a1a1a; padding:15px; border-radius:10px; border:1px solid #333; position: relative; }
-        .cliente{ font-size:18px; font-weight:bold; color:#ff9800; }
-        .info{ font-size:14px; margin-top:4px; border-bottom: 1px solid #222; padding-bottom: 2px; color: #bbb; }
-        .itens{ background:#000; padding:8px; margin-top:8px; border-radius:5px; border-left: 3px solid #ff9800; font-size: 14px; }
-        .total{ font-size:18px; font-weight:bold; margin-top:8px; color: #4CAF50; }
-        
-        /* Botões */
-        .btn-area{ margin-top:10px; display:flex; gap:5px; flex-wrap:wrap; }
-        button{ border:none; padding:10px 12px; border-radius:5px; font-weight:bold; cursor:pointer; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
-        .btn-success{background:#4CAF50;color:white; width: 100%;}
-        .btn-danger{background:#f44336;color:white;}
-        .btn-info{background:#2196F3;color:white; width: 100%;}
-        .btn-warning{background:#ff9800;color:black;}
-        .btn-gray{background:#444;color:white;}
-
-        /* Painéis de Edição */
-        .painel{ padding:20px; background: #111; margin: 10px; border-radius: 10px; max-width: 900px; margin-left: auto; margin-right: auto; }
-        .form-group { background:#1a1a1a; padding:15px; border-radius:8px; margin-bottom: 20px; border: 1px solid #333; }
-        input, select, textarea { padding:12px; margin:5px 0; border:1px solid #333; border-radius:5px; background:#000; color:white; width: 100%; box-sizing: border-box; font-size: 16px; }
-        
-        /* Produtos e Listas */
-        .prod-item { display: flex; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 8px; gap: 15px; border: 1px solid #333; margin-bottom: 10px; }
-        .prod-img { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; background: #333; }
-        .prod-info { flex: 1; }
-        .cat-title { color: #ff9800; border-left: 4px solid #ff9800; padding-left: 10px; margin: 20px 0 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold; }
-        
-        .status-loja-box { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ff9800; }
-        .hora-pedido { position: absolute; top: 15px; right: 15px; font-size: 12px; color: #666; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> Gestão</title>
+    <link rel="stylesheet" href="admin.css">
 </head>
+
 <body>
-
-<header>KINGS <span>BURGER</span> ADMIN</header>
-
-<nav class="tabs">
-    <button class="tab-btn active" onclick="mudarAba('pendente',this)">NOVOS</button>
-    <button class="tab-btn" onclick="mudarAba('preparando',this)">COZINHA</button>
-    <button class="tab-btn" onclick="mudarAba('entrega',this)">ENTREGA</button>
-    <button class="tab-btn" onclick="mudarAba('historico',this)">HISTÓRICO</button>
-    <button class="tab-btn" onclick="mudarAba('produtos',this)">PRODUTOS</button>
-    <button class="tab-btn" onclick="mudarAba('cupons',this)">CUPONS</button>
-</nav>
-
-<ul id="pedidos-container"></ul>
-
-<div id="painel" class="painel" style="display:none;">
+    <div id="container-ativacao">
+        <div style="text-align: center;">
+            <h2 style="color: #ffcc00; margin-bottom: 20px;">KINGS BURGER</h2>
+            <button onclick="ativarSom()">INICIA PEDIDOS</button>
+        </div>
     </div>
 
-<audio id="alerta" preload="auto">
-    <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3">
-</audio>
+    <header class="admin-header">
+        <h1>KINGS <span>BURGER</span></h1>
+        <button class="btn-refresh" onclick="location.reload()">🔄</button>
+    </header>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="mudarAba('pendente', this)">NOVOS</button>
+        <button class="tab-btn" onclick="mudarAba('preparando', this)">COZINHA</button>
+        <button class="tab-btn" onclick="mudarAba('entrega', this)">ENTREGA</button>
+        <button class="tab-btn btn-hist" onclick="mudarAba('historico', this)">HISTÓRICO</button>
+    </nav>
 
-<script>
-const firebaseConfig = {
-    apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-    authDomain: "myproject26-10f0e.firebaseapp.com",
-    databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-    projectId: "myproject26-10f0e"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    <div id="area-relatorio" style="display:none; padding: 15px;">
+        <button class="btn-pdf" onclick="gerarPDF()">📄 GERAR PDF DO HISTÓRICO</button>
+    </div>
 
-let abaAtiva = "pendente";
-let lastCount = 0;
+    <ul id="pedidos-container"></ul>
 
-function mudarAba(aba, btn) {
-    abaAtiva = aba;
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    <iframe id="iframe-impressao" style="display:none;"></iframe>
 
-    const container = document.getElementById("pedidos-container");
-    const painel = document.getElementById("painel");
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    if (["produtos", "cupons"].includes(aba)) {
-        container.style.display = "none";
-        painel.style.display = "block";
-        if (aba == "produtos") painelProdutos();
-        if (aba == "cupons") painelCupons();
-    } else {
-        container.style.display = "grid";
-        painel.style.display = "none";
-        carregarPedidos();
-    }
-}
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+            authDomain: "myproject26-10f0e.firebaseapp.com",
+            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+            projectId: "myproject26-10f0e",
+            storageBucket: "myproject26-10f0e.firebasestorage.app",
+            messagingSenderId: "884850608032",
+            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-// --- GESTÃO DE PEDIDOS ---
-function carregarPedidos() {
-    const path = (abaAtiva == "historico") ? "relatorios_kings" : "pedidos_kings";
-    
-    db.ref(path).on("value", snap => {
-        const container = document.getElementById("pedidos-container");
-        if (abaAtiva === "produtos" || abaAtiva === "cupons") return;
+        // --- CONFIGURAÇÃO DO SOM ---
+        const audioAlerta = new Audio('alert.mpeg');
+        audioAlerta.loop = false;
         
-        container.innerHTML = "";
-        let count = 0;
+        let contadorRepeticao = 0;
+        const LIMITE_REPETICAO = 2; // Toca 2 vezes e para
 
-        snap.forEach(child => {
-            const p = child.val();
-            if (abaAtiva != "historico" && p.status != abaAtiva) return;
-            count++;
-
-            let itensHtml = "";
-            if (p.itens) {
-                p.itens.forEach(i => {
-                    itensHtml += `<div><b>${i.qtd}x</b> ${i.produto}</div>`;
-                });
+        audioAlerta.onended = function() {
+            if (contadorRepeticao < LIMITE_REPETICAO - 1) {
+                contadorRepeticao++;
+                audioAlerta.play();
             }
+        };
 
-            let botoes = "";
-            if (p.status == "pendente") {
-                botoes = `<button class="btn-success" onclick="mudarStatus('${child.key}', 'preparando')">ACEITAR PEDIDO</button>
-                          <button class="btn-danger" style="width:100%;margin-top:5px" onclick="recusar('${child.key}')">RECUSAR</button>`;
-            } else if (p.status == "preparando") {
-                botoes = `<button class="btn-info" onclick="mudarStatus('${child.key}', 'entrega')">MANDAR PARA ENTREGA</button>`;
-            } else if (p.status == "entrega") {
-                botoes = `<button class="btn-success" onclick="finalizar('${child.key}')">CONCLUIR / ENTREGUE</button>`;
-            }
+        audioAlerta.onerror = function() {
+            audioAlerta.src = "https://raw.githubusercontent.com/rafaelbotazini/admin-painel/main/alert.mp3";
+        };
 
-            const li = document.createElement("li");
-            li.className = "pedido-card";
-            li.innerHTML = `
-                <span class="hora-pedido">${p.horario || '--:--'}</span>
-                <div class="cliente">${p.cliente}</div>
-                <div class="info">📞 ${p.telefone}</div>
-                <div class="info">📍 ${p.endereco}</div>
-                <div class="info">💳 Pagamento: ${p.pagamento} ${p.trocoPara ? '- Troco p/ '+p.trocoPara : ''}</div>
-                <div class="itens">${itensHtml}</div>
-                <div class="total">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
-                <div class="btn-area">${botoes}</div>
-            `;
-            container.appendChild(li);
-        });
+        let abaAtiva = 'pendente';
+        let iniciado = false;
 
-        if (abaAtiva == "pendente" && count > lastCount) {
-            document.getElementById("alerta").play();
-        }
-        lastCount = count;
-    });
-}
-
-function mudarStatus(id, novoStatus) { db.ref("pedidos_kings/" + id).update({ status: novoStatus }); }
-
-function finalizar(id) {
-    db.ref("pedidos_kings/" + id).once("value", s => {
-        let d = s.val(); d.status = "concluido";
-        db.ref("relatorios_kings").push(d).then(() => db.ref("pedidos_kings/" + id).remove());
-    });
-}
-
-function recusar(id) { if (confirm("Recusar este pedido?")) db.ref("pedidos_kings/" + id).remove(); }
-
-// --- PAINEL DE PRODUTOS ---
-function painelProdutos() {
-    const painel = document.getElementById("painel");
-    painel.innerHTML = `
-        <div class="status-loja-box">
-            <span>STATUS DA LOJA</span>
-            <button id="btn-loja" onclick="toggleLoja()">CARREGANDO...</button>
-        </div>
-        <h2>Novo Produto / Editar</h2>
-        <div class="form-group">
-            <input id="pNome" placeholder="Nome (Ex: X-Salada)">
-            <input id="pPreco" type="number" step="0.01" placeholder="Valor em R$">
-            <input id="pCat" placeholder="Categoria (Ex: burger, bebidas, combos)">
-            <input id="pImg" placeholder="Link da Foto">
-            <textarea id="pIng" placeholder="Ingredientes"></textarea>
-            <input type="hidden" id="pId">
-            <button class="btn-success" onclick="salvarProduto()">SALVAR NO CARDÁPIO</button>
-            <button id="btn-cancel" class="btn-gray" style="display:none; margin-top:5px; width:100%" onclick="limparFormProd()">CANCELAR</button>
-        </div>
-        <div id="listaProdutos"></div>
-    `;
-    atualizarBotaoLoja();
-    carregarListaProdutos();
-}
-
-function toggleLoja() {
-    db.ref("config_loja/aberta").once("value", s => db.ref("config_loja").update({ aberta: !s.val() }));
-}
-
-function atualizarBotaoLoja() {
-    db.ref("config_loja/aberta").on("value", s => {
-        const b = document.getElementById("btn-loja");
-        if(!b) return;
-        b.innerText = s.val() ? "ABERTA" : "FECHADA";
-        b.className = s.val() ? "btn-success" : "btn-danger";
-        b.style.width = "120px";
-    });
-}
-
-function carregarListaProdutos() {
-    db.ref("produtos_db").on("value", snap => {
-        const lista = document.getElementById("listaProdutos");
-        if(!lista) return;
-        lista.innerHTML = "";
-        let cats = {};
-        snap.forEach(c => {
-            const p = c.val(); const cat = p.categoria || "Geral";
-            if (!cats[cat]) cats[cat] = [];
-            cats[cat].push({ id: c.key, ...p });
-        });
-        for (let c in cats) {
-            lista.innerHTML += `<div class="cat-title">${c}</div>`;
-            cats[c].forEach(p => {
-                lista.innerHTML += `
-                <div class="prod-item">
-                    <img src="${p.foto}" class="prod-img">
-                    <div class="prod-info"><b>${p.nome}</b><br><span style="color:#4CAF50">R$ ${p.preco.toFixed(2)}</span></div>
-                    <button class="${p.ativo ? 'btn-success' : 'btn-gray'}" style="width:80px" onclick="toggleProd('${p.id}',${p.ativo})">${p.ativo?'ATIVO':'OFF'}</button>
-                    <button class="btn-warning" onclick="editarProd('${p.id}')">EDITAR</button>
-                    <button class="btn-danger" onclick="delProd('${p.id}')">X</button>
-                </div>`;
+        function ativarSom() {
+            document.getElementById('container-ativacao').style.display = 'none';
+            iniciado = true;
+            
+            // Destrava o áudio
+            audioAlerta.play().then(() => {
+                audioAlerta.pause();
+                audioAlerta.currentTime = 0;
+                carregarDados();
+            }).catch(e => {
+                console.log("Audio liberado manualmente");
+                carregarDados();
             });
         }
-    });
-}
 
-function salvarProduto() {
-    const id = document.getElementById("pId").value;
-    const dados = {
-        nome: document.getElementById("pNome").value,
-        preco: parseFloat(document.getElementById("pPreco").value),
-        categoria: document.getElementById("pCat").value.toLowerCase().trim(),
-        foto: document.getElementById("pImg").value || "imagens/placeholder.png",
-        ingredientes: document.getElementById("pIng").value,
-        ativo: true
-    };
-    if(id) db.ref("produtos_db/"+id).update(dados); else db.ref("produtos_db").push(dados);
-    limparFormProd();
-}
+        function mudarAba(aba, btn) {
+            abaAtiva = aba;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('area-relatorio').style.display = (aba === 'historico') ? 'block' : 'none';
+            carregarDados();
+        }
 
-function editarProd(id) {
-    db.ref("produtos_db/"+id).once("value", s => {
-        const p = s.val();
-        document.getElementById("pId").value = id;
-        document.getElementById("pNome").value = p.nome;
-        document.getElementById("pPreco").value = p.preco;
-        document.getElementById("pCat").value = p.categoria;
-        document.getElementById("pImg").value = p.foto;
-        document.getElementById("pIng").value = p.ingredientes;
-        document.getElementById("btn-cancel").style.display = "block";
-        window.scrollTo(0,0);
-    });
-}
+        function carregarDados() {
+            if (!iniciado) return;
 
-function limparFormProd() {
-    ["pId","pNome","pPreco","pCat","pImg","pIng"].forEach(i => document.getElementById(i).value = "");
-    document.getElementById("btn-cancel").style.display = "none";
-}
+            const path = (abaAtiva === 'historico') ? 'relatorios' : 'pedidos';
 
-function toggleProd(id, status) { db.ref("produtos_db/"+id).update({ ativo: !status }); }
-function delProd(id) { if(confirm("Excluir?")) db.ref("produtos_db/"+id).remove(); }
+            db.ref(path).on('value', (snapshot) => {
+                const container = document.getElementById('pedidos-container');
+                container.innerHTML = "";
+                let temPendente = false;
+                const agora = Date.now();
+                const trintaDias = 30 * 24 * 60 * 60 * 1000;
 
-// --- PAINEL DE CUPONS ---
-function painelCupons() {
-    const painel = document.getElementById("painel");
-    painel.innerHTML = `
-        <h2>Gerenciar Cupons</h2>
-        <div class="form-group">
-            <input id="cNome" placeholder="Código (Ex: BEMVINDO10)" style="text-transform:uppercase">
-            <input id="cVal" type="number" placeholder="Valor (Ex: 10)">
-            <select id="cTipo"><option value="porcentagem">% Porcentagem</option><option value="fixo">R$ Fixo</option></select>
-            <button class="btn-success" onclick="addCupom()">CRIAR NOVO CUPOM</button>
-        </div>
-        <div id="listaCupons"></div>
-    `;
-    db.ref("cupons_db").on("value", snap => {
-        const l = document.getElementById("listaCupons"); if(!l) return; l.innerHTML = "";
-        snap.forEach(c => {
-            const p = c.val();
-            l.innerHTML += `<div class="prod-item">
-                <div class="prod-info"><b>${p.codigo}</b> - Desconto: ${p.valor}${p.tipo=='porcentagem'?'%':' Reais'}</div>
-                <button class="btn-danger" onclick="db.ref('cupons_db/${c.key}').remove()">EXCLUIR</button>
-            </div>`;
-        });
-    });
-}
+                snapshot.forEach(child => {
+                    const p = child.val();
+                    const id = child.key;
+                    const status = p.status || 'pendente';
+                    const timestamp = p.concluidoEm || agora;
 
-function addCupom() {
-    const codigo = document.getElementById("cNome").value.toUpperCase();
-    const valor = parseFloat(document.getElementById("cVal").value);
-    const tipo = document.getElementById("cTipo").value;
-    if(codigo && valor) db.ref("cupons_db").push({ codigo, valor, tipo, ativo: true });
-    document.getElementById("cNome").value = ""; document.getElementById("cVal").value = "";
-}
+                    // Lógica de filtro e limpeza
+                    if (abaAtiva === 'historico') {
+                        if (agora - timestamp > trintaDias) {
+                            db.ref('relatorios/' + id).remove();
+                            return;
+                        }
+                    } else {
+                        if (status === 'pendente') temPendente = true;
+                        if (status !== abaAtiva) return;
+                    }
 
-carregarPedidos();
-</script>
+                    const li = document.createElement('li');
+                    li.className = `pedido-card`;
+
+                    let botoes = "";
+                    if (abaAtiva === 'pendente') {
+                        botoes = `<button class="btn-success" onclick="db.ref('pedidos/${id}').update({status:'preparando'})">ACEITAR PEDIDO</button>`;
+                    } else if (abaAtiva === 'preparando') {
+                        botoes = `
+                            <button class="btn-warning" onclick="imprimirPedido('${id}', 'pedidos')">IMPRIMIR CUPOM</button>
+                            <button class="btn-info" onclick="db.ref('pedidos/${id}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
+                    } else if (abaAtiva === 'entrega') {
+                        botoes = `<button class="btn-success" onclick="concluirPedido('${id}')">CONCLUIR E FINALIZAR</button>`;
+                    } else {
+                        botoes = `<button class="btn-warning" style="width:100%" onclick="imprimirPedido('${id}', 'relatorios')">REIMPRIMIR CUPOM</button>`;
+                    }
+
+                    li.innerHTML = `
+                        <div class="card-header">
+                            <span class="cliente-nome">${p.cliente}</span>
+                            <span class="hora">${p.horario || ''}</span>
+                        </div>
+                        <p class="info"><b>Endereço:</b> ${p.endereco}</p>
+                        <p class="info"><b>Taxa Entrega:</b> R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}</p>
+                        <div class="itens-box">
+                            ${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : 'Sem itens'}
+                        </div>
+                        <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
+                        <div class="btn-actions">${botoes}</div>
+                    `;
+                    container.appendChild(li);
+                });
+
+                // GESTÃO DO SOM (2 TOQUES)
+                if (temPendente && abaAtiva === 'pendente') {
+                    if (audioAlerta.paused && contadorRepeticao === 0) {
+                        contadorRepeticao = 0; 
+                        audioAlerta.play().catch(e => console.log("Aguardando interação."));
+                    }
+                } else {
+                    audioAlerta.pause();
+                    audioAlerta.currentTime = 0;
+                    contadorRepeticao = 0; 
+                }
+            });
+        }
+
+        function concluirPedido(id) {
+            db.ref('pedidos/' + id).once('value', s => {
+                const dados = s.val();
+                if(!dados) return;
+                dados.concluidoEm = Date.now();
+                db.ref('relatorios').push(dados).then(() => db.ref('pedidos/' + id).remove());
+            });
+        }
+
+        function imprimirPedido(id, pasta) {
+            db.ref(pasta + '/' + id).once('value', (snapshot) => {
+                const p = snapshot.val();
+                if(!p) return;
+                const taxa = parseFloat(p.taxaEntrega || 0);
+                const subtotal = parseFloat(p.total) - taxa;
+
+                const cupom = `
+                    <html>
+                    <body style="font-family:Arial,sans-serif; width:80mm; padding:0; margin:0; color:#000;">
+                        <div style="text-align:center; border-bottom:2px solid #000; padding:10px 0;">
+                            <b style="font-size:24px;">SNOOP LANCHE</b><br>
+                            <span style="font-size:18px;">CUPOM DE ENTREGA</span>
+                        </div>
+                        <div style="padding:10px 0; font-size:18px; border-bottom:1px dashed #000;">
+                            <b>CLIENTE:</b> ${p.cliente.toUpperCase()}<br>
+                            <b>PGTO:</b> ${p.pagamento || 'Pix'}
+                        </div>
+                        <div style="padding:10px 0; font-size:20px; font-weight:bold;">
+                            ${p.itens ? p.itens.map(i => `${i.qtd}x ${i.produto}`).join('<br>') : ''}
+                        </div>
+                        <div style="padding:10px 0; font-size:19px; border-top:1px dashed #000;">
+                            <b>ENDEREÇO:</b><br>${p.endereco}
+                        </div>
+                        <div style="text-align:center; font-size:28px; font-weight:bold; margin-top:10px; border:3px solid #000; padding:5px;">
+                            TOTAL: R$ ${parseFloat(p.total).toFixed(2)}
+                        </div>
+                    </body>
+                    </html>
+                `;
+                const frame = document.getElementById('iframe-impressao');
+                const doc = frame.contentWindow.document;
+                doc.open(); doc.write(cupom); doc.close();
+                setTimeout(() => { frame.contentWindow.print(); }, 500);
+            });
+        }
+
+        function gerarPDF() {
+            const container = document.getElementById('pedidos-container').cloneNode(true);
+            const win = window.open('', '', 'height=700,width=900');
+            win.document.write('<html><head><title>Relatório Snoop Lanche</title>');
+            win.document.write('<style>body{font-family:sans-serif; color:black;} .pedido-card{border-bottom:2px solid black; padding:20px; list-style:none;} .btn-actions{display:none;}</style>');
+            win.document.write('</head><body><h1>Relatório Snoop Lanche</h1>' + container.innerHTML + '</body></html>');
+            win.document.close();
+            win.print();
+        }
+    </script>
 </body>
 </html>
