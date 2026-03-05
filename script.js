@@ -4,7 +4,6 @@ const RESTAURANTE_COORD = [-49.024909, -26.464334];
 const TAXA_BASE = 5;
 const VALOR_POR_KM = 4.0;
 
-
 let carrinho = [];
 let produtosGeral = [];
 let taxaEntregaCalculada = 0;
@@ -15,12 +14,24 @@ let saboresSelecionados = [];
 let limiteSabores = 0;
 let tamanhoSelecionadoGlobal = ""; 
 
+// Mapeamento do Rodapé
+const bottomNav = document.querySelector('.bottom-nav-container');
+
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
+
+// --- CONTROLE DE VISIBILIDADE DO RODAPÉ ---
+function esconderRodape() {
+    if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important');
+}
+
+function mostrarRodape() {
+    if (bottomNav) bottomNav.style.display = 'block';
+}
 
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
 async function carregarCardapioCompleto() {
@@ -35,6 +46,7 @@ async function carregarCardapioCompleto() {
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
+    if(!corpo || !nav) return;
     corpo.innerHTML = "";
     nav.innerHTML = "";
 
@@ -175,6 +187,7 @@ function adicionarAoCarrinho(titulo, preco, sabor) {
 
 function atualizarCarrinho() {
     const box = document.getElementById("cart-items");
+    if(!box) return;
     box.innerHTML = "";
     let sub = 0;
     carrinho.forEach((item, index) => {
@@ -210,12 +223,20 @@ async function processarResumoGeo() {
     }
     
     const loader = document.getElementById("loading-geral");
-    if (loader) loader.style.display = "flex"; 
+    const msgLoading = loader?.querySelector('p');
+    
+    if (loader) {
+        loader.style.display = "flex";
+        if(msgLoading) msgLoading.innerText = "Calculando entrega...";
+    }
+
     try {
         const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
             const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);   
@@ -232,7 +253,7 @@ async function processarResumoGeo() {
         if (loader) loader.style.display = "none";
     }
 }
-// 
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -244,7 +265,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
-    if(!resumoItens) return enviarWhatsApp(); // Fallback se não houver tela de resumo
+    if(!resumoItens) return; 
 
     resumoItens.innerHTML = "";
     let sub = 0;
@@ -261,112 +282,11 @@ function mostrarResumoFinal() {
     `;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
     
-    // Troca as telas do modal
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-
-
-// --- OUTROS ---
-function carregarStatusLoja() {
-    const el = document.getElementById("status-loja");
-    const agora = new Date();
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; // 09:00 as 23:30
-    el.innerText = aberto ? "ABERTO" : "FECHADO";
-    el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
-}
-
-function abrirDelivery() {
-    if (carrinho.length === 0) return alert("Carrinho vazio!");
-    fecharCarrinho();
-    document.getElementById("delivery-modal").style.display = "flex";
-    document.body.style.overflow = "hidden"; // Fix bug teclado
-}
-
-function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
-function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
-function mostrarToast(t) { 
-    const el = document.getElementById("toast-geral");
-    el.innerText = t + " adicionado! ✅"; el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 2000);
-}
-function carregarCarrinhoStorage() {
-    const s = localStorage.getItem("carrinho");
-    if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
-}
-function scrollToCategoria(cat) {
-    const el = document.getElementById(`secao-${cat}`);
-    window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
-}
-function sincronizarScrollMenu() {
-    const secoes = document.querySelectorAll(".secao-categoria");
-    const botoes = document.querySelectorAll(".cat-item");
-    let atual = "";
-    secoes.forEach(s => { if (pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
-    botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
-}
-
-function voltarParaEntrega() {
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.getElementById("form-entrega").style.display = "block";
-}
-
-// --- CONFIGURAÇÃO FIREBASE (VERSÃO SEGURA) ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        return firebase.database();
-    }
-    return null;
-}
-
-const db = inicializarFirebase();
-
-// --- 1. A FUNÇÃO QUE ESCREVE NO BANCO ---
-function salvarPedidoFirebase(dados) {
-    if (!db) {
-        console.error("Firebase não carregado!");
-        return Promise.reject("Erro: Banco de dados não conectado"); 
-    }
-    
-    const novoPedidoRef = db.ref('pedidos').push();
-    return novoPedidoRef.set({
-        cliente: dados.cliente, // Nome vindo da função enviar
-        contato: dados.contato, // <-- NOVO: Salva o Celular no Firebase
-        endereco: dados.endereco,
-        referencia: document.getElementById("referencia")?.value || "Não informada",
-        pagamento: dados.pagamento,
-        itens: carrinho.map(item => ({
-            produto: item.title,
-            qtd: 1,
-            precoUn: item.price
-        })),
-        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
-        taxaEntrega: taxaEntregaCalculada,
-        desconto: typeof descontoAplicado !== 'undefined' ? descontoAplicado : 0,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - (typeof descontoAplicado !== 'undefined' ? descontoAplicado : 0)),
-        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma",
-        status: "Pendente"
-    });
-}
-
-// --- 2. A FUNÇÃO QUE GERENCIA A TELA (Substitui a antiga enviarWhatsApp) ---
+// --- 5. FINALIZAÇÃO COM FIREBASE + LOADING DINÂMICO ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
     const celular = document.getElementById("celular")?.value;
@@ -379,36 +299,149 @@ async function enviarPedidoFirebase() {
         return alert("Por favor, preencha Nome, Celular e Endereço!");
     }
 
-    const btnFinalizar = document.querySelector("#resumo-pedido button");
-    if (btnFinalizar) {
-        btnFinalizar.innerText = "ENVIANDO AO RESTAURANTE...";
-        btnFinalizar.disabled = true;
+    // --- INÍCIO DA LÓGICA DE 3 SEGUNDOS ---
+    const loader = document.getElementById("loading-geral");
+    const msgLoading = loader?.querySelector('p');
+    
+    esconderRodape(); // Esconde o rodapé no processo final
+    
+    if (loader) {
+        loader.style.display = "flex";
+        if(msgLoading) msgLoading.innerText = "Calculando entrega...";
     }
 
-    const objetoParaSalvar = {
-        cliente: nome,
-        contato: celular,
-        endereco: `${rua}, ${num} - ${bairro}`,
-        pagamento: pag
-    };
+    // Troca mensagem aos 1.5 segundos
+    setTimeout(() => {
+        if(msgLoading) msgLoading.innerText = "Acompanhe seu pedido...";
+    }, 1500);
 
-    try {
-        await salvarPedidoFirebase(objetoParaSalvar);
-        alert("✅ Pedido recebido com sucesso!");
-        localStorage.removeItem("carrinho");
-        location.reload(); 
-    } catch (err) {
-        console.error("Erro Firebase:", err);
-        alert("❌ Erro ao enviar pedido.");
-        if (btnFinalizar) {
-            btnFinalizar.innerText = "FINALIZAR PEDIDO";
-            btnFinalizar.disabled = false;
+    // Finaliza aos 3 segundos
+    setTimeout(async () => {
+        const objetoParaSalvar = {
+            cliente: nome,
+            contato: celular,
+            endereco: `${rua}, ${num} - ${bairro}`,
+            pagamento: pag
+        };
+
+        try {
+            await salvarPedidoFirebase(objetoParaSalvar);
+            if (loader) loader.style.display = "none";
+            alert("✅ Pedido enviado! Agora você pode acompanhar o status.");
+            
+            localStorage.removeItem("carrinho");
+            
+            // Aqui você redireciona ou abre a tela de acompanhamento Firebase
+            // Para teste, vamos apenas recarregar:
+            location.reload(); 
+        } catch (err) {
+            console.error("Erro Firebase:", err);
+            if (loader) loader.style.display = "none";
+            alert("❌ Erro ao enviar pedido.");
+            mostrarRodape();
         }
-    }
+    }, 3000);
 }
 
+// --- CONFIGURAÇÃO FIREBASE ---
+function inicializarFirebase() {
+    if (typeof firebase !== 'undefined') {
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+            authDomain: "myproject26-10f0e.firebaseapp.com",
+            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+            projectId: "myproject26-10f0e",
+            storageBucket: "myproject26-10f0e.firebasestorage.app",
+            messagingSenderId: "884850608032",
+            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        return firebase.database();
+    }
+    return null;
+}
 
+const db = inicializarFirebase();
 
+function salvarPedidoFirebase(dados) {
+    if (!db) return Promise.reject("Firebase não conectado");
+    const novoPedidoRef = db.ref('pedidos').push();
+    return novoPedidoRef.set({
+        cliente: dados.cliente,
+        contato: dados.contato,
+        endereco: dados.endereco,
+        referencia: document.getElementById("referencia")?.value || "Não informada",
+        pagamento: dados.pagamento,
+        itens: carrinho.map(item => ({
+            produto: item.title,
+            qtd: 1,
+            precoUn: item.price
+        })),
+        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
+        taxaEntrega: taxaEntregaCalculada,
+        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
+        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma",
+        status: "Pendente"
+    });
+}
 
+// --- UTILITÁRIOS E MODAIS ---
+function carregarStatusLoja() {
+    const el = document.getElementById("status-loja");
+    if(!el) return;
+    const agora = new Date();
+    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; 
+    el.innerText = aberto ? "ABERTO" : "FECHADO";
+    el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
+}
 
+function abrirDelivery() {
+    if (carrinho.length === 0) return alert("Carrinho vazio!");
+    fecharCarrinho();
+    esconderRodape(); // SOME RODAPÉ AO IR PARA ENTREGA
+    document.getElementById("delivery-modal").style.display = "flex";
+}
 
+function abrirCarrinho() { 
+    esconderRodape(); // SOME RODAPÉ AO ABRIR CARRINHO
+    document.getElementById("cart-modal").style.display = "flex"; 
+}
+
+function fecharCarrinho() { 
+    document.getElementById("cart-modal").style.display = "none"; 
+    // Se não houver outros modais abertos, poderia mostrarRodape() aqui
+}
+
+function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
+
+function mostrarToast(t) { 
+    const el = document.getElementById("toast-geral");
+    if(!el) return;
+    el.innerText = t + " adicionado! ✅"; el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 2000);
+}
+
+function carregarCarrinhoStorage() {
+    const s = localStorage.getItem("carrinho");
+    if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
+}
+
+function scrollToCategoria(cat) {
+    const el = document.getElementById(`secao-${cat}`);
+    if(el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
+}
+
+function sincronizarScrollMenu() {
+    const secoes = document.querySelectorAll(".secao-categoria");
+    const botoes = document.querySelectorAll(".cat-item");
+    let atual = "";
+    secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
+    botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
+}
+
+function voltarParaEntrega() {
+    document.getElementById("resumo-pedido").style.display = "none";
+    document.getElementById("form-entrega").style.display = "block";
+}
