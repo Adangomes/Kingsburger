@@ -1,161 +1,227 @@
-:root {
-    --primary: #ffcc00;
-    --success: #27ae60;
-    --info: #3498db;
-    --warning: #f39c12;
-    --danger: #c62828;
-    --bg: #000000;
-    --card-bg: #1a1a1a;
-    --accent: #f37021; /* Laranja Kings */
+:root{
+
+--primary:#ffcc00;
+--accent:#f37021;
+--bg:#000;
+--card:#1a1a1a;
+
+--success:#27ae60;
+--danger:#c62828;
+--info:#3498db;
+
 }
 
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: white;
-    margin: 0;
-    padding-bottom: 30px;
+body{
+
+margin:0;
+background:var(--bg);
+color:white;
+font-family:Segoe UI;
+
 }
 
-/* HEADER E ESTRUTURA */
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: #111;
-    border-bottom: 2px solid var(--primary);
+
+
+/* LOGIN */
+
+#tela-login{
+
+position:fixed;
+width:100%;
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#000;
+
 }
 
-.admin-header h1 { font-size: 1.4rem; margin: 0; font-weight: 800; }
-.admin-header span { color: var(--primary); }
-.btn-refresh { background: var(--primary); border: none; padding: 10px; border-radius: 5px; font-size: 1.2rem; cursor: pointer; }
+.login-box{
 
-/* TELA DE LOGIN */
-#tela-login { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; 
-}
-.login-box { 
-    background: #111; padding: 30px; border-radius: 15px; border: 2px solid var(--accent); 
-    width: 90%; max-width: 380px; text-align: center; box-shadow: 0 0 20px rgba(243, 112, 33, 0.2); 
-}
-.login-box h2 { color: var(--accent); margin-bottom: 20px; }
-.login-box input { 
-    width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; 
-    background: #222; color: white; box-sizing: border-box; 
-}
-.login-box button { 
-    width: 100%; padding: 12px; background: var(--accent); color: white; 
-    border: none; border-radius: 8px; font-weight: bold; cursor: pointer; 
+background:#111;
+padding:30px;
+border-radius:15px;
+width:320px;
+text-align:center;
+border:2px solid var(--accent);
+
 }
 
-/* MODAL EDITOR */
-#modal-editor {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95); z-index: 9999; display: none;
-    overflow-y: auto; padding: 10px; box-sizing: border-box;
-}
-.editor-content { max-width: 600px; margin: 0 auto; background: #111; padding: 20px; border-radius: 15px; border: 1px solid #444; }
-.editor-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
-.btn-fechar-modal { background: var(--danger); color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
+.login-box input{
 
-.secao-edit { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid var(--accent); }
-.secao-edit h3 { margin-top: 0; color: var(--accent); font-size: 16px; margin-bottom: 10px;}
+width:100%;
+padding:12px;
+margin:8px 0;
+background:#222;
+border:1px solid #444;
+color:white;
 
-.item-edit-card { background: #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
-.item-edit-card input, .item-edit-card select, .item-edit-card textarea { 
-    width: 100%; background: #333; border: 1px solid #444; color: white; padding: 8px; margin: 5px 0; border-radius: 5px; box-sizing: border-box; 
 }
 
-/* ABAS DO EDITOR */
-.editor-tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-.e-tab { background: #333; color: #ccc; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; white-space: nowrap; font-size: 12px; }
-.e-tab.active { background: var(--accent); color: white; }
+.login-box button{
 
-/* ABAS PRINCIPAIS */
-.tabs { display: flex; background: #222; position: sticky; top: 0; z-index: 100; overflow-x: auto; }
-.tab-btn { flex: 1; padding: 15px 5px; background: none; border: none; color: #888; font-weight: bold; font-size: 0.8rem; border-bottom: 3px solid transparent; white-space: nowrap; cursor: pointer; }
-.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(255, 204, 0, 0.05); }
-.btn-hist { color: #5dade2 !important; }
+width:100%;
+padding:12px;
+background:var(--accent);
+border:none;
+color:white;
+font-weight:bold;
 
-/* CARDS DE PEDIDO */
-#pedidos-container { padding: 15px; list-style: none; margin: 0; }
-.pedido-card {
-    background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 20px;
-    border-left: 6px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.cliente-nome { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
-.itens-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin: 15px 0; font-size: 1.1rem; border: 1px solid #333; }
-.total-area { font-size: 1.5rem; font-weight: 900; text-align: right; color: var(--primary); border-top: 1px solid #333; padding-top: 10px; }
-
-/* RELATÓRIOS */
-.filtro-container { background: #1a1a1a; padding: 15px; margin: 10px; border-radius: 8px; border: 1px solid #333; }
-.filtro-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.btn-filtro { padding: 8px; border-radius: 5px; border: 1px solid var(--accent); background: transparent; color: #fff; cursor: pointer; font-size: 12px; }
-.btn-filtro.active { background: var(--accent); }
-.resumo-financeiro { background: #222; padding: 15px; border-radius: 8px; margin: 10px; border-left: 5px solid var(--primary); }
-.resumo-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
-.comissao-destaque { color: var(--primary); font-weight: bold; font-size: 16px; border-top: 1px solid #444; padding-top: 5px; }
-
-/* STATUS DA LOJA */
-.status-loja-btn { width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; }
-.aberta { background: var(--success); color: white; }
-.fechada { background: var(--danger); color: white; }
-
-/* BOTÕES GERAIS */
-.btn-actions { display: flex; flex-direction: column; gap: 10px; }
-button { padding: 18px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-.btn-success { background: var(--success); color: white; }
-.btn-warning { background: var(--warning); color: white; }
-.btn-info { background: var(--info); color: white; }
-.btn-danger-sm { background: var(--danger); color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; margin-top: 5px; }
-
-/* TELA DE ATIVAÇÃO */
-#container-ativacao {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.98); z-index: 9999; display: flex; justify-content: center; align-items: center;
-}
-#container-ativacao button { 
-    width: 85%; background: var(--primary); color: black; border-radius: 50px; 
-    font-size: 1.2rem; padding: 25px; font-weight: 900;
-    box-shadow: 0 0 20px var(--primary); animation: pulsar 1.5s infinite; 
 }
 
-@keyframes pulsar {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
-}
-.status-loja-btn, .btn-refresh, #container-ativacao button {
-            animation: none !important;
-            box-shadow: none !important;
-        }
-        .info-entrega p { margin: 4px 0; font-size: 14px; line-height: 1.4; color: #ccc; }
-        .cliente-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #333; 
-            padding-bottom: 8px; 
-            margin-bottom: 8px; 
-        }
-        .pedido-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 20px; list-style: none; }
-        .itens-box { background: #222; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #f37021; }
-        .contato-destaque { color: #25D366; font-weight: bold; }
 
-/* Estilo para o botão de Recusar */
-.btn-danger-recusar {
-    background: #cc0000 !important;
-    transition: 0.3s;
+
+/* HEADER */
+
+.admin-header{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+background:#111;
+
 }
 
-.btn-danger-recusar:active {
-    background: #ff0000 !important;
-    transform: scale(0.95);
+.admin-header span{
+
+color:var(--primary);
+
 }
 
-/* Garante que o container de botões se comporte bem no celular */
-.pedido-card div[style*="display: flex"] {
-    margin-top: 10px;
+
+
+/* ABAS */
+
+.tabs{
+
+display:flex;
+background:#222;
+
+}
+
+.tab-btn{
+
+flex:1;
+padding:15px;
+border:none;
+background:none;
+color:#aaa;
+font-weight:bold;
+
+}
+
+.tab-btn.active{
+
+color:var(--primary);
+border-bottom:3px solid var(--primary);
+
+}
+
+
+
+/* PEDIDOS */
+
+#pedidos-container{
+
+padding:15px;
+list-style:none;
+
+}
+
+.pedido-card{
+
+background:var(--card);
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+border-left:5px solid var(--primary);
+
+}
+
+.cliente-nome{
+
+font-size:20px;
+font-weight:bold;
+color:var(--primary);
+
+}
+
+.info{
+
+font-size:14px;
+margin:5px 0;
+
+}
+
+.itens-box{
+
+background:#111;
+padding:10px;
+margin:10px 0;
+border-radius:6px;
+
+}
+
+.total-area{
+
+font-size:20px;
+font-weight:bold;
+text-align:right;
+
+}
+
+
+
+/* BOTÕES */
+
+.btn-actions{
+
+display:flex;
+flex-direction:column;
+gap:10px;
+
+}
+
+button{
+
+padding:14px;
+border:none;
+border-radius:10px;
+font-weight:bold;
+
+}
+
+.btn-success{
+
+background:var(--success);
+
+}
+
+.btn-danger{
+
+background:var(--danger);
+
+}
+
+.btn-info{
+
+background:var(--info);
+
+}
+
+
+
+/* RESPONSIVO */
+
+@media (min-width:900px){
+
+#pedidos-container{
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+gap:15px;
+
+}
+
 }
