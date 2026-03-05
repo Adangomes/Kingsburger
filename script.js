@@ -445,3 +445,72 @@ function voltarParaEntrega() {
     document.getElementById("resumo-pedido").style.display = "none";
     document.getElementById("form-entrega").style.display = "block";
 }
+// --- LÓGICA DE ACOMPANHAMENTO EM TEMPO REAL ---
+
+function verificarStatusPedido() {
+    const telefoneCliente = document.getElementById("celular")?.value || localStorage.getItem("cliente_celular");
+
+    if (!telefoneCliente) {
+        alert("Nenhum pedido ativo encontrado.");
+        return;
+    }
+
+    // Esconde o rodapé para focar no status
+    esconderRodape();
+
+    // Mostra o loading enquanto busca no Firebase
+    const loader = document.getElementById("loading-geral");
+    if (loader) {
+        loader.style.display = "flex";
+        loader.querySelector("p").innerText = "Buscando seu pedido...";
+    }
+
+    // Busca o pedido mais recente desse telefone no Firebase
+    db.ref('pedidos').orderByChild('contato').equalTo(telefoneCliente).limitToLast(1)
+        .on('value', (snapshot) => {
+            if (loader) loader.style.display = "none";
+            
+            const data = snapshot.val();
+            if (data) {
+                const idPedido = Object.keys(data)[0];
+                const pedido = data[idPedido];
+                
+                // Aqui você chama a função que abre o seu Modal/Tela de Status
+                mostrarTelaStatus(pedido.status);
+            } else {
+                alert("Você ainda não fez nenhum pedido.");
+                mostrarRodape();
+            }
+        });
+}
+
+// Função visual para mostrar o status (Você pode personalizar o HTML disso)
+function mostrarTelaStatus(status) {
+    // Exemplo: Criar um alerta ou abrir um modal específico de status
+    // Se você tiver um modal de status, use: document.getElementById("modal-status").style.display = "flex";
+    
+    let mensagemStatus = "";
+    switch(status) {
+        case "Pendente": mensagemStatus = "Aguardando confirmação do restaurante..."; break;
+        case "Preparando": mensagemStatus = "Seu pedido está sendo preparado!"; break;
+        case "Saiu para Entrega": mensagemStatus = "O motoboy está a caminho!"; break;
+        case "Finalizado": mensagemStatus = "Pedido entregue! Bom apetite."; break;
+        default: mensagemStatus = status;
+    }
+
+    alert("Status do seu Pedido: \n" + mensagemStatus);
+    
+    // Opcional: Se quiser que o rodapé volte depois de ver
+    // mostrarRodape(); 
+}
+
+// --- ATUALIZAÇÃO NA FUNÇÃO DE ENVIAR PEDIDO ---
+// Salvar o telefone no localStorage para o cliente conseguir consultar depois
+async function enviarPedidoFirebase() {
+    // ... (todo o seu código anterior de validar campos) ...
+
+    const celular = document.getElementById("celular")?.value;
+    localStorage.setItem("cliente_celular", celular); // Salva para consulta posterior
+
+    // ... (restante da sua função finalizarPedido com os 3 segundos) ...
+}
