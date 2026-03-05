@@ -1,323 +1,162 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>KINGS BURGER - PAINEL</title>
-
-<link rel="stylesheet" href="admin.css">
-
+<title>KINGS BURGER - PEDIDOS</title>
 </head>
-
 <body>
-
-<div id="tela-login">
-
-<div class="login-box">
-
-<h2>KINGS <span>ADMIN</span></h2>
-
-<input id="user-id" placeholder="Usuário">
-
-<input id="user-pass" type="password" placeholder="Senha">
-
-<button onclick="validarAcesso()">ACESSAR</button>
-
-</div>
-</div>
-
-
-<div id="container-ativacao">
-
-<button onclick="ativarSom()">INICIAR PAINEL</button>
-
-</div>
-
-
-
-<header class="admin-header">
-
-<h1>KINGS <span>BURGER</span></h1>
-
-<div>
-
-<button onclick="abrirEditor()">EDITAR</button>
-
-<button onclick="logout()" style="background:#c62828">SAIR</button>
-
-</div>
-
+<header>
+<h1>KINGS BURGER</h1>
 </header>
-
-
-
 <nav class="tabs">
-
-<button class="tab-btn active" onclick="mudarAba('pendente',this)">NOVOS</button>
-
-<button class="tab-btn" onclick="mudarAba('preparando',this)">COZINHA</button>
-
-<button class="tab-btn" onclick="mudarAba('entrega',this)">ENTREGA</button>
-
-<button class="tab-btn" onclick="mudarAba('historico',this)">HISTÓRICO</button>
-
+<button class="active" onclick="mudarAba('pendente',this)">NOVOS</button>
+<button onclick="mudarAba('preparando',this)">COZINHA</button>
+<button onclick="mudarAba('entrega',this)">ENTREGA</button>
+<button onclick="mudarAba('historico',this)">HISTÓRICO</button>
 </nav>
-
-
-
 <ul id="pedidos-container"></ul>
-
-
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-
 <script>
-
 const firebaseConfig = {
-
 apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-
 databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-
 projectId: "myproject26-10f0e"
-
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const db = firebase.database();
-
-
-
-const CREDENCIAIS = {
-
-usuario:"kings26burger",
-
-senha:"kings2026@"
-
-};
-
-
 
 let abaAtiva="pendente";
 
-let iniciado=false;
+function mudarAba(a,btn){
 
+abaAtiva=a;
 
+document.querySelectorAll(".tabs button")
+.forEach(b=>b.classList.remove("active"));
 
-let pedidosNotificados = new Set();
-
-
-
-function tocarAlerta(){
-
-let vezes=0;
-
-const audio = new Audio("alert.mpeg");
-
-function play(){
-
-if(vezes<2){
-
-audio.currentTime=0;
-
-audio.play().catch(()=>{});
-
-vezes++;
-
-}
-
-}
-
-audio.addEventListener("ended",play);
-
-play();
-
-}
-
-
-
-function validarAcesso(){
-
-const u=document.getElementById("user-id").value;
-
-const s=document.getElementById("user-pass").value;
-
-if(u===CREDENCIAIS.usuario && s===CREDENCIAIS.senha){
-
-localStorage.setItem("session","1");
-
-document.getElementById("tela-login").style.display="none";
-
-document.getElementById("container-ativacao").style.display="flex";
-
-}else{
-
-alert("Acesso negado");
-
-}
-
-}
-
-
-
-function logout(){
-
-localStorage.removeItem("session");
-
-location.reload();
-
-}
-
-
-
-window.onload=()=>{
-
-if(localStorage.getItem("session")){
-
-document.getElementById("tela-login").style.display="none";
-
-document.getElementById("container-ativacao").style.display="flex";
-
-}
-
-};
-
-
-
-function ativarSom(){
-
-document.getElementById("container-ativacao").style.display="none";
-
-iniciado=true;
+btn.classList.add("active");
 
 carregarPedidos();
-
 }
-
-
 
 function carregarPedidos(){
 
-const path = abaAtiva==="historico" ? "relatorios_kings" : "pedidos_kings";
+const path = abaAtiva==="historico"
+? "relatorios_kings"
+: "pedidos_kings";
 
-db.ref(path).on("value",(snapshot)=>{
+db.ref(path).on("value",(snap)=>{
 
 const container=document.getElementById("pedidos-container");
 
 container.innerHTML="";
 
-snapshot.forEach(child=>{
+snap.forEach(child=>{
 
-const p=child.val();
+const p = child.val();
 
 if(abaAtiva!=="historico" && p.status!==abaAtiva) return;
-
-
-
-if(!pedidosNotificados.has(child.key) && p.status==="pendente"){
-
-tocarAlerta();
-
-pedidosNotificados.add(child.key);
-
-}
-
-
 
 const li=document.createElement("li");
 
 li.className="pedido-card";
 
+let itensHTML="";
 
+if(p.itens){
+
+p.itens.forEach(i=>{
+
+itensHTML += `
+<div>${i.qtd}x ${i.produto} - R$ ${i.precoUn}</div>
+`;
+
+});
+
+}
 
 let botoes="";
-
-
 
 if(abaAtiva==="pendente"){
 
 botoes=`
 
-<button class="btn-success" onclick="aceitarPedido('${child.key}')">ACEITAR</button>
+<button class="btn-aceitar"
+onclick="aceitar('${child.key}')">
+ACEITAR
+</button>
 
-<button class="btn-danger" onclick="recusarPedido('${child.key}')">RECUSAR</button>
+<button class="btn-recusar"
+onclick="recusar('${child.key}')">
+RECUSAR
+</button>
 
 `;
 
 }
-
-
 
 if(abaAtiva==="preparando"){
 
 botoes=`
 
-<button class="btn-info" onclick="enviarEntrega('${child.key}')">
-
+<button class="btn-entrega"
+onclick="entrega('${child.key}')">
 SAIU PARA ENTREGA
-
 </button>
 
 `;
 
 }
-
-
 
 if(abaAtiva==="entrega"){
 
 botoes=`
 
-<button class="btn-success" onclick="finalizarPedido('${child.key}')">
-
+<button class="btn-finalizar"
+onclick="finalizar('${child.key}')">
 FINALIZAR
-
 </button>
 
 `;
 
 }
 
-
-
 li.innerHTML=`
 
-<div class="cliente-nome">${p.nomeCliente}</div>
+<div class="cliente">${p.cliente}</div>
 
-<div class="info">
+<div class="endereco">
+${p.endereco}
+</div>
 
-${p.rua}, ${p.numero} - ${p.bairro}
+<div class="info-extra">
+📞 WhatsApp: ${p.whatsapp || "não informado"} <br>
+💳 Pagamento: ${p.pagamento} <br>
+📍 Referência: ${p.referencia}
+</div>
+
+<div class="itens">
+
+${itensHTML}
 
 </div>
 
+<div class="total">
 
-
-<div class="itens-box">
-
-${p.itens ? p.itens.map(i=>`
-
-<div>${i.qtd}x ${i.produto}</div>
-
-`).join("") : ""}
+Total: R$ ${parseFloat(p.total).toFixed(2)}
 
 </div>
 
+<div class="info-extra">
 
-
-<div class="total-area">
-
-R$ ${parseFloat(p.total).toFixed(2)}
+⏰ ${p.horario}
 
 </div>
 
-
-
-<div class="btn-actions">
+<div class="btns">
 
 ${botoes}
 
@@ -325,87 +164,60 @@ ${botoes}
 
 `;
 
-
-
 container.appendChild(li);
 
 });
 
 });
+}
+
+function aceitar(id){
+
+db.ref("pedidos_kings/"+id)
+.update({status:"preparando"});
 
 }
 
+function entrega(id){
 
-
-function mudarAba(a,btn){
-
-abaAtiva=a;
-
-document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-
-btn.classList.add("active");
-
-carregarPedidos();
+db.ref("pedidos_kings/"+id)
+.update({status:"entrega"});
 
 }
 
+function finalizar(id){
 
-
-function aceitarPedido(id){
-
-db.ref("pedidos_kings/"+id).update({
-
-status:"preparando"
-
-});
-
-}
-
-
-
-function enviarEntrega(id){
-
-db.ref("pedidos_kings/"+id).update({
-
-status:"entrega"
-
-});
-
-}
-
-
-
-function finalizarPedido(id){
-
-db.ref("pedidos_kings/"+id).once("value",s=>{
+db.ref("pedidos_kings/"+id)
+.once("value",s=>{
 
 let dados=s.val();
 
 dados.status="concluido";
 
-db.ref("relatorios_kings").push(dados).then(()=>{
+db.ref("relatorios_kings")
+.push(dados)
+.then(()=>{
 
-db.ref("pedidos_kings/"+id).remove();
+db.ref("pedidos_kings/"+id)
+.remove();
 
 });
 
 });
-
 }
 
-
-
-function recusarPedido(id){
+function recusar(id){
 
 if(confirm("Recusar pedido?")){
 
-db.ref("pedidos_kings/"+id).remove();
+db.ref("pedidos_kings/"+id)
+.remove();
 
 }
 
 }
 
-
+carregarPedidos();
 
 </script>
 
