@@ -1,4 +1,4 @@
-
+/* --- RESET E BASE SNOOP LANCHE (MANTIDO VISUAL ORIGINAL) --- */
 * {
     margin: 0; padding: 0; box-sizing: border-box;
     font-family: 'Segoe UI', Roboto, sans-serif;
@@ -235,54 +235,4 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     font-weight: 700;
     text-align: center;
     border: none;
-}
-
-/* Rodapé "Encaixado" e Dark */
-.bottom-nav-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    z-index: 2000;
-    background-color: #000; /* Preto igual ao topo */
-    border-top: 1px solid #333; /* Linha de divisão elegante */
-}
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    height: 65px;
-}
-.nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #888 !important; /* Itens não selecionados ficam cinza */
-    text-decoration: none !important;
-}
-/* Quando o usuário clicar, a classe 'active' muda para laranja */
-.nav-item.active {
-    color: #f37021 !important; 
-}
-.nav-item i {
-    font-size: 20px;
-    margin-bottom: 3px;
-}
-.nav-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-/* Ajuste no body para o conteúdo não sumir atrás da barra */
-body {
-    padding-bottom: 75px !important;
-}
-.bottom-nav-container {
-    /* ... seu código anterior ... */
-    transition: opacity 0.2s ease-in-out; /* Deixa o sumiço suave */
 }
