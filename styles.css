@@ -270,3 +270,19 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 .bottom-nav-container.hidden {
     display: none; 
 }
+.nav-item:active {
+    transform: scale(0.9); /* Dá um efeito de clique de botão */
+    color: #00a650; /* Muda a cor para o verde do seu app */
+}
+
+/* Se quiser deixar o ícone de Pedidos brilhando quando houver pedido ativo */
+.pedido-alerta {
+    color: #ffc107 !important;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
