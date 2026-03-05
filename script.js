@@ -479,3 +479,7 @@ function fecharModalDelivery() {
     document.getElementById("delivery-modal").style.display = "none";
     mostrarRodape();
 }
+function fecharStatus() {
+    document.getElementById('modal-status-cliente').style.display = 'none';
+    mostrarRodape(); // Caso você tenha a função de mostrar o rodapé novamente
+}
