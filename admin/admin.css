@@ -127,33 +127,20 @@ button { padding: 18px; border-radius: 12px; border: none; font-weight: bold; cu
     50% { transform: scale(1.05); opacity: 0.8; }
     100% { transform: scale(1); opacity: 1; }
 }
-/* --- NOVAS REGRAS PARA OS PEDIDOS --- */
-.info-entrega p { 
-    margin: 4px 0; 
-    font-size: 14px; 
-    line-height: 1.4; 
-    color: #ccc; 
-}
+.status-loja-btn, .btn-refresh, #container-ativacao button {
+            animation: none !important;
+            box-shadow: none !important;
+        }
+        .info-entrega p { margin: 4px 0; font-size: 14px; line-height: 1.4; color: #ccc; }
+        .cliente-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 8px; 
+            margin-bottom: 8px; 
+        }
+        .pedido-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 20px; list-style: none; }
+        .itens-box { background: #222; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #f37021; }
+        .contato-destaque { color: #25D366; font-weight: bold; }
 
-.cliente-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border-bottom: 1px solid #333; 
-    padding-bottom: 8px; 
-    margin-bottom: 8px; 
-}
-
-.contato-destaque { 
-    color: #25D366; 
-    font-weight: bold; 
-}
-
-/* Ajuste fino no itens-box que já existia para combinar com o novo layout */
-.itens-box { 
-    background: #222; 
-    padding: 10px; 
-    border-radius: 8px; 
-    margin: 10px 0; 
-    border-left: 4px solid #f37021; 
-}
