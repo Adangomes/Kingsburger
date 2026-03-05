@@ -490,3 +490,30 @@ function voltarParaEntrega() {
     document.getElementById("resumo-pedido").style.display = "none";
     document.getElementById("form-entrega").style.display = "block";
 }
+function verificarStatusPedido() {
+    const telefoneCliente = localStorage.getItem("cliente_celular");
+
+    if (!telefoneCliente) {
+        alert("Ops! Não encontramos nenhum pedido recente feito por este aparelho.");
+        return;
+    }
+
+    // Esconde o rodapé para focar no modal que vai abrir
+    esconderRodape();
+
+    // Busca o último pedido no Firebase
+    db.ref('pedidos').orderByChild('contato').equalTo(telefoneCliente).limitToLast(1)
+        .on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const idPedido = Object.keys(data)[0];
+                const pedido = data[idPedido];
+                
+                // CHAMA A FUNÇÃO QUE VOCÊ POSTOU
+                mostrarTelaStatus(pedido.status);
+            } else {
+                alert("Nenhum pedido encontrado no sistema.");
+                mostrarRodape();
+            }
+        });
+}
