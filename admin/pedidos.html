@@ -1,46 +1,100 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>KINGS BURGER - PEDIDOS</title>
+
+<link rel="stylesheet" href="admin.css">
+
 </head>
 <body>
-<header>
-<h1>KINGS BURGER</h1>
+
+
+<header class="admin-header">
+
+<h1>KINGS <span>BURGER</span></h1>
+
+<div>
+
+<button onclick="abrirEditor()">EDITAR</button>
+
+<button onclick="location.reload()">ATUALIZAR</button>
+
+</div>
+
 </header>
+
+
 <nav class="tabs">
-<button class="active" onclick="mudarAba('pendente',this)">NOVOS</button>
-<button onclick="mudarAba('preparando',this)">COZINHA</button>
-<button onclick="mudarAba('entrega',this)">ENTREGA</button>
-<button onclick="mudarAba('historico',this)">HISTÓRICO</button>
+
+<button class="tab-btn active"
+onclick="mudarAba('pendente',this)">
+NOVOS
+</button>
+
+<button class="tab-btn"
+onclick="mudarAba('preparando',this)">
+COZINHA
+</button>
+
+<button class="tab-btn"
+onclick="mudarAba('entrega',this)">
+ENTREGA
+</button>
+
+<button class="tab-btn"
+onclick="mudarAba('historico',this)">
+HISTÓRICO
+</button>
+
 </nav>
+
+
 <ul id="pedidos-container"></ul>
+
+
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+
 <script>
+
 const firebaseConfig = {
+
 apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
 databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
 projectId: "myproject26-10f0e"
+
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
+
+
 let abaAtiva="pendente";
+
+
 
 function mudarAba(a,btn){
 
 abaAtiva=a;
 
-document.querySelectorAll(".tabs button")
+document.querySelectorAll(".tab-btn")
 .forEach(b=>b.classList.remove("active"));
 
 btn.classList.add("active");
 
 carregarPedidos();
+
 }
+
+
 
 function carregarPedidos(){
 
@@ -48,11 +102,13 @@ const path = abaAtiva==="historico"
 ? "relatorios_kings"
 : "pedidos_kings";
 
+
 db.ref(path).on("value",(snap)=>{
 
 const container=document.getElementById("pedidos-container");
 
 container.innerHTML="";
+
 
 snap.forEach(child=>{
 
@@ -60,9 +116,12 @@ const p = child.val();
 
 if(abaAtiva!=="historico" && p.status!==abaAtiva) return;
 
+
 const li=document.createElement("li");
 
 li.className="pedido-card";
+
+
 
 let itensHTML="";
 
@@ -71,12 +130,14 @@ if(p.itens){
 p.itens.forEach(i=>{
 
 itensHTML += `
-<div>${i.qtd}x ${i.produto} - R$ ${i.precoUn}</div>
+<div>${i.qtd}x ${i.produto}</div>
 `;
 
 });
 
 }
+
+
 
 let botoes="";
 
@@ -84,12 +145,12 @@ if(abaAtiva==="pendente"){
 
 botoes=`
 
-<button class="btn-aceitar"
+<button class="btn-success"
 onclick="aceitar('${child.key}')">
 ACEITAR
 </button>
 
-<button class="btn-recusar"
+<button class="btn-danger"
 onclick="recusar('${child.key}')">
 RECUSAR
 </button>
@@ -98,11 +159,13 @@ RECUSAR
 
 }
 
+
+
 if(abaAtiva==="preparando"){
 
 botoes=`
 
-<button class="btn-entrega"
+<button class="btn-info"
 onclick="entrega('${child.key}')">
 SAIU PARA ENTREGA
 </button>
@@ -111,11 +174,13 @@ SAIU PARA ENTREGA
 
 }
 
+
+
 if(abaAtiva==="entrega"){
 
 botoes=`
 
-<button class="btn-finalizar"
+<button class="btn-success"
 onclick="finalizar('${child.key}')">
 FINALIZAR
 </button>
@@ -124,39 +189,77 @@ FINALIZAR
 
 }
 
+
+
 li.innerHTML=`
 
-<div class="cliente">${p.cliente}</div>
+<div class="cliente-nome">
 
-<div class="endereco">
-${p.endereco}
+${p.nomeCliente || p.cliente}
+
 </div>
 
-<div class="info-extra">
-📞 WhatsApp: ${p.whatsapp || "não informado"} <br>
-💳 Pagamento: ${p.pagamento} <br>
-📍 Referência: ${p.referencia}
+
+<div class="info">
+
+📍 ${p.rua || ""}, ${p.numero || ""} - ${p.bairro || ""}
+
 </div>
 
-<div class="itens">
+
+<div class="info">
+
+📞 WhatsApp:
+<a href="https://wa.me/55${p.whatsappCliente || p.whatsapp}"
+target="_blank">
+
+${p.whatsappCliente || p.whatsapp || "não informado"}
+
+</a>
+
+</div>
+
+
+<div class="info">
+
+💳 Pagamento: ${p.pagamento || "não informado"}
+
+</div>
+
+
+<div class="info">
+
+📍 Referência: ${p.referencia || "não informada"}
+
+</div>
+
+
+<div class="itens-box">
 
 ${itensHTML}
 
 </div>
 
-<div class="total">
 
-Total: R$ ${parseFloat(p.total).toFixed(2)}
+<div class="total-area">
+
+Subtotal: R$ ${parseFloat(p.subtotal || 0).toFixed(2)} <br>
+
+Entrega: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)} <br>
+
+<strong>Total: R$ ${parseFloat(p.total).toFixed(2)}</strong>
 
 </div>
 
-<div class="info-extra">
 
-⏰ ${p.horario}
+<div class="info">
+
+⏰ ${p.horario || ""}
 
 </div>
 
-<div class="btns">
+
+<div class="btn-actions">
 
 ${botoes}
 
@@ -164,12 +267,16 @@ ${botoes}
 
 `;
 
+
 container.appendChild(li);
 
 });
 
 });
+
 }
+
+
 
 function aceitar(id){
 
@@ -178,12 +285,16 @@ db.ref("pedidos_kings/"+id)
 
 }
 
+
+
 function entrega(id){
 
 db.ref("pedidos_kings/"+id)
 .update({status:"entrega"});
 
 }
+
+
 
 function finalizar(id){
 
@@ -204,7 +315,10 @@ db.ref("pedidos_kings/"+id)
 });
 
 });
+
 }
+
+
 
 function recusar(id){
 
@@ -217,9 +331,20 @@ db.ref("pedidos_kings/"+id)
 
 }
 
+
+
+function abrirEditor(){
+
+window.location.href="editor.html";
+
+}
+
+
+
 carregarPedidos();
 
 </script>
+
 
 </body>
 </html>
