@@ -23,43 +23,40 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
-// --- 1. CARREGAMENTO EM TEMPO REAL PELO FIREBASE ---
 function carregarCardapioCompleto() {
-    // Referência ao nó 'produtos_db' onde o Admin salva
-    const produtosRef = db.ref('produtos_db');
 
-    produtosRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        
-        if (data) {
-            // Convertemos o objeto do Firebase garantindo que os nomes dos campos batam
-            produtosGeral = Object.keys(data).map(key => {
-                const p = data[key];
-                return {
-                    id: key,
-                    // O pulo do gato: Aceita 'nome' (admin) ou 'title' (json antigo)
-                    title: p.nome || p.title || "Produto sem nome", 
-                    // Aceita 'preco' (admin) ou 'price' (json antigo)
-                    price: parseFloat(p.preco || p.price || 0),
-                    categoria: p.categoria || "Geral",
-                    ingredientes: p.ingredientes || "",
-                    image: p.img || p.image || p.foto || "imagens/placeholder.png",
-                    prices: p.prices || null,
-                    ativo: p.ativo !== undefined ? p.ativo : true // Verifica se o produto não está pausado
-                };
-            });
-            
-            // Filtra para não mostrar produtos desativados no Admin
-            produtosGeral = produtosGeral.filter(p => p.ativo);
+fetch('/content/produtos.json')
+.then(response => response.json())
+.then(data => {
 
-            renderizarCardapio();
-        } else {
-            console.error("Nenhum produto encontrado no Firebase.");
-            document.getElementById("cardapio-corpo").innerHTML = "<p class='text-center'>O cardápio está vazio.</p>";
-        }
-    });
+if (data && data.produtos) {
+
+produtosGeral = data.produtos.map((p, index) => ({
+id: index,
+title: p.title,
+price: parseFloat(p.price || 0),
+categoria: p.categoria,
+ingredientes: p.ingredientes || "",
+image: p.image || "imagens/placeholder.png",
+prices: p.prices || null
+}));
+
+renderizarCardapio();
+
+} else {
+
+console.error("Nenhum produto encontrado.");
+document.getElementById("cardapio-corpo").innerHTML =
+"<p class='text-center'>Nenhum produto cadastrado.</p>";
+
 }
 
+})
+.catch(error => {
+console.error("Erro ao carregar produtos:", error);
+});
+
+}
 // --- 2. RENDERIZAÇÃO DO CARDÁPIO ---
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
@@ -601,6 +598,7 @@ function mascaraCelular(input) {
     if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
     input.value = v.slice(0, 16);
 }
+
 
 
 
