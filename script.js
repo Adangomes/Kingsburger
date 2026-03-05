@@ -232,73 +232,7 @@ async function processarResumoGeo() {
         if (loader) loader.style.display = "none";
     }
 }
-// FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
-// --- FUNÇÃO ENVIAR CORRIGIDA ---
-function enviarWhatsApp() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
-    const pag = document.getElementById("pagamento")?.value || "A combinar";
-    const totalMsg = document.getElementById("resumo-total")?.innerText || "";
-
-    if (!nome || !rua) return alert("Preencha os dados de entrega!");
-
-    // 1. MONTAGEM DA MENSAGEM
-    let msg = `*NOVO PEDIDO - SNOOP LANCHE*\n`;
-    msg += `------------------------------\n`;
-    msg += ` *Cliente:* ${nome}\n`;
-    msg += ` *Endereço:* ${rua}, ${num}\n`;
-    msg += ` *Bairro:* ${bairro}\n`;
-    msg += ` *Pagamento:* ${pag}\n`;
-    msg += `------------------------------\n`;
-    msg += ` *ITENS:*\n`;
-    carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
-    msg += `------------------------------\n`;
-    msg += ` *Taxa de Entrega:* R$ ${taxaEntregaCalculada.toFixed(2)}\n`;
-    msg += ` *${totalMsg}*`;
-
-    const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
-
-    // 2. INTERFACE: Trava o botão para não clicar duas vezes
-    const btnWhats = document.querySelector("#resumo-pedido button");
-    if(btnWhats) {
-        btnWhats.innerText = "PROCESSANDO...";
-        btnWhats.disabled = true;
-    }
-
-    // 3. FUNÇÃO PARA LIMPAR E REINICIAR O SITE
-    const finalizarEVoltarInicio = () => {
-        localStorage.removeItem("carrinho"); // Limpa o carrinho no banco do navegador
-        window.location.href = urlZap; // Abre o WhatsApp
-        
-        // Dá um tempo para o celular abrir o Zap e depois reseta o site ao fundo
-        setTimeout(() => {
-            location.reload(); 
-        }, 1500);
-    };
-
-    // 4. ENVIO COM SEGURANÇA (FIREBASE + WHATSAPP)
-    if (typeof salvarPedidoFirebase === 'function') {
-        // Se o Firebase falhar ou demorar mais de 4s, ele envia o Zap do mesmo jeito
-        const segurancaTimeout = setTimeout(() => {
-            finalizarEVoltarInicio();
-        }, 4000);
-
-        salvarPedidoFirebase({ nome, rua, num, bairro, pag })
-            .then(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            })
-            .catch(err => {
-                console.error("Erro Firebase:", err);
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            });
-    } else {
-        finalizarEVoltarInicio();
-    }
-}
+// 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -403,18 +337,20 @@ function inicializarFirebase() {
 
 const db = inicializarFirebase();
 
+// --- 1. A FUNÇÃO QUE ESCREVE NO BANCO ---
 function salvarPedidoFirebase(dados) {
     if (!db) {
         console.error("Firebase não carregado!");
-        return Promise.resolve(); // Deixa seguir para o Zap mesmo com erro
+        return Promise.reject("Erro: Banco de dados não conectado"); 
     }
     
     const novoPedidoRef = db.ref('pedidos').push();
     return novoPedidoRef.set({
-        cliente: dados.nome,
-        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
+        cliente: dados.cliente, // Nome vindo da função enviar
+        contato: dados.contato, // <-- NOVO: Salva o Celular no Firebase
+        endereco: dados.endereco,
         referencia: document.getElementById("referencia")?.value || "Não informada",
-        pagamento: dados.pag,
+        pagamento: dados.pagamento,
         itens: carrinho.map(item => ({
             produto: item.title,
             qtd: 1,
@@ -422,13 +358,54 @@ function salvarPedidoFirebase(dados) {
         })),
         subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
         taxaEntrega: taxaEntregaCalculada,
-        desconto: descontoAplicado,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
+        desconto: typeof descontoAplicado !== 'undefined' ? descontoAplicado : 0,
+        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - (typeof descontoAplicado !== 'undefined' ? descontoAplicado : 0)),
         horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma"
+        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma",
+        status: "Pendente"
     });
 }
 
+// --- 2. A FUNÇÃO QUE GERENCIA A TELA (Substitui a antiga enviarWhatsApp) ---
+async function enviarPedidoFirebase() {
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const celular = document.getElementById("celular")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
+    const pag = document.getElementById("pagamento")?.value || "A combinar";
+
+    if (!nome || !celular || !rua) {
+        return alert("Por favor, preencha Nome, Celular e Endereço!");
+    }
+
+    const btnFinalizar = document.querySelector("#resumo-pedido button");
+    if (btnFinalizar) {
+        btnFinalizar.innerText = "ENVIANDO AO RESTAURANTE...";
+        btnFinalizar.disabled = true;
+    }
+
+    const objetoParaSalvar = {
+        cliente: nome,
+        contato: celular,
+        endereco: `${rua}, ${num} - ${bairro}`,
+        pagamento: pag
+    };
+
+    try {
+        await salvarPedidoFirebase(objetoParaSalvar);
+        alert("✅ Pedido recebido com sucesso!");
+        localStorage.removeItem("carrinho");
+        location.reload(); 
+    } catch (err) {
+        console.error("Erro Firebase:", err);
+        alert("❌ Erro ao enviar pedido.");
+        if (btnFinalizar) {
+            btnFinalizar.innerText = "FINALIZAR PEDIDO";
+            btnFinalizar.disabled = false;
+        }
+    }
+}
 
 
 
