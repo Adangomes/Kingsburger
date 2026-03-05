@@ -452,7 +452,6 @@ function inicializarFirebase() {
             messagingSenderId: "884850608032",
             appId: "1:884850608032:web:79db6983346c3c20edc6c5"
         };
-
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -460,32 +459,38 @@ function inicializarFirebase() {
     }
     return null;
 }
-
 const db = inicializarFirebase();
-
 function salvarPedidoFirebase(dados) {
     if (!db) return Promise.resolve();
-    
-    const novoPedidoRef = db.ref('pedidos_kings').push(); // Usei 'pedidos_kings' para bater com o admin
+    const novoPedidoRef = db.ref('pedidos_kings').push();
     const novoId = novoPedidoRef.key;
-    
-    // SALVA O ID NO CELULAR DO CLIENTE PARA RASTREIO
     localStorage.setItem('ultimoPedidoId', novoId);
-
+    const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
+    const totalFinal = subtotal + taxaEntregaCalculada - descontoAplicado;
     return novoPedidoRef.set({
         id: novoId,
         cliente: dados.nome,
+        telefone: dados.whats || "Não informado",
+        rua: dados.rua,
+        numero: dados.num,
+        bairro: dados.bairro,
         endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
         referencia: document.getElementById("referencia")?.value || "Não informada",
         pagamento: dados.pag,
-        status: 'pendente', // Status inicial obrigatório
+        status: "pendente",
         itens: carrinho.map(item => ({
             produto: item.title,
             qtd: 1,
             precoUn: item.price
         })),
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
-        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
+        subtotal: subtotal,
+        taxaEntrega: taxaEntregaCalculada,
+        desconto: descontoAplicado,
+        total: totalFinal,
+        horario: new Date().toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        })
     });
 }
 
@@ -655,6 +660,7 @@ function calcularValorDesconto(subtotal) {
     }
     return 0;
 }
+
 
 
 
