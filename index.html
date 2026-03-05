@@ -121,21 +121,23 @@
     </div>
 </div>
     <div class="bottom-nav-container">
-        <nav class="bottom-nav">
-            <a href="index.html" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span class="nav-label">Início</span>
-            </a>
-            <a href="javascript:void(0)" class="nav-item" onclick="verificarStatusPedido()">
-    <i class="fas fa-receipt"></i>
-    <span class="nav-label">Pedidos</span>
-</a>
-            <a href="a" class="nav-item">
-                <i class="fas fa-user-shield"></i>
-                <span class="nav-label">Admin</span>
-            </a>
-        </nav>
-    </div>
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="nav-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <i class="fas fa-home"></i>
+            <span class="nav-label">Início</span>
+        </a>
+
+        <a href="javascript:void(0)" class="nav-item" onclick="verificarStatusPedido()">
+            <i class="fas fa-receipt"></i>
+            <span class="nav-label">Pedidos</span>
+        </a>
+
+        <a href="javascript:void(0)" class="nav-item" onclick="abrirPainelAdmin()">
+            <i class="fas fa-user-shield"></i>
+            <span class="nav-label">Admin</span>
+        </a>
+    </nav>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -154,6 +156,7 @@
 <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
