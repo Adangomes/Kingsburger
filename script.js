@@ -1,24 +1,22 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
-// Coordenadas corrigidas para Guaramirim: [LAT, LON]
 const RESTAURANTE_COORD = [-26.471, -49.083]; 
-const TAXA_BASE = 5.00;
-const VALOR_POR_KM = 4.00;
+const TAXA_BASE = 5.00; // Valor fixo de saída
+const VALOR_POR_KM = 4.00; // Valor por KM rodado
 
 let carrinho = [];
 let produtosGeral = [];
 let taxaEntregaCalculada = 0;
 let descontoAplicado = 0;
-
 let itemMestreTemporario = null; 
 let saboresSelecionados = [];
 let limiteSabores = 0;
 let tamanhoSelecionadoGlobal = ""; 
 
-// Mapeamento do Rodapé
 const bottomNav = document.querySelector('.bottom-nav-container');
 
+// --- INICIALIZAÇÃO ---
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCardapioCompleto();
@@ -26,16 +24,30 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- CONTROLE DE VISIBILIDADE DO RODAPÉ ---
-function esconderRodape() {
-    if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important');
+// --- FIREBASE ---
+function inicializarFirebase() {
+    if (typeof firebase !== 'undefined') {
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+            authDomain: "myproject26-10f0e.firebaseapp.com",
+            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+            projectId: "myproject26-10f0e",
+            storageBucket: "myproject26-10f0e.firebasestorage.app",
+            messagingSenderId: "884850608032",
+            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        return firebase.database();
+    }
+    return null;
 }
+const db = inicializarFirebase();
 
-function mostrarRodape() {
-    if (bottomNav) bottomNav.style.display = 'block';
-}
+// --- VISIBILIDADE ---
+function esconderRodape() { if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important'); }
+function mostrarRodape() { if (bottomNav) bottomNav.style.display = 'block'; }
 
-// --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
+// --- 1. CARDÁPIO ---
 async function carregarCardapioCompleto() {
     try {
         const res = await fetch("content/produtos.json?v=" + Date.now());
@@ -49,11 +61,9 @@ function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
     if(!corpo || !nav) return;
-    corpo.innerHTML = "";
-    nav.innerHTML = "";
+    corpo.innerHTML = ""; nav.innerHTML = "";
 
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
-
     categorias.forEach((cat, idx) => {
         const btn = document.createElement("button");
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
@@ -70,9 +80,7 @@ function renderizarCardapio() {
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
-
             const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
-
             section.innerHTML += `
                 <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
                     <div class="info-produto">
@@ -90,28 +98,23 @@ function renderizarCardapio() {
     });
 }
 
-// --- 2. LÓGICA DE SELEÇÃO ---
+// --- 2. LOGICA DE SELEÇÃO ---
 function decidirFluxo(nome) {
     const p = produtosGeral.find(prod => prod.title === nome);
-    if (p.categoria === 'pizza' || p.categoria === 'porcao') {
-        abrirModalSelecao(nome);
-    } else {
-        adicionarAoCarrinho(p.title, p.price, "");
-    }
+    if (p.categoria === 'pizza' || p.categoria === 'porcao') abrirModalSelecao(nome);
+    else adicionarAoCarrinho(p.title, p.price, "");
 }
 
 function abrirModalSelecao(nome) {
     itemMestreTemporario = produtosGeral.find(p => p.title === nome);
     saboresSelecionados = [];
-    const modal = document.getElementById("pizza-options-modal");
     document.getElementById("pizza-modal-title").innerText = nome;
     document.getElementById("pergunta-qtd-sabores").style.display = "none";
     document.getElementById("secao-sabores").style.display = "none";
 
     if (itemMestreTemporario.categoria === 'pizza') {
         if (nome.includes("PIZZA P")) {
-            tamanhoSelecionadoGlobal = "P";
-            montarListaSabores(1, 'pizza');
+            tamanhoSelecionadoGlobal = "P"; montarListaSabores(1, 'pizza');
         } else {
             document.getElementById("pergunta-qtd-sabores").style.display = "block";
             const max = nome.includes("PIZZA M") ? 2 : 3;
@@ -126,7 +129,7 @@ function abrirModalSelecao(nome) {
         tamanhoSelecionadoGlobal = nome.includes("600g") ? "P" : "G";
         montarListaSabores(1, 'porcao');
     }
-    modal.style.display = "flex";
+    document.getElementById("pizza-options-modal").style.display = "flex";
 }
 
 function montarListaSabores(n, tipo) {
@@ -150,7 +153,7 @@ function montarListaSabores(n, tipo) {
 
 function toggleSabor(nome) {
     const idx = saboresSelecionados.indexOf(nome);
-    if (idx > -1) { saboresSelecionados.splice(idx, 1); } 
+    if (idx > -1) saboresSelecionados.splice(idx, 1);
     else if (saboresSelecionados.length < limiteSabores) {
         if (limiteSabores === 1) saboresSelecionados = [];
         saboresSelecionados.push(nome);
@@ -189,16 +192,12 @@ function adicionarAoCarrinho(titulo, preco, sabor) {
 function atualizarCarrinho() {
     const box = document.getElementById("cart-items");
     if(!box) return;
-    box.innerHTML = "";
-    let sub = 0;
+    box.innerHTML = ""; let sub = 0;
     carrinho.forEach((item, index) => {
         sub += item.price;
         box.innerHTML += `
             <div class="cart-item-row">
-                <div style="flex:1">
-                    <strong>${item.title}</strong><br>
-                    <b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b>
-                </div>
+                <div style="flex:1"><strong>${item.title}</strong><br><b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b></div>
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
@@ -208,248 +207,153 @@ function atualizarCarrinho() {
     localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
 
-function removerItem(idx) {
-    carrinho.splice(idx, 1);
-    atualizarCarrinho();
-}
+function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. RESUMO E ENTREGA ---
+// --- 4. GEO E TAXA CORRIGIDA ---
 async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const celular = document.getElementById("celular")?.value;
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    
-    if (!nome || !celular || !rua || !num) {
-        return alert("Por favor, preencha Nome, Celular, Rua e Número!");
-    }
-    
+    const bairro = document.getElementById("bairro")?.value;
+
+    if (!rua || !num || !bairro) return alert("Preencha Rua, Número e Bairro para calcular a entrega!");
+
     const loader = document.getElementById("loading-geral");
-    if (loader) {
-        loader.style.display = "flex";
-        const msg = loader.querySelector('p');
-        if(msg) msg.innerText = "Calculando entrega...";
-    }
+    if (loader) { loader.style.display = "flex"; loader.querySelector('p').innerText = "Calculando taxa real..."; }
 
     try {
-        const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
+        // Busca com bairro e cidade para ser mais preciso
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
-            // Cálculo corrigido: [LAT, LON]
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);   
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+            
+            // Lógica: Taxa Base + (Distância * Preço por KM)
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            
+            // Garantia: Se der menos que a taxa base por erro de GPS, mantém a taxa base
+            if(taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
         } else {
-            taxaEntregaCalculada = TAXA_BASE;
+            throw new Error("Endereço não localizado");
         }
         mostrarResumoFinal();
     } catch (e) {
-        taxaEntregaCalculada = TAXA_BASE;
+        console.error("Erro na taxa:", e);
+        alert("Não conseguimos calcular a distância exata. Será aplicada uma taxa padrão de R$ 10,00 por segurança.");
+        taxaEntregaCalculada = 10.00; // Valor de contingência para o restaurante não perder
         mostrarResumoFinal();
-    } finally {
-        if (loader) loader.style.display = "none";
-    }
+    } finally { if (loader) loader.style.display = "none"; }
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
     if(!resumoItens) return; 
-
-    resumoItens.innerHTML = "";
-    let sub = 0;
+    resumoItens.innerHTML = ""; let sub = 0;
     carrinho.forEach(i => {
         sub += i.price;
         resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
-
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `
-        Subtotal: R$ ${sub.toFixed(2)}<br>
-        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
-    `;
+    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}`;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
-    
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-// --- 5. FINALIZAÇÃO COM FIREBASE + WHATSAPP ---
+// --- 5. FINALIZAÇÃO ---
 async function enviarPedidoFirebase() {
-    // 1. Pega os dados do seu formulário HTML
     const nome = document.getElementById("nomeCliente")?.value;
-    const fone = document.getElementById("celular")?.value; // O número que você quer!
+    const fone = document.getElementById("celular")?.value;
     const rua = document.getElementById("rua")?.value;
     const num = document.getElementById("numero")?.value;
     const bairro = document.getElementById("bairro")?.value;
-    const cidade = document.getElementById("cidade")?.value;
-    const ref = document.getElementById("referencia")?.value;
-    const obs = document.getElementById("obsPedido")?.value;
     const pag = document.getElementById("pagamento")?.value;
-    const troco = document.getElementById("trocoPara")?.value;
 
-    if (!nome || !fone || !rua) {
-        return alert("Preencha Nome, Celular e Rua!");
-    }
+    if (!nome || !fone || !rua) return alert("Preencha os dados de entrega!");
 
-    // Salva o celular no navegador pra ele ver o status depois
     localStorage.setItem("cliente_celular", fone);
-
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
     try {
         const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
-        const totalFinal = subtotal + taxaEntregaCalculada;
-        
-        // 2. MANDA DIRETO PRO SEU PAINEL ADMIN (SEM WHATSAPP!)
         const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
         await novoPedidoRef.set({
-            cliente: nome,
-            contato: fone, // <--- Aqui o Admin recebe o celular
-            endereco: `${rua}, ${num} - ${bairro}, ${cidade}`,
-            referencia: ref || "N/A",
+            cliente: nome, contato: fone,
+            endereco: `${rua}, ${num} - ${bairro}`,
             pagamento: pag,
-            troco: (pag === 'Dinheiro') ? troco : "N/A",
-            obs_cozinha: obs || "Nenhuma",
             itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
             taxaEntrega: taxaEntregaCalculada,
-            total: totalFinal,
-            horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+            total: subtotal + taxaEntregaCalculada,
+            horario: new Date().toLocaleTimeString('pt-BR'),
             status: "Pendente"
         });
 
-        // 3. FINALIZAÇÃO LIMPA
         if (loader) loader.style.display = "none";
-        
-        // Fecha o modal e limpa o carrinho
         document.getElementById("delivery-modal").style.display = "none";
         localStorage.removeItem("carrinho");
-        carrinho = [];
-        atualizarCarrinho();
-        
-        // Já pula direto para a tela onde o cliente vê se você aceitou o pedido
+        carrinho = []; atualizarCarrinho();
         verificarStatusPedido();
-
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao enviar pedido!");
-        if (loader) loader.style.display = "none";
-    }
-}
-// --- CONFIGURAÇÃO FIREBASE ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        return firebase.database();
-    }
-    return null;
+    } catch (err) { alert("Erro ao enviar pedido!"); }
 }
 
-const db = inicializarFirebase();
-
-// --- ACOMPANHAMENTO EM TEMPO REAL ---
+// --- 6. STATUS EM TEMPO REAL ---
 function verificarStatusPedido() {
     const telefone = localStorage.getItem("cliente_celular");
-
-    if (!telefone) {
-        alert("Nenhum pedido recente encontrado.");
-        return;
-    }
-
+    if (!telefone) return;
     esconderRodape();
-
-    // Busca o último pedido daquela loja por aquele telefone
     db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
         .on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const idPedido = Object.keys(data)[0];
-                const pedido = data[idPedido];
-                mostrarTelaStatus(pedido.status);
-            } else {
-                alert("Pedido não localizado.");
-                mostrarRodape();
+                const pedido = Object.values(data)[0];
+                document.getElementById("modal-status-cliente").style.display = "flex";
+                document.getElementById("status-texto-titulo").innerText = pedido.status;
+                // Ajuste os IDs abaixo conforme seu HTML de status
             }
         });
 }
 
-function mostrarTelaStatus(status) {
-    // Aqui você pode trocar o Alert por um Modal de verdade se tiver o HTML pronto
-    let mensagemStatus = "";
-    switch(status) {
-        case "Pendente": mensagemStatus = "📝 Aguardando confirmação do restaurante..."; break;
-        case "Preparando": mensagemStatus = "👨‍🍳 Seu pedido está sendo preparado!"; break;
-        case "Saiu para Entrega": mensagemStatus = "🛵 O motoboy está a caminho!"; break;
-        case "Finalizado": mensagemStatus = "✅ Pedido entregue! Bom apetite."; break;
-        default: mensagemStatus = status;
-    }
-    
-    // Se quiser que o usuário possa fechar e ver o cardápio de novo
-    if(confirm("STATUS: " + mensagemStatus + "\n\nClique em OK para continuar acompanhando ou Cancelar para voltar ao menu.")) {
-        // Mantém a escuta ativa
-    } else {
-        mostrarRodape();
-    }
+function fecharStatus() {
+    document.getElementById('modal-status-cliente').style.display = 'none';
+    mostrarRodape();
 }
 
 // --- UTILITÁRIOS ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
-    if(!el) return;
     const agora = new Date();
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; 
-    el.innerText = aberto ? "ABERTO" : "FECHADO";
-    el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
+    const tempo = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempo >= 1080 && tempo <= 1410; // Ex: 18:00 as 23:30
+    if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = `status ${aberto ? 'aberto' : 'fechado'}`; }
 }
 
 function abrirDelivery() {
     if (carrinho.length === 0) return alert("Carrinho vazio!");
-    fecharCarrinho();
+    document.getElementById("cart-modal").style.display = "none";
     esconderRodape(); 
     document.getElementById("delivery-modal").style.display = "flex";
 }
 
-function abrirCarrinho() { 
-    esconderRodape(); 
-    document.getElementById("cart-modal").style.display = "flex"; 
-}
-
-function fecharCarrinho() { 
-    document.getElementById("cart-modal").style.display = "none"; 
-    mostrarRodape();
-}
-
+function abrirCarrinho() { esconderRodape(); document.getElementById("cart-modal").style.display = "flex"; }
+function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; mostrarRodape(); }
 function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
+function fecharModalDelivery() { document.getElementById("delivery-modal").style.display = "none"; mostrarRodape(); }
+function voltarParaEntrega() { document.getElementById("resumo-pedido").style.display = "none"; document.getElementById("form-entrega").style.display = "block"; }
 
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
-    if(!el) return;
-    el.innerText = t + " adicionado! ✅"; el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 2000);
+    if(el) { el.innerText = t + " adicionado! ✅"; el.style.display = "block"; setTimeout(() => el.style.display = "none", 2000); }
 }
 
 function carregarCarrinhoStorage() {
@@ -468,18 +372,4 @@ function sincronizarScrollMenu() {
     let atual = "";
     secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
-}
-
-function voltarParaEntrega() {
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.getElementById("form-entrega").style.display = "block";
-}
-
-function fecharModalDelivery() {
-    document.getElementById("delivery-modal").style.display = "none";
-    mostrarRodape();
-}
-function fecharStatus() {
-    document.getElementById('modal-status-cliente').style.display = 'none';
-    mostrarRodape(); // Caso você tenha a função de mostrar o rodapé novamente
 }
