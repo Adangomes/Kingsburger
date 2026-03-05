@@ -373,3 +373,9 @@ function sincronizarScrollMenu() {
     secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
+// Adicione esta função para permitir reabrir manualmente
+function reabrirAcompanhamento() {
+    const telefone = localStorage.getItem("cliente_celular");
+    if (!telefone) return alert("Você não possui pedidos ativos.");
+    verificarStatusPedido(); // Chama a lógica que já criamos
+}
