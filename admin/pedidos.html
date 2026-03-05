@@ -8,10 +8,13 @@
         body{ margin:0; font-family:Arial, sans-serif; background:#0f0f0f; color:white; }
         header{ background:#000; padding:15px; text-align:center; font-size:22px; font-weight:bold; border-bottom:2px solid #ff9800; }
         header span{ color:#ff9800; }
+        
+        /* Menu Superior */
         .tabs{ display:flex; overflow:auto; background:#111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .tab-btn{ flex:1; padding:14px; background:#111; border:none; color:white; font-weight:bold; cursor:pointer; min-width: 100px; transition: 0.3s; }
         .tab-btn.active{ background:#ff9800; color:black; }
         
+        /* Container de Pedidos */
         #pedidos-container{ list-style:none; padding:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px; }
         .pedido-card{ background:#1a1a1a; padding:15px; border-radius:10px; border:1px solid #333; position: relative; }
         .cliente{ font-size:18px; font-weight:bold; color:#ff9800; }
@@ -19,25 +22,28 @@
         .itens{ background:#000; padding:8px; margin-top:8px; border-radius:5px; border-left: 3px solid #ff9800; font-size: 14px; }
         .total{ font-size:18px; font-weight:bold; margin-top:8px; color: #4CAF50; }
         
+        /* Botões */
         .btn-area{ margin-top:10px; display:flex; gap:5px; flex-wrap:wrap; }
-        button{ border:none; padding:8px 12px; border-radius:5px; font-weight:bold; cursor:pointer; transition: 0.2s; }
+        button{ border:none; padding:10px 12px; border-radius:5px; font-weight:bold; cursor:pointer; transition: 0.2s; }
         button:active { transform: scale(0.95); }
-        .btn-success{background:#4CAF50;color:white;}
+        .btn-success{background:#4CAF50;color:white; width: 100%;}
         .btn-danger{background:#f44336;color:white;}
-        .btn-info{background:#2196F3;color:white;}
+        .btn-info{background:#2196F3;color:white; width: 100%;}
         .btn-warning{background:#ff9800;color:black;}
         .btn-gray{background:#444;color:white;}
 
+        /* Painéis de Edição */
         .painel{ padding:20px; background: #111; margin: 10px; border-radius: 10px; max-width: 900px; margin-left: auto; margin-right: auto; }
         .form-group { background:#1a1a1a; padding:15px; border-radius:8px; margin-bottom: 20px; border: 1px solid #333; }
-        input, select, textarea { padding:10px; margin:5px 0; border:1px solid #333; border-radius:5px; background:#000; color:white; width: 100%; box-sizing: border-box; }
+        input, select, textarea { padding:12px; margin:5px 0; border:1px solid #333; border-radius:5px; background:#000; color:white; width: 100%; box-sizing: border-box; font-size: 16px; }
         
-        .grid-produtos { display: grid; gap: 10px; }
+        /* Produtos e Listas */
         .prod-item { display: flex; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 8px; gap: 15px; border: 1px solid #333; margin-bottom: 10px; }
         .prod-img { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; background: #333; }
         .prod-info { flex: 1; }
         .cat-title { color: #ff9800; border-left: 4px solid #ff9800; padding-left: 10px; margin: 20px 0 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold; }
         
+        .status-loja-box { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ff9800; }
         .hora-pedido { position: absolute; top: 15px; right: 15px; font-size: 12px; color: #666; }
     </style>
 </head>
@@ -55,7 +61,9 @@
 </nav>
 
 <ul id="pedidos-container"></ul>
-<div id="painel" class="painel" style="display:none;"></div>
+
+<div id="painel" class="painel" style="display:none;">
+    </div>
 
 <audio id="alerta" preload="auto">
     <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3">
@@ -65,7 +73,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// --- CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
     authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -78,7 +85,6 @@ const db = firebase.database();
 let abaAtiva = "pendente";
 let lastCount = 0;
 
-// --- NAVEGAÇÃO ---
 function mudarAba(aba, btn) {
     abaAtiva = aba;
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -100,13 +106,8 @@ function mudarAba(aba, btn) {
 }
 
 // --- GESTÃO DE PEDIDOS ---
-function tocarSom() {
-    const audio = document.getElementById("alerta");
-    audio.play().catch(e => console.log("Interação necessária para o som."));
-}
-
 function carregarPedidos() {
-    const path = abaAtiva == "historico" ? "relatorios_kings" : "pedidos_kings";
+    const path = (abaAtiva == "historico") ? "relatorios_kings" : "pedidos_kings";
     
     db.ref(path).on("value", snap => {
         const container = document.getElementById("pedidos-container");
@@ -117,116 +118,120 @@ function carregarPedidos() {
 
         snap.forEach(child => {
             const p = child.val();
-            // Filtro por status (exceto histórico que mostra tudo concluído)
             if (abaAtiva != "historico" && p.status != abaAtiva) return;
             count++;
 
             let itensHtml = "";
             if (p.itens) {
                 p.itens.forEach(i => {
-                    itensHtml += `<div><b>${i.qtd}x</b> ${i.produto} <small>(R$ ${i.precoUn?.toFixed(2)})</small></div>`;
+                    itensHtml += `<div><b>${i.qtd}x</b> ${i.produto}</div>`;
                 });
             }
 
             let botoes = "";
             if (p.status == "pendente") {
-                botoes = `<button class="btn-success" onclick="mudarStatus('${child.key}', 'preparando')">ACEITAR</button>
-                          <button class="btn-danger" onclick="recusar('${child.key}')">RECUSAR</button>`;
+                botoes = `<button class="btn-success" onclick="mudarStatus('${child.key}', 'preparando')">ACEITAR PEDIDO</button>
+                          <button class="btn-danger" style="width:100%;margin-top:5px" onclick="recusar('${child.key}')">RECUSAR</button>`;
             } else if (p.status == "preparando") {
-                botoes = `<button class="btn-info" onclick="mudarStatus('${child.key}', 'entrega')">SAIU PARA ENTREGA</button>`;
+                botoes = `<button class="btn-info" onclick="mudarStatus('${child.key}', 'entrega')">MANDAR PARA ENTREGA</button>`;
             } else if (p.status == "entrega") {
-                botoes = `<button class="btn-success" onclick="finalizar('${child.key}')">CONCLUIR PEDIDO</button>`;
+                botoes = `<button class="btn-success" onclick="finalizar('${child.key}')">CONCLUIR / ENTREGUE</button>`;
             }
 
             const li = document.createElement("li");
             li.className = "pedido-card";
             li.innerHTML = `
                 <span class="hora-pedido">${p.horario || '--:--'}</span>
-                <div class="cliente">${p.cliente || "Cliente"}</div>
-                <div class="info">📞 ${p.telefone || 'N/A'}</div>
-                <div class="info">📍 ${p.endereco || 'Retirada'}</div>
-                <div class="info">💳 Pagamento: ${p.pagamento || 'A combinar'}</div>
+                <div class="cliente">${p.cliente}</div>
+                <div class="info">📞 ${p.telefone}</div>
+                <div class="info">📍 ${p.endereco}</div>
+                <div class="info">💳 Pagamento: ${p.pagamento} ${p.trocoPara ? '- Troco p/ '+p.trocoPara : ''}</div>
                 <div class="itens">${itensHtml}</div>
-                <div class="total">TOTAL: R$ ${parseFloat(p.total || 0).toFixed(2)}</div>
+                <div class="total">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
                 <div class="btn-area">${botoes}</div>
             `;
             container.appendChild(li);
         });
 
-        // Tocar som se chegar pedido novo na aba "NOVOS"
         if (abaAtiva == "pendente" && count > lastCount) {
-            tocarSom();
+            document.getElementById("alerta").play();
         }
         lastCount = count;
     });
 }
 
-function mudarStatus(id, novoStatus) { 
-    db.ref("pedidos_kings/" + id).update({ status: novoStatus }); 
-}
+function mudarStatus(id, novoStatus) { db.ref("pedidos_kings/" + id).update({ status: novoStatus }); }
 
 function finalizar(id) {
     db.ref("pedidos_kings/" + id).once("value", s => {
-        let d = s.val();
-        d.status = "concluido";
-        db.ref("relatorios_kings").push(d).then(() => {
-            db.ref("pedidos_kings/" + id).remove();
-        });
+        let d = s.val(); d.status = "concluido";
+        db.ref("relatorios_kings").push(d).then(() => db.ref("pedidos_kings/" + id).remove());
     });
 }
 
-function recusar(id) { 
-    if (confirm("Deseja realmente excluir/recusar este pedido?")) {
-        db.ref("pedidos_kings/" + id).remove(); 
-    }
-}
+function recusar(id) { if (confirm("Recusar este pedido?")) db.ref("pedidos_kings/" + id).remove(); }
 
 // --- PAINEL DE PRODUTOS ---
 function painelProdutos() {
     const painel = document.getElementById("painel");
     painel.innerHTML = `
-        <h2>Gerenciar Cardápio</h2>
-        <div class="form-group" id="form-produto">
-            <input id="pNome" placeholder="Nome do Produto">
-            <input id="pPreco" type="number" step="0.01" placeholder="Preço (Ex: 25.90)">
-            <input id="pImg" placeholder="Link da Foto (URL)">
-            <input id="pCat" placeholder="Categoria (burger, bebida, pizza, porcao)">
-            <textarea id="pIngredientes" placeholder="Ingredientes / Descrição"></textarea>
-            <input type="hidden" id="pId">
-            <button class="btn-success" style="width:100%; margin-top:10px;" onclick="salvarProduto()">SALVAR PRODUTO</button>
-            <button class="btn-gray" style="width:100%; margin-top:5px; display:none;" id="btn-cancelar-edit" onclick="limparFormProd()">CANCELAR EDIÇÃO</button>
+        <div class="status-loja-box">
+            <span>STATUS DA LOJA</span>
+            <button id="btn-loja" onclick="toggleLoja()">CARREGANDO...</button>
         </div>
-        <div id="listaProdutos">Carregando produtos...</div>
+        <h2>Novo Produto / Editar</h2>
+        <div class="form-group">
+            <input id="pNome" placeholder="Nome (Ex: X-Salada)">
+            <input id="pPreco" type="number" step="0.01" placeholder="Valor em R$">
+            <input id="pCat" placeholder="Categoria (Ex: burger, bebidas, combos)">
+            <input id="pImg" placeholder="Link da Foto">
+            <textarea id="pIng" placeholder="Ingredientes"></textarea>
+            <input type="hidden" id="pId">
+            <button class="btn-success" onclick="salvarProduto()">SALVAR NO CARDÁPIO</button>
+            <button id="btn-cancel" class="btn-gray" style="display:none; margin-top:5px; width:100%" onclick="limparFormProd()">CANCELAR</button>
+        </div>
+        <div id="listaProdutos"></div>
     `;
+    atualizarBotaoLoja();
+    carregarListaProdutos();
+}
 
+function toggleLoja() {
+    db.ref("config_loja/aberta").once("value", s => db.ref("config_loja").update({ aberta: !s.val() }));
+}
+
+function atualizarBotaoLoja() {
+    db.ref("config_loja/aberta").on("value", s => {
+        const b = document.getElementById("btn-loja");
+        if(!b) return;
+        b.innerText = s.val() ? "ABERTA" : "FECHADA";
+        b.className = s.val() ? "btn-success" : "btn-danger";
+        b.style.width = "120px";
+    });
+}
+
+function carregarListaProdutos() {
     db.ref("produtos_db").on("value", snap => {
         const lista = document.getElementById("listaProdutos");
+        if(!lista) return;
         lista.innerHTML = "";
-        let categorias = {};
-
+        let cats = {};
         snap.forEach(c => {
-            const p = c.val();
-            const cat = p.categoria || "Geral";
-            if (!categorias[cat]) categorias[cat] = [];
-            categorias[cat].push({ id: c.key, ...p });
+            const p = c.val(); const cat = p.categoria || "Geral";
+            if (!cats[cat]) cats[cat] = [];
+            cats[cat].push({ id: c.key, ...p });
         });
-
-        for (let cat in categorias) {
-            lista.innerHTML += `<div class="cat-title">${cat}</div>`;
-            categorias[cat].forEach(p => {
+        for (let c in cats) {
+            lista.innerHTML += `<div class="cat-title">${c}</div>`;
+            cats[c].forEach(p => {
                 lista.innerHTML += `
-                    <div class="prod-item">
-                        <img src="${p.foto || p.img || 'https://via.placeholder.com/60'}" class="prod-img">
-                        <div class="prod-info">
-                            <div style="font-weight:bold">${p.nome}</div>
-                            <div style="color:#4CAF50">R$ ${parseFloat(p.preco || 0).toFixed(2)}</div>
-                        </div>
-                        <button class="${p.ativo !== false ? 'btn-success' : 'btn-gray'}" onclick="toggleStatusProd('${p.id}', ${p.ativo !== false})">
-                            ${p.ativo !== false ? 'ATIVO' : 'PAUSADO'}
-                        </button>
-                        <button class="btn-info" onclick="prepararEdicaoProd('${p.id}')">EDITAR</button>
-                        <button class="btn-danger" onclick="delProduto('${p.id}')">X</button>
-                    </div>`;
+                <div class="prod-item">
+                    <img src="${p.foto}" class="prod-img">
+                    <div class="prod-info"><b>${p.nome}</b><br><span style="color:#4CAF50">R$ ${p.preco.toFixed(2)}</span></div>
+                    <button class="${p.ativo ? 'btn-success' : 'btn-gray'}" style="width:80px" onclick="toggleProd('${p.id}',${p.ativo})">${p.ativo?'ATIVO':'OFF'}</button>
+                    <button class="btn-warning" onclick="editarProd('${p.id}')">EDITAR</button>
+                    <button class="btn-danger" onclick="delProd('${p.id}')">X</button>
+                </div>`;
             });
         }
     });
@@ -234,63 +239,39 @@ function painelProdutos() {
 
 function salvarProduto() {
     const id = document.getElementById("pId").value;
-    const nome = document.getElementById("pNome").value;
-    const preco = document.getElementById("pPreco").value;
-    const foto = document.getElementById("pImg").value;
-    const categoria = document.getElementById("pCat").value.toLowerCase().trim();
-    const ingredientes = document.getElementById("pIngredientes").value;
-
-    if(!nome || !preco || !categoria) return alert("Nome, Preço e Categoria são obrigatórios!");
-
-    const dados = { 
-        nome, 
-        preco: parseFloat(preco), 
-        foto, 
-        categoria, 
-        ingredientes, 
-        ativo: true 
+    const dados = {
+        nome: document.getElementById("pNome").value,
+        preco: parseFloat(document.getElementById("pPreco").value),
+        categoria: document.getElementById("pCat").value.toLowerCase().trim(),
+        foto: document.getElementById("pImg").value || "imagens/placeholder.png",
+        ingredientes: document.getElementById("pIng").value,
+        ativo: true
     };
-
-    if(id) {
-        db.ref("produtos_db/" + id).update(dados);
-    } else {
-        db.ref("produtos_db").push(dados);
-    }
-    
+    if(id) db.ref("produtos_db/"+id).update(dados); else db.ref("produtos_db").push(dados);
     limparFormProd();
 }
 
-function prepararEdicaoProd(id) {
-    db.ref("produtos_db/" + id).once("value", s => {
+function editarProd(id) {
+    db.ref("produtos_db/"+id).once("value", s => {
         const p = s.val();
         document.getElementById("pId").value = id;
         document.getElementById("pNome").value = p.nome;
         document.getElementById("pPreco").value = p.preco;
-        document.getElementById("pImg").value = p.foto || p.img || "";
         document.getElementById("pCat").value = p.categoria;
-        document.getElementById("pIngredientes").value = p.ingredientes || "";
-        document.getElementById("btn-cancelar-edit").style.display = "block";
+        document.getElementById("pImg").value = p.foto;
+        document.getElementById("pIng").value = p.ingredientes;
+        document.getElementById("btn-cancel").style.display = "block";
         window.scrollTo(0,0);
     });
 }
 
 function limparFormProd() {
-    document.getElementById("pId").value = "";
-    document.getElementById("pNome").value = "";
-    document.getElementById("pPreco").value = "";
-    document.getElementById("pImg").value = "";
-    document.getElementById("pCat").value = "";
-    document.getElementById("pIngredientes").value = "";
-    document.getElementById("btn-cancelar-edit").style.display = "none";
+    ["pId","pNome","pPreco","pCat","pImg","pIng"].forEach(i => document.getElementById(i).value = "");
+    document.getElementById("btn-cancel").style.display = "none";
 }
 
-function toggleStatusProd(id, statusAtual) { 
-    db.ref("produtos_db/" + id).update({ ativo: !statusAtual }); 
-}
-
-function delProduto(id) { 
-    if(confirm("Excluir este produto permanentemente?")) db.ref("produtos_db/" + id).remove(); 
-}
+function toggleProd(id, status) { db.ref("produtos_db/"+id).update({ ativo: !status }); }
+function delProd(id) { if(confirm("Excluir?")) db.ref("produtos_db/"+id).remove(); }
 
 // --- PAINEL DE CUPONS ---
 function painelCupons() {
@@ -298,50 +279,34 @@ function painelCupons() {
     painel.innerHTML = `
         <h2>Gerenciar Cupons</h2>
         <div class="form-group">
-            <input id="cNome" placeholder="Código do Cupom (Ex: KINGS10)" style="text-transform:uppercase">
-            <input id="cValor" type="number" placeholder="Valor do Desconto">
-            <select id="cTipo">
-                <option value="porcentagem">% Porcentagem</option>
-                <option value="fixo">R$ Valor Fixo</option>
-            </select>
-            <button class="btn-success" style="width:100%; margin-top:10px;" onclick="addCupom()">CRIAR CUPOM</button>
+            <input id="cNome" placeholder="Código (Ex: BEMVINDO10)" style="text-transform:uppercase">
+            <input id="cVal" type="number" placeholder="Valor (Ex: 10)">
+            <select id="cTipo"><option value="porcentagem">% Porcentagem</option><option value="fixo">R$ Fixo</option></select>
+            <button class="btn-success" onclick="addCupom()">CRIAR NOVO CUPOM</button>
         </div>
         <div id="listaCupons"></div>
     `;
-
     db.ref("cupons_db").on("value", snap => {
-        const lista = document.getElementById("listaCupons");
-        lista.innerHTML = "";
+        const l = document.getElementById("listaCupons"); if(!l) return; l.innerHTML = "";
         snap.forEach(c => {
             const p = c.val();
-            lista.innerHTML += `
-                <div class="prod-item">
-                    <div class="prod-info">
-                        <b style="color:#ff9800">${p.codigo}</b> - 
-                        <span>${p.valor}${p.tipo == 'porcentagem' ? '%' : ' Reais'}</span>
-                    </div>
-                    <button class="btn-danger" onclick="delCupom('${c.key}')">REMOVER</button>
-                </div>`;
+            l.innerHTML += `<div class="prod-item">
+                <div class="prod-info"><b>${p.codigo}</b> - Desconto: ${p.valor}${p.tipo=='porcentagem'?'%':' Reais'}</div>
+                <button class="btn-danger" onclick="db.ref('cupons_db/${c.key}').remove()">EXCLUIR</button>
+            </div>`;
         });
     });
 }
 
 function addCupom() {
-    const codigo = document.getElementById("cNome").value.toUpperCase().trim();
-    const valor = document.getElementById("cValor").value;
+    const codigo = document.getElementById("cNome").value.toUpperCase();
+    const valor = parseFloat(document.getElementById("cVal").value);
     const tipo = document.getElementById("cTipo").value;
-    if(!codigo || !valor) return alert("Preencha todos os campos do cupom!");
-    
-    db.ref("cupons_db").push({ codigo, valor: parseFloat(valor), tipo, ativo: true });
-    document.getElementById("cNome").value = "";
-    document.getElementById("cValor").value = "";
+    if(codigo && valor) db.ref("cupons_db").push({ codigo, valor, tipo, ativo: true });
+    document.getElementById("cNome").value = ""; document.getElementById("cVal").value = "";
 }
 
-function delCupom(id) { db.ref("cupons_db/" + id).remove(); }
-
-// Inicialização
 carregarPedidos();
-
 </script>
 </body>
 </html>
