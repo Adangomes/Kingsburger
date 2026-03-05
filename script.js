@@ -23,39 +23,75 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
+// --- CARREGAMENTO DO CARDÁPIO VIA FIREBASE (Sincronizado com Admin) ---
 function carregarCardapioCompleto() {
+    const corpo = document.getElementById("cardapio-corpo");
+    if (!corpo) return;
 
-fetch('/content/produtos.json')
-.then(response => response.json())
-.then(data => {
+    // LER DO FIREBASE EM TEMPO REAL
+    db.ref('produtos_db').on('value', (snapshot) => {
+        const data = snapshot.val();
+        produtosGeral = [];
 
-if (data && data.produtos) {
+        if (data) {
+            produtosGeral = Object.keys(data).map(key => {
+                const p = data[key];
+                return {
+                    id: key,
+                    title: p.nome || p.title, 
+                    price: parseFloat(p.preco || p.price || 0),
+                    categoria: p.categoria,
+                    ingredientes: p.ingredientes || "",
+                    image: p.foto || p.img || p.image || "imagens/placeholder.png",
+                    prices: p.prices || null,
+                    ativo: p.ativo !== undefined ? p.ativo : true
+                };
+            });
 
-produtosGeral = data.produtos.map((p, index) => ({
-id: index,
-title: p.title,
-price: parseFloat(p.price || 0),
-categoria: p.categoria,
-ingredientes: p.ingredientes || "",
-image: p.image || "imagens/placeholder.png",
-prices: p.prices || null
-}));
-
-renderizarCardapio();
-
-} else {
-
-console.error("Nenhum produto encontrado.");
-document.getElementById("cardapio-corpo").innerHTML =
-"<p class='text-center'>Nenhum produto cadastrado.</p>";
-
+            // Filtro de segurança: Só mostra o que estiver ativo no Admin
+            produtosGeral = produtosGeral.filter(p => p.ativo);
+            renderizarCardapio();
+        } else {
+            corpo.innerHTML = "<p class='text-center mt-5'>Cardápio sendo atualizado...</p>";
+        }
+    });
 }
 
-})
-.catch(error => {
-console.error("Erro ao carregar produtos:", error);
-});
+// --- ENVIO DE PEDIDO COMPLETO PARA O ADMIN ---
+function salvarPedidoFirebase(dados) {
+    if (!db) return Promise.resolve();
+    const novoPedidoRef = db.ref('pedidos_kings').push();
+    const novoId = novoPedidoRef.key;
+    localStorage.setItem('ultimoPedidoId', novoId);
+    
+    const subtotalF = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
+    const taxaF = taxaEntregaCalculada || 0;
+    const descF = descontoAplicado || 0;
+    const totalF = subtotalF + taxaF - descF;
+    
+    // Pega o cupom digitado se houver
+    const cupomTexto = document.getElementById("input-cupom")?.value || "Nenhum";
 
+    return novoPedidoRef.set({
+        id: novoId,
+        cliente: dados.nome,
+        telefone: dados.celular || "Não informado",
+        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
+        referencia: document.getElementById("referencia")?.value || "",
+        pagamento: dados.pag,
+        status: "pendente", // O Admin verá na aba "NOVOS"
+        itens: carrinho.map(item => ({ 
+            produto: item.title, 
+            qtd: 1, 
+            precoUn: item.price 
+        })),
+        subtotal: subtotalF,
+        taxaEntrega: taxaF,
+        desconto: descF,
+        total: totalF,
+        cupom: cupomTexto,
+        horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    });
 }
 // --- 2. RENDERIZAÇÃO DO CARDÁPIO ---
 function renderizarCardapio() {
@@ -469,42 +505,6 @@ function inicializarFirebase() {
 }
 const db = inicializarFirebase();
 
-function salvarPedidoFirebase(dados) {
-    if (!db) return Promise.resolve();
-    const novoPedidoRef = db.ref('pedidos_kings').push();
-    const novoId = novoPedidoRef.key;
-    localStorage.setItem('ultimoPedidoId', novoId);
-    
-    // Garante que os valores são números e existem
-    const subtotalF = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
-    const taxaF = taxaEntregaCalculada || 0;
-    const descF = descontoAplicado || 0;
-    const totalF = subtotalF + taxaF - descF;
-    
-    // Captura o telefone direto do input se o objeto dados falhar
-    const telefoneFinal = dados.celular || document.getElementById("celularCliente")?.value || "Não informado";
-
-    return novoPedidoRef.set({
-        id: novoId,
-        cliente: dados.nome || "Cliente Sem Nome",
-        telefone: telefoneFinal, // NOME CORRETO PARA O ADMIN LER
-        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
-        referencia: document.getElementById("referencia")?.value || "Não informada",
-        pagamento: dados.pag || "A combinar",
-        status: "pendente",
-        itens: carrinho.map(item => ({ 
-            produto: item.title, 
-            qtd: 1, 
-            precoUn: item.price || 0 
-        })),
-        subtotal: subtotalF,     // Envia como número puro
-        taxaEntrega: taxaF,      // Envia como número puro
-        desconto: descF,         // Envia como número puro
-        total: totalF,           // Envia como número puro
-        horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    });
-}
-
 function mostrarTela(tela) {
     const cardapio = document.getElementById('cardapio-corpo');
     const categorias = document.getElementById('categorias-nav');
@@ -598,6 +598,7 @@ function mascaraCelular(input) {
     if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
     input.value = v.slice(0, 16);
 }
+
 
 
 
