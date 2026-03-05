@@ -5,28 +5,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>KINGS BURGER - PEDIDOS</title>
+<title>KINGS BURGER - PAINEL</title>
 
 <link rel="stylesheet" href="admin.css">
 
 </head>
+
 <body>
 
-
 <header class="admin-header">
-
 <h1>KINGS <span>BURGER</span></h1>
-
-<div>
-
-<button onclick="abrirEditor()">EDITAR</button>
-
-<button onclick="location.reload()">ATUALIZAR</button>
-
-</div>
-
 </header>
-
 
 <nav class="tabs">
 
@@ -52,14 +41,10 @@ HISTÓRICO
 
 </nav>
 
-
 <ul id="pedidos-container"></ul>
-
-
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 
 <script>
 
@@ -75,11 +60,7 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-
-
 let abaAtiva="pendente";
-
-
 
 function mudarAba(a,btn){
 
@@ -94,14 +75,11 @@ carregarPedidos();
 
 }
 
-
-
 function carregarPedidos(){
 
 const path = abaAtiva==="historico"
 ? "relatorios_kings"
 : "pedidos_kings";
-
 
 db.ref(path).on("value",(snap)=>{
 
@@ -109,19 +87,11 @@ const container=document.getElementById("pedidos-container");
 
 container.innerHTML="";
 
-
 snap.forEach(child=>{
 
 const p = child.val();
 
 if(abaAtiva!=="historico" && p.status!==abaAtiva) return;
-
-
-const li=document.createElement("li");
-
-li.className="pedido-card";
-
-
 
 let itensHTML="";
 
@@ -129,15 +99,15 @@ if(p.itens){
 
 p.itens.forEach(i=>{
 
-itensHTML += `
-<div>${i.qtd}x ${i.produto}</div>
+itensHTML+=`
+<div>
+${i.qtd}x ${i.produto}
+</div>
 `;
 
 });
 
 }
-
-
 
 let botoes="";
 
@@ -159,8 +129,6 @@ RECUSAR
 
 }
 
-
-
 if(abaAtiva==="preparando"){
 
 botoes=`
@@ -173,8 +141,6 @@ SAIU PARA ENTREGA
 `;
 
 }
-
-
 
 if(abaAtiva==="entrega"){
 
@@ -189,16 +155,17 @@ FINALIZAR
 
 }
 
+const li=document.createElement("li");
 
+li.className="pedido-card";
 
 li.innerHTML=`
 
 <div class="cliente-nome">
 
-${p.nomeCliente || p.cliente}
+${p.nomeCliente || "Cliente"}
 
 </div>
-
 
 <div class="info">
 
@@ -206,26 +173,17 @@ ${p.nomeCliente || p.cliente}
 
 </div>
 
-
 <div class="info">
 
-📞 WhatsApp:
-<a href="https://wa.me/55${p.whatsappCliente || p.whatsapp}"
-target="_blank">
-
-${p.whatsappCliente || p.whatsapp || "não informado"}
-
-</a>
+📞 WhatsApp: ${p.whatsappCliente || "não informado"}
 
 </div>
 
-
 <div class="info">
 
-💳 Pagamento: ${p.pagamento || "não informado"}
+💳 Pagamento: ${p.pagamento || "-"}
 
 </div>
-
 
 <div class="info">
 
@@ -233,31 +191,35 @@ ${p.whatsappCliente || p.whatsapp || "não informado"}
 
 </div>
 
-
 <div class="itens-box">
 
 ${itensHTML}
 
 </div>
 
+<div class="info">
 
-<div class="total-area">
-
-Subtotal: R$ ${parseFloat(p.subtotal || 0).toFixed(2)} <br>
-
-Entrega: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)} <br>
-
-<strong>Total: R$ ${parseFloat(p.total).toFixed(2)}</strong>
+Subtotal: R$ ${parseFloat(p.subtotal || 0).toFixed(2)}
 
 </div>
 
+<div class="info">
+
+Entrega: R$ ${parseFloat(p.taxaEntrega || 0).toFixed(2)}
+
+</div>
+
+<div class="total-area">
+
+TOTAL: R$ ${parseFloat(p.total || 0).toFixed(2)}
+
+</div>
 
 <div class="info">
 
 ⏰ ${p.horario || ""}
 
 </div>
-
 
 <div class="btn-actions">
 
@@ -267,7 +229,6 @@ ${botoes}
 
 `;
 
-
 container.appendChild(li);
 
 });
@@ -276,8 +237,6 @@ container.appendChild(li);
 
 }
 
-
-
 function aceitar(id){
 
 db.ref("pedidos_kings/"+id)
@@ -285,16 +244,12 @@ db.ref("pedidos_kings/"+id)
 
 }
 
-
-
 function entrega(id){
 
 db.ref("pedidos_kings/"+id)
 .update({status:"entrega"});
 
 }
-
-
 
 function finalizar(id){
 
@@ -318,8 +273,6 @@ db.ref("pedidos_kings/"+id)
 
 }
 
-
-
 function recusar(id){
 
 if(confirm("Recusar pedido?")){
@@ -331,20 +284,9 @@ db.ref("pedidos_kings/"+id)
 
 }
 
-
-
-function abrirEditor(){
-
-window.location.href="editor.html";
-
-}
-
-
-
 carregarPedidos();
 
 </script>
-
 
 </body>
 </html>
