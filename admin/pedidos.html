@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestão de Pedidos - Kings Burger</title>
     <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Pequeno ajuste para as novas infos não embolarem */
+        .info-detalhe { font-size: 0.9em; color: #ccc; margin: 3px 0; }
+        .obs-caixa { background: #444; color: #ffcc00; padding: 10px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #ffcc00; }
+        .troco-alerta { color: #25D366; font-weight: bold; }
+    </style>
 </head>
 
 <body>
@@ -23,14 +28,14 @@
     </header>
 
     <nav class="tabs">
-        <button class="tab-btn active" onclick="mudarAba('pendente', this)">NOVOS</button>
-        <button class="tab-btn" onclick="mudarAba('preparando', this)">COZINHA</button>
-        <button class="tab-btn" onclick="mudarAba('entrega', this)">ENTREGA</button>
+        <button class="tab-btn active" onclick="mudarAba('Pendente', this)">NOVOS</button>
+        <button class="tab-btn" onclick="mudarAba('Preparando', this)">COZINHA</button>
+        <button class="tab-btn" onclick="mudarAba('Saiu para Entrega', this)">ENTREGA</button>
         <button class="tab-btn btn-hist" onclick="mudarAba('historico', this)">HISTÓRICO</button>
     </nav>
 
     <div id="area-relatorio" style="display:none; padding: 15px;">
-        <button class="btn-pdf" onclick="gerarPDF()">📄 GERAR PDF DO HISTÓRICO</button>
+        <button class="btn-pdf" onclick="gerarPDF()">GERAR PDF DO HISTÓRICO</button>
     </div>
 
     <ul id="pedidos-container"></ul>
@@ -53,38 +58,18 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- CONFIGURAÇÕES ---
-        const SENHA_ADMIN = "1234"; // Altere sua senha aqui
+        const SENHA_ADMIN = "1234"; 
+        const ID_LOJA = "kings_burger";
         const audioAlerta = new Audio('alert.mpeg');
-        audioAlerta.loop = false;
-        let contadorRepeticao = 0;
-        const LIMITE_REPETICAO = 2;
-        let abaAtiva = 'pendente';
+        let abaAtiva = 'Pendente';
         let iniciado = false;
 
-        audioAlerta.onended = function() {
-            if (contadorRepeticao < LIMITE_REPETICAO - 1) {
-                contadorRepeticao++;
-                audioAlerta.play();
-            }
-        };
-
-        // --- FUNÇÕES DE INICIALIZAÇÃO ---
         function ativarSom() {
             const senha = prompt("Digite a senha de acesso:");
-            if (senha !== SENHA_ADMIN) {
-                alert("Senha incorreta!");
-                return;
-            }
-
+            if (senha !== SENHA_ADMIN) return alert("Senha incorreta!");
             document.getElementById('container-ativacao').style.display = 'none';
             iniciado = true;
-            
-            audioAlerta.play().then(() => {
-                audioAlerta.pause();
-                audioAlerta.currentTime = 0;
-                carregarDados();
-            }).catch(() => carregarDados());
+            audioAlerta.play().then(() => { audioAlerta.pause(); carregarDados(); }).catch(() => carregarDados());
         }
 
         function mudarAba(aba, btn) {
@@ -95,61 +80,36 @@
             carregarDados();
         }
 
-        // --- GESTÃO DE PEDIDOS ---
-        function recusarPedido(id) {
-            if (confirm("Deseja realmente RECUSAR este pedido? O cliente será avisado.")) {
-                db.ref('pedidos/' + id).update({ status: 'Recusado' }).then(() => {
-                    alert("Pedido recusado com sucesso.");
-                    // Deixa 10 segundos para o cliente ver o status e depois remove
-                    setTimeout(() => { db.ref('pedidos/' + id).remove(); }, 10000);
-                });
-            }
-        }
-
-        function concluirPedido(id) {
-            db.ref('pedidos/' + id).once('value', s => {
-                const dados = s.val();
-                if(!dados) return;
-                dados.concluidoEm = Date.now();
-                dados.status = 'Finalizado';
-                db.ref('relatorios').push(dados).then(() => db.ref('pedidos/' + id).remove());
-            });
-        }
-
         function carregarDados() {
             if (!iniciado) return;
-            const path = (abaAtiva === 'historico') ? 'relatorios' : 'pedidos';
+            const path = (abaAtiva === 'historico') ? `relatorios/${ID_LOJA}` : `pedidos/${ID_LOJA}`;
 
             db.ref(path).on('value', (snapshot) => {
                 const container = document.getElementById('pedidos-container');
                 container.innerHTML = "";
                 let temPendente = false;
-                const agora = Date.now();
 
                 snapshot.forEach(child => {
                     const p = child.val();
                     const id = child.key;
-                    const status = p.status || 'pendente';
-
-                    if (abaAtiva !== 'historico' && status !== abaAtiva) return;
-                    if (status === 'pendente') temPendente = true;
+                    
+                    if (abaAtiva !== 'historico' && p.status !== abaAtiva) return;
+                    if (p.status === 'Pendente') temPendente = true;
 
                     const li = document.createElement('li');
                     li.className = `pedido-card`;
 
                     let botoes = "";
-                    if (abaAtiva === 'pendente') {
+                    if (p.status === 'Pendente') {
                         botoes = `
-                            <button class="btn-success" onclick="db.ref('pedidos/${id}').update({status:'preparando'})">ACEITAR PEDIDO</button>
-                            <button class="btn-recusar" onclick="recusarPedido('${id}')">RECUSAR PEDIDO</button>`;
-                    } else if (abaAtiva === 'preparando') {
+                            <button class="btn-success" onclick="db.ref('pedidos/${ID_LOJA}/${id}').update({status:'Preparando'})">ACEITAR PEDIDO</button>
+                            <button class="btn-recusar" onclick="if(confirm('Recusar?')) db.ref('pedidos/${ID_LOJA}/${id}').remove()">RECUSAR</button>`;
+                    } else if (p.status === 'Preparando') {
                         botoes = `
-                            <button class="btn-warning" onclick="imprimirPedido('${id}', 'pedidos')">IMPRIMIR CUPOM</button>
-                            <button class="btn-info" onclick="db.ref('pedidos/${id}').update({status:'entrega'})">SAIU PARA ENTREGA</button>`;
-                    } else if (abaAtiva === 'entrega') {
-                        botoes = `<button class="btn-success" onclick="concluirPedido('${id}')">CONCLUIR E FINALIZAR</button>`;
-                    } else {
-                        botoes = `<button class="btn-warning" style="width:100%" onclick="imprimirPedido('${id}', 'relatorios')">REIMPRIMIR CUPOM</button>`;
+                            <button class="btn-warning" onclick="imprimirPedido('${id}')">IMPRIMIR</button>
+                            <button class="btn-info" onclick="db.ref('pedidos/${ID_LOJA}/${id}').update({status:'Saiu para Entrega'})">SAIU PARA ENTREGA</button>`;
+                    } else if (p.status === 'Saiu para Entrega') {
+                        botoes = `<button class="btn-success" onclick="concluirPedido('${id}')">CONCLUIR</button>`;
                     }
 
                     li.innerHTML = `
@@ -157,10 +117,19 @@
                             <span class="cliente-nome">${p.cliente}</span>
                             <span class="hora">${p.horario || ''}</span>
                         </div>
-                        <p class="info"><b>Contato:</b> ${p.contato || 'N/A'}</p>
-                        <p class="info"><b>Endereço:</b> ${p.endereco}</p>
+                        <p class="info"><b>CELULAR:</b> ${p.contato || 'N/A'}</p>
+                        <p class="info"><b>ENDEREÇO:</b> ${p.endereco}</p>
+                        ${p.referencia ? `<p class="info-detalhe"><b>REF:</b> ${p.referencia}</p>` : ''}
+                        
+                        <p class="info"><b>PGTO:</b> ${p.pagamento} ${p.troco && p.troco !== 'Não precisa' ? `<span class="troco-alerta">(Troco p/ ${p.troco})</span>` : ''}</p>
+                        
+                        <div class="obs-caixa">
+                            <b>OBS COZINHA:</b><br>
+                            ${p.obs_cozinha || 'Nenhuma'}
+                        </div>
+
                         <div class="itens-box">
-                            ${p.itens ? p.itens.map(i => `<b>${i.qtd}x</b> ${i.produto}`).join('<br>') : 'Sem itens'}
+                            ${p.itens ? p.itens.map(i => `• ${i.produto}`).join('<br>') : 'Sem itens'}
                         </div>
                         <div class="total-area">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</div>
                         <div class="btn-actions">${botoes}</div>
@@ -168,62 +137,48 @@
                     container.appendChild(li);
                 });
 
-                // Alerta sonoro
-                if (temPendente && abaAtiva === 'pendente') {
-                    if (audioAlerta.paused && contadorRepeticao === 0) {
-                        contadorRepeticao = 0;
-                        audioAlerta.play().catch(e => console.log("Erro áudio:", e));
-                    }
-                } else {
-                    audioAlerta.pause();
-                    audioAlerta.currentTime = 0;
-                    contadorRepeticao = 0;
+                if (temPendente && abaAtiva === 'Pendente' && audioAlerta.paused) {
+                    audioAlerta.play().catch(() => {});
                 }
             });
         }
 
-        // --- IMPRESSÃO E PDF ---
-        function imprimirPedido(id, pasta) {
-            db.ref(pasta + '/' + id).once('value', (snapshot) => {
-                const p = snapshot.val();
-                if(!p) return;
-                const cupom = `
-                    <html>
-                    <body style="font-family:Arial; width:80mm; padding:5mm;">
-                        <div style="text-align:center; border-bottom:1px solid #000; padding-bottom:5px;">
-                            <b style="font-size:20px;">KINGS BURGER</b><br>CUPOM DE PEDIDO
-                        </div>
-                        <div style="padding:5px 0;">
-                            <b>CLIENTE:</b> ${p.cliente}<br>
-                            <b>HORA:</b> ${p.horario}<br>
-                            <b>PGTO:</b> ${p.pagamento || 'Pix'}
-                        </div>
-                        <div style="border-top:1px dashed #000; padding:5px 0;">
-                            ${p.itens ? p.itens.map(i => `${i.qtd}x ${i.produto}`).join('<br>') : ''}
-                        </div>
-                        <div style="border-top:1px dashed #000; padding:5px 0;">
-                            <b>ENDEREÇO:</b> ${p.endereco}
-                        </div>
-                        <div style="text-align:center; font-size:22px; font-weight:bold; border:1px solid #000; padding:5px; margin-top:5px;">
-                            TOTAL: R$ ${parseFloat(p.total).toFixed(2)}
-                        </div>
-                    </body>
-                    </html>`;
-                const frame = document.getElementById('iframe-impressao');
-                const doc = frame.contentWindow.document;
-                doc.open(); doc.write(cupom); doc.close();
-                setTimeout(() => { frame.contentWindow.print(); }, 500);
+        function concluirPedido(id) {
+            db.ref(`pedidos/${ID_LOJA}/${id}`).once('value', s => {
+                const dados = s.val();
+                if(!dados) return;
+                dados.status = 'Finalizado';
+                db.ref(`relatorios/${ID_LOJA}`).push(dados).then(() => db.ref(`pedidos/${ID_LOJA}/${id}`).remove());
             });
         }
 
-        function gerarPDF() {
-            const container = document.getElementById('pedidos-container').cloneNode(true);
-            const win = window.open('', '', 'height=700,width=900');
-            win.document.write('<html><head><title>Relatório</title></head><body>');
-            win.document.write('<h1>Histórico de Vendas</h1>' + container.innerHTML);
-            win.document.write('</body></html>');
-            win.document.close();
-            win.print();
+        function imprimirPedido(id) {
+            db.ref(`pedidos/${ID_LOJA}/${id}`).once('value', (snapshot) => {
+                const p = snapshot.val();
+                if(!p) return;
+                const cupom = `
+                    <html><body style="font-family:Arial; width:80mm;">
+                        <center><b>KINGS BURGER</b><br>------------------------</center>
+                        <b>CLIENTE:</b> ${p.cliente}<br>
+                        <b>FONE:</b> ${p.contato}<br>
+                        <b>DATA:</b> ${p.horario}<br>
+                        ------------------------<br>
+                        <b>ITENS:</b><br>${p.itens ? p.itens.map(i => `• ${i.produto}`).join('<br>') : ''}<br>
+                        ------------------------<br>
+                        <b>ENDEREÇO:</b> ${p.endereco}<br>
+                        <b>REF:</b> ${p.referencia || '-'}<br>
+                        <b>PGTO:</b> ${p.pagamento}<br>
+                        <b>TROCO:</b> ${p.troco || 'N/A'}<br>
+                        <b>OBS:</b> ${p.obs_cozinha || '-'}<br>
+                        ------------------------<br>
+                        <center><b style="font-size:18px;">TOTAL: R$ ${parseFloat(p.total).toFixed(2)}</b></center>
+                    </body></html>`;
+                const frame = document.getElementById('iframe-impressao');
+                frame.contentWindow.document.open();
+                frame.contentWindow.document.write(cupom);
+                frame.contentWindow.document.close();
+                setTimeout(() => frame.contentWindow.print(), 500);
+            });
         }
     </script>
 </body>
