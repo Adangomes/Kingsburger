@@ -9,6 +9,7 @@ let carrinho = [];
 let produtosGeral = [];
 let taxaEntregaCalculada = 0;
 let descontoAplicado = 0;
+let cupomAtivo = null;
 
 let itemMestreTemporario = null; 
 let saboresSelecionados = [];
@@ -17,28 +18,96 @@ let tamanhoSelecionadoGlobal = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
-    carregarCardapioCompleto();
+    carregarCardapioCompleto(); // Agora puxa do JSON
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
-async function carregarCardapioCompleto() {
-    try {
-        const res = await fetch("content/produtos.json?v=" + Date.now());
-        const data = await res.json();
-        produtosGeral = data.produtos;
-        renderizarCardapio();
-    } catch (e) { console.error("Erro JSON:", e); }
+// --- 1. CARREGAMENTO DO CARDÁPIO VIA JSON LOCAL ---
+function carregarCardapioCompleto() {
+    const corpo = document.getElementById("cardapio-corpo");
+    if (!corpo) return;
+
+    fetch('produtos.json')
+        .then(response => {
+            if (!response.ok) throw new Error("Erro ao carregar produtos.json");
+            return response.json();
+        })
+        .then(data => {
+            // Mapeia os dados do JSON para o padrão do app
+            produtosGeral = data.map((p, index) => ({
+                id: p.id || index,
+                title: p.nome || p.title, 
+                price: parseFloat(p.preco || p.price || 0),
+                categoria: p.categoria,
+                ingredientes: p.ingredientes || "",
+                image: p.foto || p.img || p.image || "imagens/placeholder.png",
+                prices: p.prices || null,
+                ativo: p.ativo !== undefined ? p.ativo : true
+            }));
+
+            // Filtra apenas o que está ativo
+            produtosGeral = produtosGeral.filter(p => p.ativo);
+            
+            if (produtosGeral.length > 0) {
+                renderizarCardapio();
+            } else {
+                corpo.innerHTML = "<p class='text-center mt-5'>Cardápio vazio ou em atualização...</p>";
+            }
+        })
+        .catch(error => {
+            console.error("Erro:", error);
+            corpo.innerHTML = "<p class='text-center mt-5 text-danger'>Erro ao carregar o arquivo de produtos.</p>";
+        });
 }
 
+// --- SALVAR PEDIDO NO FIREBASE (Mantido para o Admin funcionar) ---
+function salvarPedidoFirebase(dados) {
+    if (!db) return Promise.resolve();
+    const novoPedidoRef = db.ref('pedidos_kings').push();
+    const novoId = novoPedidoRef.key;
+    localStorage.setItem('ultimoPedidoId', novoId);
+    
+    const subtotalF = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
+    const taxaF = taxaEntregaCalculada || 0;
+    const descF = descontoAplicado || 0;
+    const totalF = subtotalF + taxaF - descF;
+    
+    const cupomTexto = document.getElementById("input-cupom")?.value || "Nenhum";
+
+    return novoPedidoRef.set({
+        id: novoId,
+        cliente: dados.nome,
+        telefone: dados.celular || "Não informado",
+        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
+        referencia: document.getElementById("referencia")?.value || "",
+        pagamento: dados.pag,
+        status: "pendente",
+        itens: carrinho.map(item => ({ 
+            produto: item.title, 
+            qtd: 1, 
+            precoUn: item.price 
+        })),
+        subtotal: subtotalF,
+        taxaEntrega: taxaF,
+        desconto: descF,
+        total: totalF,
+        cupom: cupomTexto,
+        horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    });
+}
+
+// --- 2. RENDERIZAÇÃO DO CARDÁPIO ---
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
+    
+    if(!corpo || !nav) return;
+
     corpo.innerHTML = "";
     nav.innerHTML = "";
 
-    const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
+    const categorias = [...new Set(produtosGeral.map(p => p.categoria))].filter(c => c);
 
     categorias.forEach((cat, idx) => {
         const btn = document.createElement("button");
@@ -54,6 +123,7 @@ function renderizarCardapio() {
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
 
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
+            // Travas de segurança para Pizzas e Porções
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
 
@@ -76,9 +146,10 @@ function renderizarCardapio() {
     });
 }
 
-// --- 2. LÓGICA DE SELEÇÃO ---
+// --- FLUXO DE SELEÇÃO (PIZZAS/BURGERS) ---
 function decidirFluxo(nome) {
     const p = produtosGeral.find(prod => prod.title === nome);
+    if (!p) return;
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
         abrirModalSelecao(nome);
     } else {
@@ -121,6 +192,7 @@ function montarListaSabores(n, tipo) {
     document.getElementById("secao-sabores").style.display = "block";
     const grid = document.getElementById("lista-sabores-meia");
     grid.innerHTML = "";
+    
     const opcoes = (tipo === 'pizza') 
         ? produtosGeral.filter(p => p.categoria === 'pizza' && !p.title.includes("PIZZA ")) 
         : produtosGeral.filter(p => p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg"));
@@ -136,12 +208,12 @@ function montarListaSabores(n, tipo) {
 
 function toggleSabor(nome) {
     const idx = saboresSelecionados.indexOf(nome);
-    if (idx > -1) { saboresSelecionados.splice(idx, 1); } 
-    else if (saboresSelecionados.length < limiteSabores) {
+    if (idx > -1) { 
+        saboresSelecionados.splice(idx, 1); 
+    } else if (saboresSelecionados.length < limiteSabores) {
         if (limiteSabores === 1) saboresSelecionados = [];
         saboresSelecionados.push(nome);
     }
-    document.getElementById("lista-sabores-meia").classList.toggle("limite-atingido", saboresSelecionados.length >= limiteSabores);
     document.querySelectorAll(".item-sabor-wizard").forEach(el => {
         const txt = el.querySelector("strong").innerText;
         const sel = saboresSelecionados.includes(txt);
@@ -154,6 +226,7 @@ function confirmarSelecao() {
     if (saboresSelecionados.length === 0) return alert("Selecione uma opção!");
     let precoFinal = 0;
     let tituloItem = itemMestreTemporario.title;
+    
     if (itemMestreTemporario.categoria === 'pizza') {
         precoFinal = itemMestreTemporario.prices[tamanhoSelecionadoGlobal];
         tituloItem += ` (${saboresSelecionados.join("/")})`;
@@ -175,8 +248,10 @@ function adicionarAoCarrinho(titulo, preco, sabor) {
 
 function atualizarCarrinho() {
     const box = document.getElementById("cart-items");
+    if(!box) return;
     box.innerHTML = "";
     let sub = 0;
+
     carrinho.forEach((item, index) => {
         sub += item.price;
         box.innerHTML += `
@@ -188,8 +263,18 @@ function atualizarCarrinho() {
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
+
+    const valorDesconto = calcularValorDesconto(sub); 
+    descontoAplicado = valorDesconto;
+    const totalComDesconto = sub - valorDesconto;
+    
     document.getElementById("subtotal").innerText = `R$ ${sub.toFixed(2)}`;
-    document.getElementById("total").innerText = `R$ ${(sub - descontoAplicado).toFixed(2)}`;
+    const feedback = document.getElementById('msg-cupom-feedback');
+    if (feedback && valorDesconto > 0) {
+        feedback.innerHTML = `Desconto aplicado: - R$ ${valorDesconto.toFixed(2)} ✅`;
+        feedback.style.color = "#28a745";
+    }
+    document.getElementById("total").innerText = `R$ ${totalComDesconto.toFixed(2)}`;
     document.getElementById("cart-count").innerText = carrinho.length;
     localStorage.setItem("carrinho", JSON.stringify(carrinho));
 }
@@ -199,121 +284,64 @@ function removerItem(idx) {
     atualizarCarrinho();
 }
 
-// --- 4. RESUMO E ENTREGA (GEOAPIFY) ---
-// --- 4. RESUMO E ENTREGA (GEOAPIFY + LOADING) ---
+// --- 4. ENTREGA E GEO ---
 async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const nome = document.getElementById("nomeCliente")?.value;
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
+    const celularVal = document.getElementById('celularCliente')?.value || "";
 
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
-    
-// 1. ATIVA O EFEITO (O Círculo Girando)
+    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+    if (celularVal.replace(/\D/g, "").length < 10) return alert("Celular inválido!");
+
     const loader = document.getElementById("loading-geral");
-    if (loader) {
-        loader.style.display = "flex"; 
-    }
+    if (loader) loader.style.display = "flex"; 
 
     try {
-        // 2. CHAMADA DA API GEOAPIFY
         const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
-        // 3. FORÇAR UM DELAY DE 2 SEGUNDOS (Para o usuário ver que está processando)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
             const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
-            
-            // Cálculo da taxa: Base + (KM * Valor)
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
         } else {
-            // Se não achar a rua, coloca a taxa base padrão
             taxaEntregaCalculada = TAXA_BASE;
         }
-
-        // 4. MOSTRAR RESULTADO FINAL
         mostrarResumoFinal();
-
     } catch (e) {
-        console.error("Erro ao calcular taxa:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
-        // 5. ESCONDER O LOADING
         if(loader) loader.style.display = "none";
     }
 }
 
-// FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
-// --- FUNÇÃO ENVIAR CORRIGIDA ---
-function enviarWhatsApp() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
-    const pag = document.getElementById("pagamento")?.value || "A combinar";
-    const totalMsg = document.getElementById("resumo-total")?.innerText || "";
+async function enviarPedidoFinal() {
+    const nome = document.getElementById("nomeCliente")?.value;
+    const celular = document.getElementById("celularCliente")?.value || ""; 
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
+    const bairro = document.getElementById("bairro")?.value;
+    const pag = document.getElementById("pagamento")?.value;
 
-    if (!nome || !rua) return alert("Preencha os dados de entrega!");
+    const loader = document.getElementById("loading-geral");
+    if (loader) loader.style.display = "flex";
 
-    // 1. MONTAGEM DA MENSAGEM
-    let msg = `*NOVO PEDIDO - SNOOP LANCHE*\n`;
-    msg += `------------------------------\n`;
-    msg += ` *Cliente:* ${nome}\n`;
-    msg += ` *Endereço:* ${rua}, ${num}\n`;
-    msg += ` *Bairro:* ${bairro}\n`;
-    msg += ` *Pagamento:* ${pag}\n`;
-    msg += `------------------------------\n`;
-    msg += ` *ITENS:*\n`;
-    carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
-    msg += `------------------------------\n`;
-    msg += ` *Taxa de Entrega:* R$ ${taxaEntregaCalculada.toFixed(2)}\n`;
-    msg += ` *${totalMsg}*`;
-
-    const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
-
-    // 2. INTERFACE: Trava o botão para não clicar duas vezes
-    const btnWhats = document.querySelector("#resumo-pedido button");
-    if(btnWhats) {
-        btnWhats.innerText = "PROCESSANDO...";
-        btnWhats.disabled = true;
-    }
-
-    // 3. FUNÇÃO PARA LIMPAR E REINICIAR O SITE
-    const finalizarEVoltarInicio = () => {
-        localStorage.removeItem("carrinho"); // Limpa o carrinho no banco do navegador
-        window.location.href = urlZap; // Abre o WhatsApp
-        
-        // Dá um tempo para o celular abrir o Zap e depois reseta o site ao fundo
-        setTimeout(() => {
-            location.reload(); 
-        }, 1500);
-    };
-
-    // 4. ENVIO COM SEGURANÇA (FIREBASE + WHATSAPP)
-    if (typeof salvarPedidoFirebase === 'function') {
-        // Se o Firebase falhar ou demorar mais de 4s, ele envia o Zap do mesmo jeito
-        const segurancaTimeout = setTimeout(() => {
-            finalizarEVoltarInicio();
-        }, 4000);
-
-        salvarPedidoFirebase({ nome, rua, num, bairro, pag })
-            .then(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            })
-            .catch(err => {
-                console.error("Erro Firebase:", err);
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            });
-    } else {
-        finalizarEVoltarInicio();
+    try {
+        await salvarPedidoFirebase({ nome, celular, rua, num, bairro, pag });
+        alert("PEDIDO ENVIADO COM SUCESSO!");
+        carrinho = [];
+        localStorage.removeItem("carrinho");
+        location.reload(); 
+    } catch (e) {
+        alert("Erro ao enviar pedido.");
+    } finally {
+        if (loader) loader.style.display = "none";
     }
 }
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -325,50 +353,38 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
-    if(!resumoItens) return enviarWhatsApp(); // Fallback se não houver tela de resumo
-
     resumoItens.innerHTML = "";
     let sub = 0;
     carrinho.forEach(i => {
         sub += i.price;
         resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
-
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `
-        Subtotal: R$ ${sub.toFixed(2)}<br>
-        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
-    `;
+    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa: R$ ${taxaEntregaCalculada.toFixed(2)}<br>Desconto: -R$ ${descontoAplicado.toFixed(2)}`;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
-    
-    // Troca as telas do modal
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-
-
-// --- OUTROS ---
+// --- AUXILIARES ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     const agora = new Date();
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; // 09:00 as 23:30
+    const tempo = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempo >= 1080 && tempo <= 1430; // Ex: 18h às 23h50
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
 
-function abrirDelivery() {
-    if (carrinho.length === 0) return alert("Carrinho vazio!");
-    fecharCarrinho();
-    document.getElementById("delivery-modal").style.display = "flex";
-    document.body.style.overflow = "hidden"; // Fix bug teclado
-}
-
-function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
 function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
+function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
+function fecharModalEntrega() { document.getElementById('delivery-modal').style.display = 'none'; }
+function abrirDelivery() { 
+    if(carrinho.length === 0) return;
+    fecharCarrinho();
+    document.getElementById("delivery-modal").style.display = "flex"; 
+}
+function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
     el.innerText = t + " adicionado! ✅"; el.style.display = "block";
@@ -380,73 +396,45 @@ function carregarCarrinhoStorage() {
 }
 function scrollToCategoria(cat) {
     const el = document.getElementById(`secao-${cat}`);
-    window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
+    if(el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
 }
 function sincronizarScrollMenu() {
     const secoes = document.querySelectorAll(".secao-categoria");
     const botoes = document.querySelectorAll(".cat-item");
     let atual = "";
-    secoes.forEach(s => { if (pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
+    secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
 
-function voltarParaEntrega() {
-    document.getElementById("resumo-pedido").style.display = "none";
-    document.getElementById("form-entrega").style.display = "block";
+// --- FIREBASE INIT ---
+const db = firebase.database();
+
+function mostrarTela(tela) {
+    const cardapio = document.getElementById('cardapio-corpo');
+    const categorias = document.getElementById('categorias-nav');
+    const pedidos = document.getElementById('view-pedidos');
+    const header = document.querySelector('.header');
+    if (tela === 'inicio') {
+        cardapio.style.display = 'block'; categorias.style.display = 'block'; header.style.display = 'block'; pedidos.style.display = 'none';
+    } else {
+        cardapio.style.display = 'none'; categorias.style.display = 'none'; header.style.display = 'none'; pedidos.style.display = 'block';
+        carregarStatusTempoReal();
+    }
 }
 
-// --- CONFIGURAÇÃO FIREBASE (VERSÃO SEGURA) ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        return firebase.database();
-    }
-    return null;
-}
-
-const db = inicializarFirebase();
-
-function salvarPedidoFirebase(dados) {
-    if (!db) {
-        console.error("Firebase não carregado!");
-        return Promise.resolve(); // Deixa seguir para o Zap mesmo com erro
-    }
-    
-    const novoPedidoRef = db.ref('pedidos').push();
-    return novoPedidoRef.set({
-        cliente: dados.nome,
-        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
-        referencia: document.getElementById("referencia")?.value || "Não informada",
-        pagamento: dados.pag,
-        itens: carrinho.map(item => ({
-            produto: item.title,
-            qtd: 1,
-            precoUn: item.price
-        })),
-        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
-        taxaEntrega: taxaEntregaCalculada,
-        desconto: descontoAplicado,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
-        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma"
+function carregarStatusTempoReal() {
+    const container = document.getElementById('lista-pedidos-cliente');
+    const ultimoId = localStorage.getItem('ultimoPedidoId');
+    if (!ultimoId) return;
+    db.ref('pedidos_kings/' + ultimoId).on('value', (snapshot) => {
+        const d = snapshot.val(); if (!d) return;
+        container.innerHTML = `<div class="text-center"><h4>Status: ${d.status.toUpperCase()}</h4><p>Total: R$ ${d.total.toFixed(2)}</p></div>`;
     });
 }
 
-
-
-
-
-
-
+function mascaraCelular(input) {
+    let v = input.value.replace(/\D/g, "");
+    if (v.length > 2) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+    if (v.length > 9) v = v.slice(0,10) + "-" + v.slice(10);
+    input.value = v.slice(0, 15);
+}
