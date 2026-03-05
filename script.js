@@ -23,24 +23,52 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
-async function carregarCardapioCompleto() {
-    try {
-        const res = await fetch("content/produtos.json?v=" + Date.now());
-        const data = await res.json();
-        produtosGeral = data.produtos;
-        renderizarCardapio();
-    } catch (e) { console.error("Erro JSON:", e); }
+// --- 1. CARREGAMENTO EM TEMPO REAL PELO FIREBASE ---
+function carregarCardapioCompleto() {
+    // Referência ao banco de dados (nó produtos_db)
+    const produtosRef = db.ref('produtos_db');
+
+    // .on('value') faz o site atualizar SOZINHO se você mudar algo no Admin
+    produtosRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        if (data) {
+            // Converte o objeto do Firebase para a lista que seu código já usa
+            produtosGeral = Object.keys(data).map(key => ({
+                id: key,
+                title: data[key].nome || data[key].title, // Aceita 'nome' (do admin) ou 'title'
+                price: parseFloat(data[key].preco || data[key].price || 0),
+                categoria: data[key].categoria,
+                ingredientes: data[key].ingredientes || "",
+                image: data[key].foto || data[key].image || "imagens/placeholder.png",
+                prices: data[key].prices || null // Para pizzas e porções
+            }));
+            
+            renderizarCardapio();
+        } else {
+            console.error("Nenhum produto encontrado no Banco de Dados.");
+            document.getElementById("cardapio-corpo").innerHTML = "<p class='text-center'>Nenhum produto cadastrado.</p>";
+        }
+    }, (error) => {
+        console.error("Erro Firebase:", error);
+    });
 }
 
+// --- 2. RENDERIZAÇÃO DO CARDÁPIO ---
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
+    
+    if(!corpo || !nav) return;
+
     corpo.innerHTML = "";
     nav.innerHTML = "";
 
-    const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
+    // Filtra categorias únicas
+    const categorias = [...new Set(produtosGeral.map(p => p.categoria))].filter(c => c);
 
     categorias.forEach((cat, idx) => {
+        // Criar botão da navegação superior
         const btn = document.createElement("button");
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
         btn.innerText = cat.toUpperCase();
@@ -48,12 +76,15 @@ function renderizarCardapio() {
         btn.setAttribute("data-categoria", cat);
         nav.appendChild(btn);
 
+        // Criar seção da categoria
         const section = document.createElement("section");
         section.className = "secao-categoria";
         section.id = `secao-${cat}`;
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
 
+        // Filtrar e mostrar produtos
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
+            // Mantendo suas travas de segurança para Pizzas e Porções
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
 
@@ -75,7 +106,6 @@ function renderizarCardapio() {
         corpo.appendChild(section);
     });
 }
-
 // --- 2. LÓGICA DE SELEÇÃO ---
 function decidirFluxo(nome) {
     const p = produtosGeral.find(prod => prod.title === nome);
@@ -565,4 +595,5 @@ function mascaraCelular(input) {
     if (v.length > 10) v = v.slice(0, 10) + "-" + v.slice(10);
     input.value = v.slice(0, 16);
 }
+
 
