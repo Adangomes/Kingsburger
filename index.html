@@ -98,8 +98,11 @@
 
             <div class="form-grid">
                 <input type="text" id="nomeCliente" placeholder="Seu Nome">
-                <input type="tel" id="whatsappCliente" placeholder="WhatsApp (ex: 47999999999)" 
-           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <input type="tel" 
+       id="celularCliente" 
+       placeholder="Celular (ex: (47) 9 9999-9999)" 
+       maxlength="15" 
+       oninput="mascaraCelular(this)">
                 <select id="cidade">
                     <option value="Jaraguá do Sul">Jaraguá do Sul</option>
                     <option value="Guaramirim">Guaramirim</option>
@@ -172,6 +175,7 @@
 <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
