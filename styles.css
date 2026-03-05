@@ -286,3 +286,57 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
+
+/* RECEBER PEDIDSO*/
+/* Card de Status Estilo App */
+.status-card {
+    background: #1a1a1a;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid #333;
+    z-index: 9001;
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-fechar-status {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.status-icone {
+    font-size: 50px;
+    margin-bottom: 15px;
+}
+
+#status-texto-titulo {
+    color: #ffcc00;
+    margin: 5px 0;
+}
+
+.status-detalhes-pedido {
+    background: #262626;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* Garante que o rodapé fique SEMPRE por cima de tudo */
+.bottom-nav-container, .nav-item {
+    z-index: 9999 !important;
+}
