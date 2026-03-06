@@ -1,7 +1,7 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
-const RESTAURANTE_COORD = [-26.4860, -49.0670]; // [Latitude, Longitude]
+const RESTAURANTE_COORD = [-26.4860, -49.0670]; // Latitude, Longitude
 const TAXA_BASE = 5.00; 
 const VALOR_POR_KM = 4.00; 
 
@@ -16,43 +16,16 @@ let tamanhoSelecionadoGlobal = "";
 
 const bottomNav = document.querySelector('.bottom-nav-container');
 
-// --- INJEÇÃO DE ESTILOS DINÂMICOS ---
-const style = document.createElement('style');
-style.innerHTML = `
-    .loading-taxa { display: none; justify-content: center; align-items: center; padding: 15px; flex-direction: column; gap: 8px; }
-    .spinner-mini { width: 30px; height: 30px; border: 4px solid #f3f3f3; border-top: 4px solid #ff6b00; border-radius: 50%; animation: spin-mini 1s linear infinite; }
-    @keyframes spin-mini { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .msg-erro-entrega { color: #ff4d4f; font-size: 13px; font-weight: bold; margin-top: 10px; display: none; text-align: center; background: #fff1f0; padding: 8px; border-radius: 8px; border: 1px solid #ffa39e; }
-`;
-document.head.appendChild(style);
-
 // --- INICIALIZAÇÃO ---
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
-    
-    const formEntrega = document.getElementById("form-entrega");
-    if (formEntrega && !document.getElementById("container-loading-taxa")) {
-        const feedbackContainer = document.createElement("div");
-        feedbackContainer.innerHTML = `
-            <div id="container-loading-taxa" class="loading-taxa"><div class="spinner-mini"></div><span>Calculando distância...</span></div>
-            <div id="feedback-erro-entrega" class="msg-erro-entrega"></div>
-        `;
-        formEntrega.appendChild(feedbackContainer);
-    }
 });
 
 // --- FIREBASE ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        if (!firebase.apps.length) return firebase.database();
-        return firebase.database();
-    }
-    return null;
-}
-const db = inicializarFirebase();
+const db = (typeof firebase !== 'undefined') ? firebase.database() : null;
 
 // --- VISIBILIDADE ---
 function esconderRodape() { if (bottomNav) bottomNav.style.setProperty('display', 'none', 'important'); }
@@ -109,7 +82,7 @@ function renderizarCardapio() {
     });
 }
 
-// --- 2. LÓGICA DE SELEÇÃO ---
+// --- 2. LÓGICA DE SELEÇÃO (PIZZAS/PORÇÕES) ---
 function decidirFluxo(nome) {
     const p = produtosGeral.find(prod => prod.title === nome);
     if (p.categoria === 'pizza' || p.categoria === 'porcao') abrirModalSelecao(nome);
@@ -219,75 +192,60 @@ function atualizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. MOTOR DE CÁLCULO DE ENTREGA (MATA) ---
-
+// --- 4. MOTOR DE CÁLCULO DE ENTREGA (O "MATA") ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
+    const nome = document.getElementById("nomeCliente").value;
+    const rua = document.getElementById("rua").value;
+    const num = document.getElementById("numero").value;
+    const cidade = document.getElementById("cidade").value;
+    const bairro = document.getElementById("bairro").value;
 
     if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
 
-    const loaderTaxa = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
-    const erroFeedback = document.getElementById("feedback-erro-entrega");
-
-    if (loaderTaxa) loaderTaxa.style.display = "flex";
-    if (erroFeedback) { erroFeedback.style.display = "none"; erroFeedback.innerText = ""; }
+    const loader = document.getElementById("loading-geral");
+    if (loader) {
+        loader.style.display = "flex";
+        document.getElementById("loading-text").innerText = "Calculando entrega...";
+    }
 
     try {
-        // O segredo para Guaramirim/Jaraguá/Schroeder é o filtro "rect" que delimita a região
-        const areaFiltro = "-49.2562,-26.5414,-48.8500,-26.3500";
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&filter=rect:${areaFiltro}&apiKey=${GEOAPIFY_KEY}`;
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`);
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        // Delay para o usuário ver que está calculando
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
         if (data.features && data.features.length > 0) {
-            const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
+            const [lonB, latB] = data.features[0].geometry.coordinates;
+            // Distância entre Restaurante e Cliente
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latB, lonB);
             
-            // Distância em KM
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDestino, lonDestino);
-            
-            // Taxa: Base + (KM * Valor)
+            // Regra: Taxa Base + (Distancia * Valor por KM)
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            
-            // Proteção para não ser menor que a base
             if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-            
+
             mostrarResumoFinal();
         } else {
-            taxaEntregaCalculada = TAXA_BASE;
-            if (erroFeedback) {
-                erroFeedback.innerText = "Endereço não localizado. Verifique a rua e tente novamente.";
-                erroFeedback.style.display = "block";
-            }
-            mostrarResumoFinal();
+            alert("Endereço não encontrado. Por favor, revise a rua e o número.");
         }
     } catch (e) {
-        console.error("Erro GPS:", e);
-        taxaEntregaCalculada = TAXA_BASE;
-        mostrarResumoFinal();
+        console.error(e);
+        alert("Erro ao calcular entrega. Tente novamente.");
     } finally {
-        if (loaderTaxa) loaderTaxa.style.display = "none";
+        if (loader) loader.style.display = "none";
     }
 }
 
-// --- 5. FIREBASE E INTERFACE ---
+// --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
     const fone = document.getElementById("celular").value;
@@ -295,11 +253,9 @@ async function enviarPedidoFirebase() {
     const num = document.getElementById("numero").value;
     const bairro = document.getElementById("bairro").value;
     const pag = document.getElementById("pagamento").value;
+    const obs = document.getElementById("obsPedido").value;
 
     if (!nome || !fone || !rua) return alert("Dados incompletos!");
-
-    const loader = document.getElementById("loading-geral");
-    if (loader) loader.style.display = "flex";
 
     try {
         const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
@@ -307,6 +263,7 @@ async function enviarPedidoFirebase() {
         await novoPedidoRef.set({
             cliente: nome, contato: fone,
             endereco: `${rua}, ${num} - ${bairro}`,
+            observacao: obs,
             pagamento: pag,
             itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
             taxaEntrega: taxaEntregaCalculada,
@@ -320,13 +277,13 @@ async function enviarPedidoFirebase() {
         carrinho = []; atualizarCarrinho();
         document.getElementById("delivery-modal").style.display = "none";
         verificarStatusPedido();
-    } catch (err) { alert("Erro ao enviar!"); }
-    finally { if (loader) loader.style.display = "none"; }
+    } catch (err) { alert("Erro ao enviar pedido!"); }
 }
 
 function verificarStatusPedido() {
     const telefone = localStorage.getItem("cliente_celular");
-    if (!telefone || !db) return;
+    if (!telefone || !db) return alert("Nenhum pedido recente encontrado.");
+    
     db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
         .on('value', (snapshot) => {
             const data = snapshot.val();
@@ -334,16 +291,18 @@ function verificarStatusPedido() {
                 const pedido = Object.values(data)[0];
                 document.getElementById("modal-status-cliente").style.display = "flex";
                 document.getElementById("status-texto-titulo").innerText = pedido.status;
+                document.getElementById("status-texto-desc").innerText = `Seu pedido de R$ ${pedido.total.toFixed(2)} está ${pedido.status.toLowerCase()}.`;
             }
         });
 }
 
+// --- 6. AUXILIARES ---
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
     resumoItens.innerHTML = ""; let sub = 0;
     carrinho.forEach(i => { 
         sub += i.price; 
-        resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; 
+        resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; 
     });
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
     document.getElementById("resumo-taxa").innerHTML = `
@@ -354,36 +313,22 @@ function mostrarResumoFinal() {
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
-function carregarStatusLoja() {
-    const el = document.getElementById("status-loja");
-    const agora = new Date();
-    const tempo = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempo >= 1080 && tempo <= 1410; // 18:00 às 23:30
-    if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = `status ${aberto ? 'aberto' : 'fechado'}`; }
-}
-
-function abrirDelivery() {
-    if (carrinho.length === 0) return alert("Carrinho vazio!");
-    document.getElementById("cart-modal").style.display = "none";
-    esconderRodape(); 
-    document.getElementById("delivery-modal").style.display = "flex";
-}
-
-// --- AUTOCOMPLETE (MATA) ---
 async function buscarSugestoes(valor) {
     const lista = document.getElementById("lista-sugestoes");
     if (valor.length < 3) { lista.innerHTML = ""; lista.style.display = "none"; return; }
     try {
-        // Mesma área de filtro para Schroeder aparecer na busca
         const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.2562,-26.5414,-48.8500,-26.3500&apiKey=${GEOAPIFY_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
+        const res = await fetch(url);
+        const data = await res.json();
         if (data.features) {
             lista.innerHTML = ""; lista.style.display = "block";
             data.features.forEach(f => {
                 const p = f.properties;
                 const item = document.createElement("div");
                 item.className = "sugestao-item";
+                item.style.padding = "10px";
+                item.style.borderBottom = "1px solid #eee";
+                item.style.cursor = "pointer";
                 item.innerHTML = `<b>${p.address_line1}</b><br><small>${p.address_line2}</small>`;
                 item.onclick = () => {
                     document.getElementById("rua").value = p.street || p.name || p.address_line1;
@@ -397,18 +342,22 @@ async function buscarSugestoes(valor) {
     } catch (e) { console.error(e); }
 }
 
-// Funções de fechar/voltar
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; mostrarRodape(); }
-function abrirCarrinho() { esconderRodape(); document.getElementById("cart-modal").style.display = "flex"; }
-function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
-function fecharModalDelivery() { 
-    document.getElementById("delivery-modal").style.display = "none"; 
-    document.getElementById("form-entrega").style.display = "block";
-    document.getElementById("resumo-pedido").style.display = "none";
-    mostrarRodape(); 
+function carregarStatusLoja() {
+    const el = document.getElementById("status-loja");
+    const agora = new Date();
+    const tempo = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempo >= 1080 && tempo <= 1410; // 18:00 às 23:30
+    if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = `status ${aberto ? 'aberto' : 'fechado'}`; }
 }
-function voltarParaEntrega() { document.getElementById("resumo-pedido").style.display = "none"; document.getElementById("form-entrega").style.display = "block"; }
+
+function toggleTroco(val) { document.getElementById("div-troco").style.display = (val === "Dinheiro") ? "block" : "none"; }
+function abrirDelivery() { if (carrinho.length === 0) return alert("Carrinho vazio!"); document.getElementById("cart-modal").style.display = "none"; esconderRodape(); document.getElementById("delivery-modal").style.display = "flex"; }
+function abrirCarrinho() { esconderRodape(); document.getElementById("cart-modal").style.display = "flex"; }
+function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; mostrarRodape(); }
+function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
+function fecharModalDelivery() { document.getElementById("delivery-modal").style.display = "none"; mostrarRodape(); }
 function fecharStatus() { document.getElementById('modal-status-cliente').style.display = 'none'; mostrarRodape(); }
+function voltarParaEntrega() { document.getElementById("resumo-pedido").style.display = "none"; document.getElementById("form-entrega").style.display = "block"; }
 
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
