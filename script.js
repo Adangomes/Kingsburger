@@ -212,54 +212,50 @@ function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 async function buscarSugestoes(valor) {
     const lista = document.getElementById("lista-sugestoes");
     if (valor.length < 3) {
+        lista.innerHTML = "";
         lista.style.display = "none";
         return;
     }
 
     try {
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765&bias=proximity:-49.083,-26.471&type=street&lang=pt&limit=5&apiKey=${GEOAPIFY_KEY}`;
+        // O segredo aqui é o filtro de retalho (rect) para sua região (Guaramirim/Jaraguá)
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765&apiKey=${GEOAPIFY_KEY}`;
         
         const response = await fetch(url);
         const data = await response.json();
 
         if (data.features && data.features.length > 0) {
-            lista.innerHTML = ""; 
+            lista.innerHTML = "";
             lista.style.display = "block";
 
             data.features.forEach(feature => {
-                const props = feature.properties;
-                const [lon, lat] = feature.geometry.coordinates; // Coordenadas reais para o cálculo
+                const p = feature.properties;
+                const [lon, lat] = feature.geometry.coordinates;
                 
                 const item = document.createElement("div");
                 item.className = "sugestao-item";
-                item.style = "padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; background: white;";
-                
                 item.innerHTML = `
-                    <div style="font-weight: bold; color: #333;">${props.address_line1}</div>
-                    <div style="font-size: 12px; color: #777;">${props.address_line2}</div>
+                    <div style="font-weight: bold;">${p.address_line1}</div>
+                    <div style="font-size: 11px; color: #777;">${p.address_line2}</div>
                 `;
 
-                item.onclick = function() {
-                    // 1. Atualiza os campos de texto com o nome oficial (corrigido)
-                    document.getElementById("rua").value = props.street || props.name || props.address_line1;
-                    document.getElementById("bairro").value = props.district || props.suburb || "";
-                    document.getElementById("cidade").value = props.city || "";
+                // Quando clica na rua sugerida:
+                item.onclick = () => {
+                    document.getElementById("rua").value = p.street || p.name || p.address_line1;
+                    document.getElementById("bairro").value = p.district || p.suburb || "";
+                    document.getElementById("cidade").value = p.city || "Guaramirim";
                     
-                    // 2. CHAMA O CÁLCULO DA TAXA E ATUALIZA O MAPA
-                    // Passamos a rua correta, lat, lon, bairro e cidade
-                    selecionarEndereco(props.address_line1, lat, lon, props.district || props.suburb, props.city);
+                    // Calcula a taxa (já que você tem as coordenadas lat/lon aqui)
+                    selecionarEndereco(p.address_line1, lat, lon);
                     
-                    // 3. UI: Fecha lista e pula para o número
                     lista.style.display = "none";
                     document.getElementById("numero").focus();
                 };
                 lista.appendChild(item);
             });
-        } else {
-            lista.style.display = "none";
         }
     } catch (error) {
-        console.error("Erro na busca:", error);
+        console.error("Erro Geoapify:", error);
     }
 }
 function selecionarEndereco(rua, lat, lon, bairro, cidade) {
