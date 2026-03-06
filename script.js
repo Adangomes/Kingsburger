@@ -213,6 +213,7 @@ function atualizarCarrinho() {
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
 // --- 4. GEO, TAXA E MAPA ---
+// --- 4. GEO, TAXA E MAPA ---
 async function processarResumoGeo() {
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
@@ -221,43 +222,57 @@ async function processarResumoGeo() {
     if (!rua || !num || !bairro) return alert("Preencha Rua, Número e Bairro para calcular a entrega!");
 
     const loader = document.getElementById("loading-geral");
-    if (loader) { loader.style.display = "flex"; loader.querySelector('p').innerText = "Calculando taxa real..."; }
+    if (loader) { 
+        loader.style.display = "flex"; 
+        loader.querySelector('p').innerText = "Calculando taxa real..."; 
+    }
 
     try {
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
+        // Pequena pausa para o usuário ver o loader
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
         if (data.features && data.features.length > 0) {
-            const [lon, lat] = data.features[0].geometry.coordinates;
+            const [lon, lat] = data.features[0].geometry.coordinates; // Geoapify retorna [lon, lat]
+
+            // Corrigido: calcularDistancia espera (lat1, lon1, lat2, lon2)
             const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
 
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
             if(taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
 
-            // Atualiza mapa com marcador do cliente e rota
+            // Atualiza mapa
             atualizarMapaCliente(lat, lon);
-
         } else {
             throw new Error("Endereço não localizado");
         }
+
         mostrarResumoFinal();
     } catch (e) {
         console.error("Erro na taxa:", e);
         alert("Não conseguimos calcular a distância exata. Será aplicada uma taxa padrão de R$ 10,00 por segurança.");
         taxaEntregaCalculada = 10.00;
         mostrarResumoFinal();
-    } finally { if (loader) loader.style.display = "none"; }
+    } finally { 
+        if (loader) loader.style.display = "none"; 
+    }
 }
 
+// --- FUNÇÃO DE DISTÂNCIA CORRIGIDA ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371;
+    const R = 6371; // km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-}
+    const radLat1 = lat1 * Math.PI / 180;
+    const radLat2 = lat2 * Math.PI / 180;
 
+    const a = Math.sin(dLat/2)**2 + Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
 // --- MAPA ---
 function inicializarMapa() {
     mapa = new geoapify.maps.Map("mapa-entrega", {
