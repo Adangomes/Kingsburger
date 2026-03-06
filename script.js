@@ -266,13 +266,25 @@ function selecionarEndereco(rua, lat, lon, bairro, cidade) {
     document.getElementById("rua").value = rua;
     if (bairro) document.getElementById("bairro").value = bairro;
     if (cidade) document.getElementById("cidade").value = cidade;
+    
+    // Esconde as sugestões
     document.getElementById("lista-sugestoes").style.display = "none";
 
+    // CALCULA A DISTÂNCIA REAL
     const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+    
+    // APLICA A MATEMÁTICA DA TAXA
     taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+    
+    // REGRA: Taxa mínima é a taxa base
     if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
 
-    if(mapa) atualizarMapaCliente(lat, lon);
+    // ATUALIZA O MAPA VISUALMENTE (Se o ID existir no CSS agora vai aparecer)
+    if (typeof atualizarMapaCliente === "function") {
+        atualizarMapaCliente(lat, lon);
+    }
+    
+    console.log("Distância: " + dist.toFixed(2) + "km | Taxa: R$ " + taxaEntregaCalculada.toFixed(2));
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
