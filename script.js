@@ -7,7 +7,7 @@ const VALOR_POR_KM = 4.00;
 
 let carrinho = [];
 let produtosGeral = [];
-let taxaEntregaCalculada = 0;
+let taxaEntregaCalculada = 0;  
 let descontoAplicado = 0;
 let itemMestreTemporario = null; 
 let saboresSelecionados = [];
