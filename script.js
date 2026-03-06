@@ -230,62 +230,76 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente")?.value;
-    const rua = document.getElementById("rua")?.value;
-    const num = document.getElementById("numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || "";
-    const cidadeSel = "Guaramirim"; // Forçando a cidade base
-    
-    const loaderTaxa = document.getElementById("container-loading-taxa");
-    const erroFeedback = document.getElementById("feedback-erro-entrega");
+// --- 4. CÁLCULO DE ENTREGA (VERSÃO SINCRONIZADA COM O CÓDIGO FUNCIONAL) ---
 
-    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+async function processarResumoGeo() {
+    // Captura os campos (suporta os dois nomes de ID que você usou nos códigos)
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
+
+    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número para calcular a entrega!");
+
+    // Feedback visual (Spinner)
+    const loaderTaxa = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
+    const erroFeedback = document.getElementById("feedback-erro-entrega");
 
     if (loaderTaxa) loaderTaxa.style.display = "flex";
     if (erroFeedback) { erroFeedback.style.display = "none"; erroFeedback.innerText = ""; }
 
     try {
-        // Criamos uma query limpa
-        const enderecoCompleto = `${rua}, ${num}, ${bairro}, ${cidadeSel}, SC, Brasil`;
-        
-        // bias:proximity -> Dá prioridade para resultados perto do seu restaurante
-        // filter:rect -> Garante que a busca se limite à nossa região (Guaramirim/Jaraguá)
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(enderecoCompleto)}&bias=proximity:${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765&limit=1&apiKey=${GEOAPIFY_KEY}`;
+        // 1. Monta a query exatamente como no código que funcionou
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        if (data.features && data.features.length > 0) {
-            const result = data.features[0];
-            const props = result.properties;
-            
-            // Validação de segurança: se o resultado for muito impreciso (ex: achou só a cidade), avisamos o erro
-            if (props.rank.confidence < 0.3) {
-                throw new Error("Endereço não encontrado com precisão. Verifique a rua e o número.");
-            }
+        // 2. Pequeno delay para percepção do usuário (opcional, igual ao seu código 2)
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-            const [lonBusca, latBusca] = result.geometry.coordinates;
+        if (data.features && data.features.length > 0) {
+            const [lonBusca, latBusca] = data.features[0].geometry.coordinates;
             
-            // Cálculo da distância real
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latBusca, lonBusca);
+            // 3. Cálculo da distância real
+            // Nota: RESTAURANTE_COORD[1] é a Latitude, RESTAURANTE_COORD[0] é a Longitude
+            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latBusca, lonBusca);
             
-            // Lógica da Taxa
+            // 4. Lógica da Taxa: Base + (Distância * Valor por KM)
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            
+            // Garante que não cobre menos que a taxa base
             if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
             
             mostrarResumoFinal();
         } else {
-            exibirErroLocalizacao("Rua ou Número não encontrado. Tente escrever sem abreviações.");
+            // Se não achar, aplica taxa base por segurança
+            taxaEntregaCalculada = TAXA_BASE;
+            if (erroFeedback) {
+                exibirErroLocalizacao("Endereço não encontrado com precisão. Usando taxa padrão.");
+            }
+            mostrarResumoFinal();
         }
     } catch (e) {
         console.error("Erro Geoapify:", e);
-        exibirErroLocalizacao(e.message || "Erro ao validar endereço.");
+        taxaEntregaCalculada = TAXA_BASE;
+        mostrarResumoFinal();
     } finally {
         if (loaderTaxa) loaderTaxa.style.display = "none";
     }
 }
 
+// Certifique-se que sua função de distância está assim:
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Raio da Terra em KM
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 function exibirErroLocalizacao(msg) {
     const erroFeedback = document.getElementById("feedback-erro-entrega");
     if (erroFeedback) {
