@@ -341,3 +341,21 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     z-index: 9999 !important;
 }
 
+#lista-sugestoes {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000; /* Garante que fique acima de tudo no modal */
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.sugestao-item:hover {
+    background-color: #f8f9fa !important;
+    color: #ffc107; /* Cor de destaque (amarelo King Burger) */
+}
