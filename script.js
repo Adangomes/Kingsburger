@@ -2,8 +2,8 @@
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 const RESTAURANTE_COORD = [-26.471, -49.083]; // [LATITUDE, LONGITUDE]
-const TAXA_BASE = 5.00; // Valor fixo de saída
-const VALOR_POR_KM = 4.00; // Valor por KM rodado
+const TAXA_BASE = 5.00; 
+const VALOR_POR_KM = 4.00; 
 
 let carrinho = [];
 let produtosGeral = [];
@@ -24,23 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
-    inicializarMapa();
+    // Só inicializa o mapa se a div existir no HTML
+    if(document.getElementById("mapa-entrega")) inicializarMapa();
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
 // --- FIREBASE ---
 function inicializarFirebase() {
     if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            // As configurações já devem estar no HTML ou aqui
+            return firebase.database();
+        }
         return firebase.database();
     }
     return null;
@@ -212,17 +207,16 @@ function atualizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. GEO, TAXA E MAPA (COM AUTOCOMPLETE) ---
+// --- 4. AUTOCOMPLETE E TAXA ---
 
 async function buscarSugestoes(valor) {
     const lista = document.getElementById("lista-sugestoes");
-    if (valor.length < 4) {
+    if (valor.length < 3) {
         lista.style.display = "none";
         return;
     }
 
     try {
-        // Filtro para região de Jaraguá/Guaramirim
         const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.20,-26.55,-48.95,-26.40&apiKey=${GEOAPIFY_KEY}`;
         const resp = await fetch(url);
         const data = await resp.json();
@@ -234,22 +228,21 @@ async function buscarSugestoes(valor) {
             data.features.forEach(feature => {
                 const props = feature.properties;
                 const item = document.createElement("div");
-                item.style = "padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333;";
+                item.className = "sugestao-item"; // Use CSS para estilizar
+                item.style = "padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;";
                 
-                const linha1 = props.address_line1;
-                const linha2 = props.address_line2;
-                
-                item.innerHTML = `<strong>${linha1}</strong><br><small style="color: #777;">${linha2}</small>`;
+                item.innerHTML = `<strong>${props.address_line1}</strong><br><small>${props.address_line2}</small>`;
                 
                 item.onclick = () => {
                     const lat = feature.geometry.coordinates[1];
                     const lon = feature.geometry.coordinates[0];
-                    const bairro = props.district || props.suburb || "";
-                    const cidade = props.city || "";
-                    selecionarEndereco(linha1, lat, lon, bairro, cidade);
+                    selecionarEndereco(props.address_line1, lat, lon, props.district || props.suburb, props.city);
+                    document.getElementById("numero").focus();
                 };
                 lista.appendChild(item);
             });
+        } else {
+            lista.style.display = "none";
         }
     } catch (e) { console.error("Erro Autocomplete:", e); }
 }
@@ -264,32 +257,7 @@ function selecionarEndereco(rua, lat, lon, bairro, cidade) {
     taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
     if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
 
-    atualizarMapaCliente(lat, lon);
-}
-
-async function processarResumoGeo() {
-    const rua = document.getElementById("rua").value;
-    const num = document.getElementById("numero").value;
-
-    if (!rua || !num) return alert("Preencha Rua e Número para calcular a entrega!");
-
-    // Se a taxa ainda não foi calculada pelo autocomplete, tenta uma busca final
-    if (taxaEntregaCalculada === 0) {
-        const loader = document.getElementById("loading-geral");
-        if (loader) loader.style.display = "flex";
-        try {
-            const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
-            const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
-            const data = await resp.json();
-            if (data.features && data.features.length > 0) {
-                const [lon, lat] = data.features[0].geometry.coordinates;
-                const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
-                taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            } else { taxaEntregaCalculada = 10.00; }
-        } catch (e) { taxaEntregaCalculada = 10.00; }
-        finally { if (loader) loader.style.display = "none"; }
-    }
-    mostrarResumoFinal();
+    if(mapa) atualizarMapaCliente(lat, lon);
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -302,34 +270,22 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// --- MAPA ---
-function inicializarMapa() {
-    mapa = new geoapify.maps.Map("mapa-entrega", {
-        apiKey: GEOAPIFY_KEY,
-        center: [RESTAURANTE_COORD[1], RESTAURANTE_COORD[0]],
-        zoom: 14,
-        scrollWheelZoom: false
-    });
-    markerRestaurante = new geoapify.maps.Marker().setLngLat([RESTAURANTE_COORD[1], RESTAURANTE_COORD[0]]).addTo(mapa);
+async function processarResumoGeo() {
+    const rua = document.getElementById("rua").value;
+    const num = document.getElementById("numero").value;
+    if (!rua || !num) return alert("Preencha Rua e Número!");
+
+    mostrarResumoFinal();
 }
 
-function atualizarMapaCliente(lat, lon) {
-    if (markerCliente) markerCliente.remove();
-    markerCliente = new geoapify.maps.Marker({ color: "#ff0000" }).setLngLat([lon, lat]).addTo(mapa);
-    const bounds = new geoapify.maps.LngLatBounds();
-    bounds.extend([RESTAURANTE_COORD[1], RESTAURANTE_COORD[0]]);
-    bounds.extend([lon, lat]);
-    mapa.fitBounds(bounds, { padding: 50 });
-}
-
-// --- 5. FINALIZAÇÃO ---
+// --- 5. FIREBASE ENVIO ---
 async function enviarPedidoFirebase() {
-    const nome = document.getElementById("nomeCliente")?.value;
-    const fone = document.getElementById("celular")?.value;
-    const rua = document.getElementById("rua")?.value;
-    const num = document.getElementById("numero")?.value;
-    const bairro = document.getElementById("bairro")?.value;
-    const pag = document.getElementById("pagamento")?.value;
+    const nome = document.getElementById("nomeCliente").value;
+    const fone = document.getElementById("celular").value;
+    const rua = document.getElementById("rua").value;
+    const num = document.getElementById("numero").value;
+    const bairro = document.getElementById("bairro").value;
+    const pag = document.getElementById("pagamento").value;
 
     if (!nome || !fone || !rua) return alert("Preencha os dados de entrega!");
 
@@ -355,36 +311,36 @@ async function enviarPedidoFirebase() {
         localStorage.removeItem("carrinho");
         carrinho = []; atualizarCarrinho();
         verificarStatusPedido();
-    } catch (err) { alert("Erro ao enviar pedido!"); }
+    } catch (err) { 
+        alert("Erro ao enviar pedido!"); 
+        if (loader) loader.style.display = "none";
+    }
 }
 
-// --- 6. STATUS EM TEMPO REAL ---
-function verificarStatusPedido() {
-    const telefone = localStorage.getItem("cliente_celular");
-    if (!telefone) return;
-    esconderRodape();
-    db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
-        .on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const pedido = Object.values(data)[0];
-                document.getElementById("modal-status-cliente").style.display = "flex";
-                document.getElementById("status-texto-titulo").innerText = pedido.status;
-            }
-        });
+// --- 6. RESUMO E AUXILIARES ---
+function mostrarResumoFinal() {
+    const resumoItens = document.getElementById("resumo-itens");
+    resumoItens.innerHTML = ""; let sub = 0;
+    carrinho.forEach(i => { 
+        sub += i.price; 
+        resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; 
+    });
+    
+    const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
+    document.getElementById("resumo-taxa").innerHTML = `
+        <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>R$ ${sub.toFixed(2)}</span></div>
+        <div style="display:flex; justify-content:space-between; color:#00a650; font-weight:bold;"><span>Taxa de Entrega:</span> <span>R$ ${taxaEntregaCalculada.toFixed(2)}</span></div>
+    `;
+    document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
+    document.getElementById("form-entrega").style.display = "none";
+    document.getElementById("resumo-pedido").style.display = "block";
 }
 
-function fecharStatus() {
-    document.getElementById('modal-status-cliente').style.display = 'none';
-    mostrarRodape();
-}
-
-// --- UTILITÁRIOS ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     const agora = new Date();
     const tempo = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempo >= 1080 && tempo <= 1410;
+    const aberto = tempo >= 1080 && tempo <= 1410; // 18:00 às 23:30
     if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = `status ${aberto ? 'aberto' : 'fechado'}`; }
 }
 
@@ -424,83 +380,18 @@ function sincronizarScrollMenu() {
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
 
-function reabrirAcompanhamento() {
+function verificarStatusPedido() {
     const telefone = localStorage.getItem("cliente_celular");
-    if (!telefone) return alert("Você não possui pedidos ativos.");
-    verificarStatusPedido();
+    if (!telefone || !db) return;
+    db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
+        .on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const pedido = Object.values(data)[0];
+                document.getElementById("modal-status-cliente").style.display = "flex";
+                document.getElementById("status-texto-titulo").innerText = pedido.status;
+            }
+        });
 }
 
-// --- MOSTRAR RESUMO ---
-function mostrarResumoFinal() {
-    const resumoItens = document.getElementById("resumo-itens");
-    if(!resumoItens) return; 
-    resumoItens.innerHTML = ""; let sub = 0;
-    carrinho.forEach(i => { sub += i.price; resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; });
-    
-    const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    
-    document.getElementById("resumo-taxa").innerHTML = `
-        <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>R$ ${sub.toFixed(2)}</span></div>
-        <div style="display:flex; justify-content:space-between; color:#00a650; font-weight:bold;"><span>Taxa de Entrega:</span> <span>R$ ${taxaEntregaCalculada.toFixed(2)}</span></div>
-    `;
-    
-    document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
-    document.getElementById("form-entrega").style.display = "none";
-    document.getElementById("resumo-pedido").style.display = "block";
-}
-async function buscarSugestoes(valor) {
-    const lista = document.getElementById("lista-sugestoes");
-    
-    // Só começa a buscar após 3 letras para não gastar API à toa
-    if (valor.length < 3) {
-        lista.style.display = "none";
-        return;
-    }
-
-    try {
-        // Filtro para focar na sua região (Jaraguá/Guaramirim)
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.20,-26.55,-48.95,-26.40&apiKey=${GEOAPIFY_KEY}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.features && data.features.length > 0) {
-            lista.innerHTML = ""; // Limpa a lista anterior
-            lista.style.display = "block"; // Mostra a lista
-
-            data.features.forEach(feature => {
-                const endereco = feature.properties;
-                const item = document.createElement("div");
-                
-                // Estilo rápido para o item da lista
-                item.style.padding = "10px";
-                item.style.cursor = "pointer";
-                item.style.borderBottom = "1px solid #eee";
-                
-                item.innerHTML = `
-                    <div style="font-weight: bold; color: #333;">${endereco.address_line1}</div>
-                    <div style="font-size: 12px; color: #777;">${endereco.address_line2}</div>
-                `;
-
-                item.onclick = function() {
-                    // Preenche os campos ao clicar
-                    document.getElementById("rua").value = endereco.street || endereco.name || "";
-                    document.getElementById("bairro").value = endereco.district || endereco.suburb || "";
-                    document.getElementById("cidade").value = endereco.city || "";
-                    
-                    // Calcula a taxa na hora
-                    const lat = feature.geometry.coordinates[1];
-                    const lon = feature.geometry.coordinates[0];
-                    selecionarEndereco(endereco.address_line1, lat, lon, endereco.district, endereco.city);
-                    
-                    lista.style.display = "none"; // Esconde a lista
-                };
-                lista.appendChild(item);
-            });
-        } else {
-            lista.style.display = "none";
-        }
-    } catch (error) {
-        console.error("Erro ao buscar endereços:", error);
-    }
-}
+function fecharStatus() { document.getElementById('modal-status-cliente').style.display = 'none'; mostrarRodape(); }
