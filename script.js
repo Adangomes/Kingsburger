@@ -235,44 +235,52 @@ async function processarResumoGeo() {
     const rua = document.getElementById("rua")?.value;
     const num = document.getElementById("numero")?.value;
     const bairro = document.getElementById("bairro")?.value || "";
-    const cidadeSel = document.getElementById("cidade")?.value || "Guaramirim";
+    const cidadeSel = "Guaramirim"; // Forçando a cidade base
+    
     const loaderTaxa = document.getElementById("container-loading-taxa");
     const erroFeedback = document.getElementById("feedback-erro-entrega");
 
     if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
 
-    // Reseta feedbacks
     if (loaderTaxa) loaderTaxa.style.display = "flex";
     if (erroFeedback) { erroFeedback.style.display = "none"; erroFeedback.innerText = ""; }
 
     try {
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidadeSel}, SC, Brasil`);
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+        // Criamos uma query limpa
+        const enderecoCompleto = `${rua}, ${num}, ${bairro}, ${cidadeSel}, SC, Brasil`;
+        
+        // bias:proximity -> Dá prioridade para resultados perto do seu restaurante
+        // filter:rect -> Garante que a busca se limite à nossa região (Guaramirim/Jaraguá)
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(enderecoCompleto)}&bias=proximity:${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765&limit=1&apiKey=${GEOAPIFY_KEY}`;
+
+        const resp = await fetch(url);
         const data = await resp.json();
 
         if (data.features && data.features.length > 0) {
-            const props = data.features[0].properties;
-            const cidadeEncontrada = props.city ? props.city.toLowerCase() : "";
-            const cidadesAtendidas = ["jaraguá do sul", "guaramirim", "schroeder"];
-
-            // Valida se a rua pertence à região atendida
-            if (cidadesAtendidas.includes(cidadeEncontrada)) {
-                const [lonBusca, latBusca] = data.features[0].geometry.coordinates;
-                const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latBusca, lonBusca);
-                
-                taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-                if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-                
-                mostrarResumoFinal();
-            } else {
-                exibirErroLocalizacao("Endereço fora da área de entrega (Jaraguá, Guaramirim ou Schroeder).");
+            const result = data.features[0];
+            const props = result.properties;
+            
+            // Validação de segurança: se o resultado for muito impreciso (ex: achou só a cidade), avisamos o erro
+            if (props.rank.confidence < 0.3) {
+                throw new Error("Endereço não encontrado com precisão. Verifique a rua e o número.");
             }
+
+            const [lonBusca, latBusca] = result.geometry.coordinates;
+            
+            // Cálculo da distância real
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latBusca, lonBusca);
+            
+            // Lógica da Taxa
+            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+            
+            mostrarResumoFinal();
         } else {
-            exibirErroLocalizacao("Rua ou Número não encontrado. Verifique os dados.");
+            exibirErroLocalizacao("Rua ou Número não encontrado. Tente escrever sem abreviações.");
         }
     } catch (e) {
-        console.error(e);
-        exibirErroLocalizacao("Erro ao conectar com o serviço de mapas.");
+        console.error("Erro Geoapify:", e);
+        exibirErroLocalizacao(e.message || "Erro ao validar endereço.");
     } finally {
         if (loaderTaxa) loaderTaxa.style.display = "none";
     }
