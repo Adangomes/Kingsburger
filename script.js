@@ -1,7 +1,7 @@
 // --- CONFIGURAÇÕES GLOBAIS ATUALIZADAS ---
 const ID_LOJA = "kings_burger"; 
-const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; // Chave do script 100%
-const RESTAURANTE_COORD = [-49.024909, -26.464334]; // Coordenadas do script 100%
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; 
+const RESTAURANTE_COORD = [-49.024909, -26.464334]; // [Longitude, Latitude]
 const TAXA_BASE = 5.00; 
 const VALOR_POR_KM = 4.00;
 
@@ -203,68 +203,44 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 async function processarResumoGeo() {
-    // 1. Pegando os valores EXATOS dos IDs do seu HTML
     const nome = document.getElementById("nomeCliente")?.value;
-    const cidade = document.getElementById("cidade")?.value; // Agora lê Jaraguá, Schroeder, etc.
+    const cidade = document.getElementById("cidade")?.value; 
     const rua = document.getElementById("rua")?.value;
     const num = document.getElementById("numero")?.value;
     const bairro = document.getElementById("bairro")?.value;
 
-    if (!nome || !rua || !num) {
-        return alert("Por favor, preencha Nome, Rua e Número!");
-    }
+    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
     try {
-        // 2. Montando o endereço dinâmico baseado na sua seleção no HTML
-        const enderecoCompleto = `${rua}, ${num} ${bairro ? '- ' + bairro : ''}, ${cidade}, SC, Brasil`;
+        const enderecoCompleto = `${rua}, ${num} - ${bairro}, ${cidade}, SC, Brasil`;
         const query = encodeURIComponent(enderecoCompleto);
         const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
-
-        console.log("Calculando para: " + enderecoCompleto);
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        // Pequena pausa para o usuário sentir o processamento
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         if (data.features && data.features.length > 0) {
             const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
-            
-            // 3. Cálculo Haversine (RESTAURANTE_COORD[1] é Latitude, [0] é Longitude)
-            const dist = calcularDistancia(
-                RESTAURANTE_COORD[1], 
-                RESTAURANTE_COORD[0], 
-                latDestino, 
-                lonDestino
-            );
-            
-            console.log("Distância real: " + dist.toFixed(2) + " km");
-
-            // 4. Lógica: Taxa Base (5.00) + R$ 4,00 por KM rodado
+            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latDestino, lonDestino);
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-
         } else {
-            console.warn("Endereço não localizado, usando taxa base.");
             taxaEntregaCalculada = TAXA_BASE;
         }
 
-        // Se der menos que a base por algum erro de GPS, força os 5 reais
         if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-
         mostrarResumoFinal();
 
     } catch (e) {
-        console.error("Erro ao calcular frete:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
         if (loader) loader.style.display = "none";
     }
 }
+
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
@@ -272,22 +248,24 @@ async function enviarPedidoFirebase() {
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
     const bairro = document.getElementById("bairro").value;
+    const cidade = document.getElementById("cidade").value;
     const pag = document.getElementById("pagamento").value;
-    const obs = document.getElementById("obsPedido").value;
+    const obs = document.getElementById("obsPedido").value || "";
 
     if (!nome || !fone || !rua) return alert("Dados incompletos!");
 
     try {
         const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
+        const totalPedido = subtotal + taxaEntregaCalculada - descontoAplicado;
+
         const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
         await novoPedidoRef.set({
             cliente: nome, contato: fone,
-            endereco: `${rua}, ${num} - ${bairro}`,
-            observacao: obs,
-            pagamento: pag,
+            endereco: `${rua}, ${num} - ${bairro}, ${cidade}`,
+            observacao: obs, pagamento: pag,
             itens: carrinho.map(i => ({ produto: i.title, preco: i.price })),
             taxaEntrega: taxaEntregaCalculada,
-            total: subtotal + taxaEntregaCalculada - descontoAplicado,
+            total: totalPedido,
             horario: new Date().toLocaleTimeString('pt-BR'),
             status: "Pendente"
         });
@@ -335,6 +313,10 @@ function mostrarResumoFinal() {
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
+    
+    // Vincula o botão de finalizar
+    const btnFinal = document.querySelector("#resumo-pedido .btn-principal");
+    if(btnFinal) btnFinal.onclick = enviarPedidoFirebase;
 }
 
 async function buscarSugestoes(valor) {
