@@ -99,11 +99,8 @@
 
                 <div class="row-inputs" style="display: flex; gap: 10px; position: relative;">
     <div style="flex: 3; position: relative;">
-        <input type="text" id="rua" placeholder="Comece a digitar sua rua..." 
-       oninput="buscarSugestoes(this.value)" 
-       autocomplete="off" 
-       spellcheck="false">
-<div id="lista-sugestoes"></div>
+        <input type="text" id="rua" placeholder="Digite sua rua..." oninput="buscarSugestoes(this.value)">
+<div id="lista-sugestoes" class="sugestoes-container"></div>
     </div>
     <input type="text" id="numero" placeholder="Nº" style="flex: 1;">
 </div>
@@ -201,6 +198,7 @@
 <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
