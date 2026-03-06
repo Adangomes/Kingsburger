@@ -1,7 +1,7 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
-const RESTAURANTE_COORD = [-26.471, -49.083]; 
+const RESTAURANTE_COORD = [-26.471, -49.083]; // [LATITUDE, LONGITUDE]
 const TAXA_BASE = 5.00; // Valor fixo de saída
 const VALOR_POR_KM = 4.00; // Valor por KM rodado
 
@@ -213,47 +213,42 @@ function atualizarCarrinho() {
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
 // --- 4. GEO, TAXA E MAPA ---
-// --- 4. GEO, TAXA E MAPA ---
 async function processarResumoGeo() {
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value;
+    const bairro = document.getElementById("bairro")?.value || "";
 
-    if (!rua || !num || !bairro) return alert("Preencha Rua, Número e Bairro para calcular a entrega!");
+    if (!rua || !num) return alert("Preencha Rua e Número para calcular a entrega!");
 
     const loader = document.getElementById("loading-geral");
-    if (loader) { 
-        loader.style.display = "flex"; 
-        loader.querySelector('p').innerText = "Calculando taxa real..."; 
-    }
+    if (loader) loader.style.display = "flex";
 
     try {
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
-        // Pequena pausa para o usuário ver o loader
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
         if (data.features && data.features.length > 0) {
-            const [lon, lat] = data.features[0].geometry.coordinates; // Geoapify retorna [lon, lat]
+            const [lon, lat] = data.features[0].geometry.coordinates;
 
-            // Corrigido: calcularDistancia espera (lat1, lon1, lat2, lon2)
+            // RESTAURANTE_COORD[0] = Lat, [1] = Lon
             const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
 
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            if(taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+            
+            // Segurança: Taxa mínima
+            if (taxaEntregaCalculada < TAXA_BASE || isNaN(taxaEntregaCalculada)) {
+                taxaEntregaCalculada = TAXA_BASE;
+            }
 
-            // Atualiza mapa
             atualizarMapaCliente(lat, lon);
         } else {
-            throw new Error("Endereço não localizado");
+            taxaEntregaCalculada = 10.00; // Fallback se não achar endereço
         }
 
         mostrarResumoFinal();
     } catch (e) {
         console.error("Erro na taxa:", e);
-        alert("Não conseguimos calcular a distância exata. Será aplicada uma taxa padrão de R$ 10,00 por segurança.");
         taxaEntregaCalculada = 10.00;
         mostrarResumoFinal();
     } finally { 
@@ -261,18 +256,16 @@ async function processarResumoGeo() {
     }
 }
 
-// --- FUNÇÃO DE DISTÂNCIA CORRIGIDA ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // km
+    const R = 6371; // Raio da Terra em KM
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const radLat1 = lat1 * Math.PI / 180;
-    const radLat2 = lat2 * Math.PI / 180;
-
-    const a = Math.sin(dLat/2)**2 + Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Retorna KM
 }
+
 // --- MAPA ---
 function inicializarMapa() {
     mapa = new geoapify.maps.Map("mapa-entrega", {
@@ -406,9 +399,15 @@ function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
     if(!resumoItens) return; 
     resumoItens.innerHTML = ""; let sub = 0;
-    carrinho.forEach(i => { sub += i.price; resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; });
+    carrinho.forEach(i => { sub += i.price; resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`; });
+    
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}`;
+    
+    document.getElementById("resumo-taxa").innerHTML = `
+        <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>R$ ${sub.toFixed(2)}</span></div>
+        <div style="display:flex; justify-content:space-between; color:#00a650; font-weight:bold;"><span>Taxa de Entrega:</span> <span>R$ ${taxaEntregaCalculada.toFixed(2)}</span></div>
+    `;
+    
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
