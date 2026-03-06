@@ -297,14 +297,16 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-async function processarResumoGeo() {
-    const rua = document.getElementById("rua").value;
-    const num = document.getElementById("numero").value;
-    if (!rua || !num) return alert("Preencha Rua e Número!");
-
-    mostrarResumoFinal();
+function processarResumoGeo() {
+    const loader = document.getElementById("loading-geral");
+    loader.style.display = "flex"; 
+    setTimeout(() => {
+        document.getElementById("form-entrega").style.display = "none";
+        document.getElementById("resumo-pedido").style.display = "block";
+        mostrarResumoFinal();
+        loader.style.display = "none";
+    }, 1200); 
 }
-
 // --- 5. FIREBASE ENVIO ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
