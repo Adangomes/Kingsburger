@@ -1,7 +1,8 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
-const RESTAURANTE_COORD = [-26.4860, -49.0670]; // Latitude, Longitude
+// CORREÇÃO: Padrão [Longitude, Latitude] para bater com a API
+const RESTAURANTE_COORD = [-49.0670, -26.4860]; 
 const TAXA_BASE = 5.00; 
 const VALOR_POR_KM = 4.00; 
 
@@ -192,7 +193,7 @@ function atualizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. MOTOR DE CÁLCULO DE ENTREGA (O "MATA") ---
+// --- 4. MOTOR DE CÁLCULO DE ENTREGA ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -206,7 +207,7 @@ async function processarResumoGeo() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
-    const cidade = document.getElementById("cidade").value;
+    const cidade = document.getElementById("cidade")?.value || "Jaraguá do Sul";
     const bairro = document.getElementById("bairro").value;
 
     if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
@@ -215,36 +216,29 @@ async function processarResumoGeo() {
     if (loader) loader.style.display = "flex";
 
     try {
-        // Melhoramos a query para o GPS não se perder
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`);
         const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        // Se o GPS achar o endereço:
         if (data.features && data.features.length > 0) {
             const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
             
-            // ATENÇÃO: Verifique se RESTAURANTE_COORD é [-26.4860, -49.0670]
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDestino, lonDestino);
+            // CORREÇÃO: Passando Latitude (index 1) e Longitude (index 0) corretamente
+            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latDestino, lonDestino);
             
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
         } else {
-            // PLANO B: Se não achar no GPS, não trava o cliente! 
-            // Avisa e usa a taxa base.
-            console.warn("GPS não localizou, usando taxa padrão.");
+            console.warn("GPS não localizou, usando taxa base.");
             taxaEntregaCalculada = TAXA_BASE; 
         }
 
-        // Garante que a taxa nunca seja menor que a base
         if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-
         mostrarResumoFinal();
 
     } catch (e) {
         console.error("Erro na busca:", e);
-        // PLANO C: Erro de rede ou GitHub Pages, usa taxa base para salvar a venda
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
@@ -289,16 +283,19 @@ async function enviarPedidoFirebase() {
 
 function verificarStatusPedido() {
     const telefone = localStorage.getItem("cliente_celular");
-    if (!telefone || !db) return alert("Nenhum pedido recente encontrado.");
+    if (!telefone || !db) return;
     
     db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
         .on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 const pedido = Object.values(data)[0];
-                document.getElementById("modal-status-cliente").style.display = "flex";
-                document.getElementById("status-texto-titulo").innerText = pedido.status;
-                document.getElementById("status-texto-desc").innerText = `Seu pedido de R$ ${pedido.total.toFixed(2)} está ${pedido.status.toLowerCase()}.`;
+                const modal = document.getElementById("modal-status-cliente");
+                if(modal) {
+                    modal.style.display = "flex";
+                    document.getElementById("status-texto-titulo").innerText = pedido.status;
+                    document.getElementById("status-texto-desc").innerText = `Seu pedido de R$ ${pedido.total.toFixed(2)} está ${pedido.status.toLowerCase()}.`;
+                }
             }
         });
 }
@@ -306,6 +303,7 @@ function verificarStatusPedido() {
 // --- 6. AUXILIARES ---
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
+    if(!resumoItens) return;
     resumoItens.innerHTML = ""; let sub = 0;
     carrinho.forEach(i => { 
         sub += i.price; 
