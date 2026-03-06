@@ -203,49 +203,62 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 async function processarResumoGeo() {
-    // Tenta pegar os IDs de ambos os modelos de HTML para não dar erro
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || "";
-    const cidade = "Guaramirim"; // Forçando a cidade do script 100%
+    // 1. Pegando os valores EXATOS dos IDs do seu HTML
+    const nome = document.getElementById("nomeCliente")?.value;
+    const cidade = document.getElementById("cidade")?.value; // Agora lê Jaraguá, Schroeder, etc.
+    const rua = document.getElementById("rua")?.value;
+    const num = document.getElementById("numero")?.value;
+    const bairro = document.getElementById("bairro")?.value;
 
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
+    if (!nome || !rua || !num) {
+        return alert("Por favor, preencha Nome, Rua e Número!");
+    }
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
     try {
-        // Montagem da query idêntica ao script 100%
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`);
+        // 2. Montando o endereço dinâmico baseado na sua seleção no HTML
+        const enderecoCompleto = `${rua}, ${num} ${bairro ? '- ' + bairro : ''}, ${cidade}, SC, Brasil`;
+        const query = encodeURIComponent(enderecoCompleto);
         const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
+
+        console.log("Calculando para: " + enderecoCompleto);
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        // Delay para garantir que o loader apareça e a API responda
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Pequena pausa para o usuário sentir o processamento
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (data.features && data.features.length > 0) {
             const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
             
-            // Cálculo Haversine usando as coordenadas do restaurante
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latDestino, lonDestino);
+            // 3. Cálculo Haversine (RESTAURANTE_COORD[1] é Latitude, [0] é Longitude)
+            const dist = calcularDistancia(
+                RESTAURANTE_COORD[1], 
+                RESTAURANTE_COORD[0], 
+                latDestino, 
+                lonDestino
+            );
             
-            console.log("Distância calculada:", dist.toFixed(2), "km");
+            console.log("Distância real: " + dist.toFixed(2) + " km");
+
+            // 4. Lógica: Taxa Base (5.00) + R$ 4,00 por KM rodado
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+
         } else {
-            console.warn("Endereço não localizado pela API, usando taxa base.");
-            taxaEntregaCalculada = TAXA_BASE; 
+            console.warn("Endereço não localizado, usando taxa base.");
+            taxaEntregaCalculada = TAXA_BASE;
         }
 
-        // Garante que a taxa nunca seja menor que a base
+        // Se der menos que a base por algum erro de GPS, força os 5 reais
         if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-        
+
         mostrarResumoFinal();
 
     } catch (e) {
-        console.error("Erro na busca de endereço:", e);
+        console.error("Erro ao calcular frete:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
