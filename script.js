@@ -1,4 +1,4 @@
-// --- CONFIGURAÇÕES GLOBAIS ---
+-- CONFIGURAÇÕES GLOBAIS ---
 
 const ID_LOJA = "kings_burger"; 
 
@@ -134,7 +134,7 @@ function renderizarCardapio() {
 
         const btn = document.createElement("button");
 
-        btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
+        btn.className = cat-item ${idx === 0 ? 'active' : ''};
 
         btn.innerText = cat.toUpperCase();
 
@@ -150,9 +150,9 @@ function renderizarCardapio() {
 
         section.className = "secao-categoria";
 
-        section.id = `secao-${cat}`;
+        section.id = secao-${cat};
 
-        section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
+        section.innerHTML = <h2 class="titulo-categoria">${cat.toUpperCase()}</h2>;
 
 
 
@@ -162,11 +162,9 @@ function renderizarCardapio() {
 
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
 
-            const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
+            const precoExibido = p.price > 0 ? R$ ${p.price.toFixed(2)} : "Escolher Opções";
 
-            section.innerHTML += `
-
-                <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
+            section.innerHTML +=                 <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
 
                     <div class="info-produto">
 
@@ -186,9 +184,7 @@ function renderizarCardapio() {
 
                     </div>
 
-                </div>`;
-
-        });
+                </div>;        });
 
         corpo.appendChild(section);
 
@@ -246,7 +242,7 @@ function abrirModalSelecao(nome) {
 
             for (let i = 1; i <= max; i++) {
 
-                containerBotoes.innerHTML += `<button class="btn-principal m-1" onclick="montarListaSabores(${i}, 'pizza')">${i} Sabor${i>1?'es':''}</button>`;
+                containerBotoes.innerHTML += <button class="btn-principal m-1" onclick="montarListaSabores(${i}, 'pizza')">${i} Sabor${i>1?'es':''}</button>;
 
             }
 
@@ -288,17 +284,13 @@ function montarListaSabores(n, tipo) {
 
     opcoes.forEach(opt => {
 
-        grid.innerHTML += `
-
-            <div class="item-sabor-wizard" onclick="toggleSabor('${opt.title}')">
+        grid.innerHTML +=             <div class="item-sabor-wizard" onclick="toggleSabor('${opt.title}')">
 
                 <div><strong>${opt.title}</strong><br><small>${opt.ingredientes || ""}</small></div>
 
                 <span class="check-icon">⚪</span>
 
-            </div>`;
-
-    });
+            </div>;    });
 
 }
 
@@ -346,7 +338,7 @@ function confirmarSelecao() {
 
         precoFinal = itemMestreTemporario.prices[tamanhoSelecionadoGlobal];
 
-        tituloItem += ` (${saboresSelecionados.join("/")})`;
+        tituloItem +=  (${saboresSelecionados.join("/")});
 
     } else {
 
@@ -354,7 +346,7 @@ function confirmarSelecao() {
 
         precoFinal = opt.prices[tamanhoSelecionadoGlobal];
 
-        tituloItem += ` - ${saboresSelecionados[0]}`;
+        tituloItem +=  - ${saboresSelecionados[0]};
 
     }
 
@@ -392,21 +384,17 @@ function atualizarCarrinho() {
 
         sub += item.price;
 
-        box.innerHTML += `
-
-            <div class="cart-item-row">
+        box.innerHTML +=             <div class="cart-item-row">
 
                 <div style="flex:1"><strong>${item.title}</strong><br><b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b></div>
 
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
 
-            </div>`;
+            </div>;    });
 
-    });
+    document.getElementById("subtotal").innerText = R$ ${sub.toFixed(2)};
 
-    document.getElementById("subtotal").innerText = `R$ ${sub.toFixed(2)}`;
-
-    document.getElementById("total").innerText = `R$ ${(sub - descontoAplicado).toFixed(2)}`;
+    document.getElementById("total").innerText = R$ ${(sub - descontoAplicado).toFixed(2)};
 
     document.getElementById("cart-count").innerText = carrinho.length;
 
@@ -446,9 +434,9 @@ async function processarResumoGeo() {
 
         // Busca com bairro e cidade para ser mais preciso
 
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
+        const query = encodeURIComponent(${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil);
 
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+        const resp = await fetch(https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY});
 
         const data = await resp.json();
 
@@ -524,15 +512,15 @@ function mostrarResumoFinal() {
 
         sub += i.price;
 
-        resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
+        resumoItens.innerHTML += <div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>;
 
     });
 
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
 
-    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}`;
+    document.getElementById("resumo-taxa").innerHTML = Subtotal: R$ ${sub.toFixed(2)}<br>Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)};
 
-    document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
+    document.getElementById("resumo-total").innerText = Total: R$ ${totalFinal.toFixed(2)};
 
     document.getElementById("form-entrega").style.display = "none";
 
@@ -576,13 +564,13 @@ async function enviarPedidoFirebase() {
 
         const subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-        const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
+        const novoPedidoRef = db.ref(pedidos/${ID_LOJA}).push();
 
         await novoPedidoRef.set({
 
             cliente: nome, contato: fone,
 
-            endereco: `${rua}, ${num} - ${bairro}`,
+            endereco: ${rua}, ${num} - ${bairro},
 
             pagamento: pag,
 
@@ -626,7 +614,7 @@ function verificarStatusPedido() {
 
     esconderRodape();
 
-    db.ref(`pedidos/${ID_LOJA}`).orderByChild('contato').equalTo(telefone).limitToLast(1)
+    db.ref(pedidos/${ID_LOJA}).orderByChild('contato').equalTo(telefone).limitToLast(1)
 
         .on('value', (snapshot) => {
 
@@ -672,7 +660,7 @@ function carregarStatusLoja() {
 
     const aberto = tempo >= 1080 && tempo <= 1410; // Ex: 18:00 as 23:30
 
-    if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = `status ${aberto ? 'aberto' : 'fechado'}`; }
+    if(el) { el.innerText = aberto ? "ABERTO" : "FECHADO"; el.className = status ${aberto ? 'aberto' : 'fechado'}; }
 
 }
 
@@ -726,7 +714,7 @@ function carregarCarrinhoStorage() {
 
 function scrollToCategoria(cat) {
 
-    const el = document.getElementById(`secao-${cat}`);
+    const el = document.getElementById(secao-${cat});
 
     if(el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
 
@@ -758,4 +746,4 @@ function reabrirAcompanhamento() {
 
     verificarStatusPedido(); // Chama a lógica que já criamos
 
-} 
+}
