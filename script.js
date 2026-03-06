@@ -212,58 +212,94 @@ function atualizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. GEO, TAXA E MAPA ---
-async function processarResumoGeo() {
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || "";
+// --- 4. GEO, TAXA E MAPA (COM AUTOCOMPLETE) ---
 
-    if (!rua || !num) return alert("Preencha Rua e Número para calcular a entrega!");
-
-    const loader = document.getElementById("loading-geral");
-    if (loader) loader.style.display = "flex";
+async function buscarSugestoes(valor) {
+    const lista = document.getElementById("lista-sugestoes");
+    if (valor.length < 4) {
+        lista.style.display = "none";
+        return;
+    }
 
     try {
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+        // Filtro para região de Jaraguá/Guaramirim
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.20,-26.55,-48.95,-26.40&apiKey=${GEOAPIFY_KEY}`;
+        const resp = await fetch(url);
         const data = await resp.json();
 
         if (data.features && data.features.length > 0) {
-            const [lon, lat] = data.features[0].geometry.coordinates;
+            lista.innerHTML = "";
+            lista.style.display = "block";
 
-            // RESTAURANTE_COORD[0] = Lat, [1] = Lon
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
-
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            
-            // Segurança: Taxa mínima
-            if (taxaEntregaCalculada < TAXA_BASE || isNaN(taxaEntregaCalculada)) {
-                taxaEntregaCalculada = TAXA_BASE;
-            }
-
-            atualizarMapaCliente(lat, lon);
-        } else {
-            taxaEntregaCalculada = 10.00; // Fallback se não achar endereço
+            data.features.forEach(feature => {
+                const props = feature.properties;
+                const item = document.createElement("div");
+                item.style = "padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; color: #333;";
+                
+                const linha1 = props.address_line1;
+                const linha2 = props.address_line2;
+                
+                item.innerHTML = `<strong>${linha1}</strong><br><small style="color: #777;">${linha2}</small>`;
+                
+                item.onclick = () => {
+                    const lat = feature.geometry.coordinates[1];
+                    const lon = feature.geometry.coordinates[0];
+                    const bairro = props.district || props.suburb || "";
+                    const cidade = props.city || "";
+                    selecionarEndereco(linha1, lat, lon, bairro, cidade);
+                };
+                lista.appendChild(item);
+            });
         }
+    } catch (e) { console.error("Erro Autocomplete:", e); }
+}
 
-        mostrarResumoFinal();
-    } catch (e) {
-        console.error("Erro na taxa:", e);
-        taxaEntregaCalculada = 10.00;
-        mostrarResumoFinal();
-    } finally { 
-        if (loader) loader.style.display = "none"; 
+function selecionarEndereco(rua, lat, lon, bairro, cidade) {
+    document.getElementById("rua").value = rua;
+    if (bairro) document.getElementById("bairro").value = bairro;
+    if (cidade) document.getElementById("cidade").value = cidade;
+    document.getElementById("lista-sugestoes").style.display = "none";
+
+    const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+    taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+    if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+
+    atualizarMapaCliente(lat, lon);
+}
+
+async function processarResumoGeo() {
+    const rua = document.getElementById("rua").value;
+    const num = document.getElementById("numero").value;
+
+    if (!rua || !num) return alert("Preencha Rua e Número para calcular a entrega!");
+
+    // Se a taxa ainda não foi calculada pelo autocomplete, tenta uma busca final
+    if (taxaEntregaCalculada === 0) {
+        const loader = document.getElementById("loading-geral");
+        if (loader) loader.style.display = "flex";
+        try {
+            const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
+            const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+            const data = await resp.json();
+            if (data.features && data.features.length > 0) {
+                const [lon, lat] = data.features[0].geometry.coordinates;
+                const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+                taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            } else { taxaEntregaCalculada = 10.00; }
+        } catch (e) { taxaEntregaCalculada = 10.00; }
+        finally { if (loader) loader.style.display = "none"; }
     }
+    mostrarResumoFinal();
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Raio da Terra em KM
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Retorna KM
+    return R * c;
 }
 
 // --- MAPA ---
