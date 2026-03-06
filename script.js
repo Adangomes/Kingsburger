@@ -448,3 +448,59 @@ function mostrarResumoFinal() {
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
+async function buscarSugestoes(valor) {
+    const lista = document.getElementById("lista-sugestoes");
+    
+    // Só começa a buscar após 3 letras para não gastar API à toa
+    if (valor.length < 3) {
+        lista.style.display = "none";
+        return;
+    }
+
+    try {
+        // Filtro para focar na sua região (Jaraguá/Guaramirim)
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.20,-26.55,-48.95,-26.40&apiKey=${GEOAPIFY_KEY}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+            lista.innerHTML = ""; // Limpa a lista anterior
+            lista.style.display = "block"; // Mostra a lista
+
+            data.features.forEach(feature => {
+                const endereco = feature.properties;
+                const item = document.createElement("div");
+                
+                // Estilo rápido para o item da lista
+                item.style.padding = "10px";
+                item.style.cursor = "pointer";
+                item.style.borderBottom = "1px solid #eee";
+                
+                item.innerHTML = `
+                    <div style="font-weight: bold; color: #333;">${endereco.address_line1}</div>
+                    <div style="font-size: 12px; color: #777;">${endereco.address_line2}</div>
+                `;
+
+                item.onclick = function() {
+                    // Preenche os campos ao clicar
+                    document.getElementById("rua").value = endereco.street || endereco.name || "";
+                    document.getElementById("bairro").value = endereco.district || endereco.suburb || "";
+                    document.getElementById("cidade").value = endereco.city || "";
+                    
+                    // Calcula a taxa na hora
+                    const lat = feature.geometry.coordinates[1];
+                    const lon = feature.geometry.coordinates[0];
+                    selecionarEndereco(endereco.address_line1, lat, lon, endereco.district, endereco.city);
+                    
+                    lista.style.display = "none"; // Esconde a lista
+                };
+                lista.appendChild(item);
+            });
+        } else {
+            lista.style.display = "none";
+        }
+    } catch (error) {
+        console.error("Erro ao buscar endereços:", error);
+    }
+}
