@@ -345,16 +345,27 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     position: absolute;
     top: 100%;
     left: 0;
-    width: 100%;
-    z-index: 10001; /* Valor alto para ficar na frente de tudo */
+    right: 0;
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.sugestao-item:hover {
-    background-color: #f8f9fa !important;
-    color: #ffc107; /* Cor de destaque (amarelo King Burger) */
+    border: 1px solid #ccc;
+    border-radius: 0 0 8px 8px;
+    z-index: 10000; /* Garante que fique na frente de tudo no modal */
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: none; /* Começa escondido */
 }
 
+.sugestao-item {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.sugestao-item:hover {
+    background-color: #f8f8f8;
+}
 /* --- ESTILO DO MAPA (O QUE ESTAVA FALTANDO) --- */
 #mapa-entrega {
     width: 100%;
@@ -375,4 +386,5 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 .form-grid {
     position: relative;
 }
+
 
