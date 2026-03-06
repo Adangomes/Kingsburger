@@ -212,34 +212,41 @@ async function processarResumoGeo() {
     if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
 
     const loader = document.getElementById("loading-geral");
-    if (loader) {
-        loader.style.display = "flex";
-        document.getElementById("loading-text").innerText = "Calculando entrega...";
-    }
+    if (loader) loader.style.display = "flex";
 
     try {
+        // Melhoramos a query para o GPS não se perder
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`);
         const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
+        // Se o GPS achar o endereço:
         if (data.features && data.features.length > 0) {
-            const [lonB, latB] = data.features[0].geometry.coordinates;
-            // Distância entre Restaurante e Cliente
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latB, lonB);
+            const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
             
-            // Regra: Taxa Base + (Distancia * Valor por KM)
+            // ATENÇÃO: Verifique se RESTAURANTE_COORD é [-26.4860, -49.0670]
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDestino, lonDestino);
+            
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-
-            mostrarResumoFinal();
         } else {
-            alert("Endereço não encontrado. Por favor, revise a rua e o número.");
+            // PLANO B: Se não achar no GPS, não trava o cliente! 
+            // Avisa e usa a taxa base.
+            console.warn("GPS não localizou, usando taxa padrão.");
+            taxaEntregaCalculada = TAXA_BASE; 
         }
+
+        // Garante que a taxa nunca seja menor que a base
+        if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+
+        mostrarResumoFinal();
+
     } catch (e) {
-        console.error(e);
-        alert("Erro ao calcular entrega. Tente novamente.");
+        console.error("Erro na busca:", e);
+        // PLANO C: Erro de rede ou GitHub Pages, usa taxa base para salvar a venda
+        taxaEntregaCalculada = TAXA_BASE;
+        mostrarResumoFinal();
     } finally {
         if (loader) loader.style.display = "none";
     }
