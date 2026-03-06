@@ -48,7 +48,7 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 .cat-item.active { color: #ff6b00; border-bottom: 3px solid #ff6b00; font-weight: 800; }
 
 /* PRODUTOS E BOTÃO ADICIONAR */
-.container-main { padding: 15px; max-width: 600px; margin: auto; }
+.container-main { padding: 15px; max-width: 600px; margin: auto; min-height: calc(100vh - 120px);}
 .item-produto-lista {
     background: #fff; display: flex; justify-content: space-between;
     padding: 15px; border-radius: 15px; margin-bottom: 12px;
@@ -236,9 +236,9 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #000000; /* Cor preta como na imagem */
+    background-color: #000000;
     border-top: 1px solid #333;
-    z-index: 1000; /* Garante que fique acima do conteúdo, mas abaixo do modal se necessário */
+    z-index: 998; 
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 .bottom-nav {
@@ -340,3 +340,4 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 .bottom-nav-container, .nav-item {
     z-index: 9999 !important;
 }
+
