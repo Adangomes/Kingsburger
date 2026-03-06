@@ -1,7 +1,7 @@
 // --- CONFIGURAÇÕES GLOBAIS ---
 const ID_LOJA = "kings_burger"; 
 const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
-const RESTAURANTE_COORD = [-26.4860, -49.0670];
+const RESTAURANTE_COORD = [-26.4860, -49.0670]; // [Latitude, Longitude]
 const TAXA_BASE = 5.00; 
 const VALOR_POR_KM = 4.00; 
 
@@ -16,7 +16,7 @@ let tamanhoSelecionadoGlobal = "";
 
 const bottomNav = document.querySelector('.bottom-nav-container');
 
-// --- INJEÇÃO DE ESTILOS DINÂMICOS (Spinner e Erro) ---
+// --- INJEÇÃO DE ESTILOS DINÂMICOS ---
 const style = document.createElement('style');
 style.innerHTML = `
     .loading-taxa { display: none; justify-content: center; align-items: center; padding: 15px; flex-direction: column; gap: 8px; }
@@ -33,12 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
     
-    // Preparar campos de feedback no HTML se não existirem
     const formEntrega = document.getElementById("form-entrega");
-    if (formEntrega) {
+    if (formEntrega && !document.getElementById("container-loading-taxa")) {
         const feedbackContainer = document.createElement("div");
         feedbackContainer.innerHTML = `
-            <div id="container-loading-taxa" class="loading-taxa"><div class="spinner-mini"></div><span>Validando endereço...</span></div>
+            <div id="container-loading-taxa" class="loading-taxa"><div class="spinner-mini"></div><span>Calculando distância...</span></div>
             <div id="feedback-erro-entrega" class="msg-erro-entrega"></div>
         `;
         formEntrega.appendChild(feedbackContainer);
@@ -220,79 +219,10 @@ function atualizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
-// --- 4. CÁLCULO DE ENTREGA (VALIDAÇÃO E LOOP) ---
+// --- 4. MOTOR DE CÁLCULO DE ENTREGA (MATA) ---
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371; 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-}
-
-// --- 4. CÁLCULO DE ENTREGA (VERSÃO SINCRONIZADA COM O CÓDIGO FUNCIONAL) ---
-
-async function processarResumoGeo() {
-    // Captura os campos (suporta os dois nomes de ID que você usou nos códigos)
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
-
-    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número para calcular a entrega!");
-
-    // Feedback visual (Spinner)
-    const loaderTaxa = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
-    const erroFeedback = document.getElementById("feedback-erro-entrega");
-
-    if (loaderTaxa) loaderTaxa.style.display = "flex";
-    if (erroFeedback) { erroFeedback.style.display = "none"; erroFeedback.innerText = ""; }
-
-    try {
-        // 1. Monta a query exatamente como no código que funcionou
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
-
-        const resp = await fetch(url);
-        const data = await resp.json();
-
-        // 2. Pequeno delay para percepção do usuário (opcional, igual ao seu código 2)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        if (data.features && data.features.length > 0) {
-            const [lonBusca, latBusca] = data.features[0].geometry.coordinates;
-            
-            // 3. Cálculo da distância real
-            // Nota: RESTAURANTE_COORD[1] é a Latitude, RESTAURANTE_COORD[0] é a Longitude
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latBusca, lonBusca);
-            
-            // 4. Lógica da Taxa: Base + (Distância * Valor por KM)
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-            
-            // Garante que não cobre menos que a taxa base
-            if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-            
-            mostrarResumoFinal();
-        } else {
-            // Se não achar, aplica taxa base por segurança
-            taxaEntregaCalculada = TAXA_BASE;
-            if (erroFeedback) {
-                exibirErroLocalizacao("Endereço não encontrado com precisão. Usando taxa padrão.");
-            }
-            mostrarResumoFinal();
-        }
-    } catch (e) {
-        console.error("Erro Geoapify:", e);
-        taxaEntregaCalculada = TAXA_BASE;
-        mostrarResumoFinal();
-    } finally {
-        if (loaderTaxa) loaderTaxa.style.display = "none";
-    }
-}
-
-// Certifique-se que sua função de distância está assim:
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Raio da Terra em KM
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -300,15 +230,64 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
-function exibirErroLocalizacao(msg) {
+
+async function processarResumoGeo() {
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
+
+    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+
+    const loaderTaxa = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
     const erroFeedback = document.getElementById("feedback-erro-entrega");
-    if (erroFeedback) {
-        erroFeedback.innerText = msg;
-        erroFeedback.style.display = "block";
+
+    if (loaderTaxa) loaderTaxa.style.display = "flex";
+    if (erroFeedback) { erroFeedback.style.display = "none"; erroFeedback.innerText = ""; }
+
+    try {
+        // O segredo para Guaramirim/Jaraguá/Schroeder é o filtro "rect" que delimita a região
+        const areaFiltro = "-49.2562,-26.5414,-48.8500,-26.3500";
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&filter=rect:${areaFiltro}&apiKey=${GEOAPIFY_KEY}`;
+
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        // Delay para o usuário ver que está calculando
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        if (data.features && data.features.length > 0) {
+            const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
+            
+            // Distância em KM
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDestino, lonDestino);
+            
+            // Taxa: Base + (KM * Valor)
+            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            
+            // Proteção para não ser menor que a base
+            if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+            
+            mostrarResumoFinal();
+        } else {
+            taxaEntregaCalculada = TAXA_BASE;
+            if (erroFeedback) {
+                erroFeedback.innerText = "Endereço não localizado. Verifique a rua e tente novamente.";
+                erroFeedback.style.display = "block";
+            }
+            mostrarResumoFinal();
+        }
+    } catch (e) {
+        console.error("Erro GPS:", e);
+        taxaEntregaCalculada = TAXA_BASE;
+        mostrarResumoFinal();
+    } finally {
+        if (loaderTaxa) loaderTaxa.style.display = "none";
     }
 }
 
-// --- 5. FIREBASE E STATUS ---
+// --- 5. FIREBASE E INTERFACE ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
     const fone = document.getElementById("celular").value;
@@ -359,7 +338,6 @@ function verificarStatusPedido() {
         });
 }
 
-// --- 6. AUXILIARES E INTERFACE ---
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
     resumoItens.innerHTML = ""; let sub = 0;
@@ -391,12 +369,13 @@ function abrirDelivery() {
     document.getElementById("delivery-modal").style.display = "flex";
 }
 
-// --- AUTOCOMPLETE ---
+// --- AUTOCOMPLETE (MATA) ---
 async function buscarSugestoes(valor) {
     const lista = document.getElementById("lista-sugestoes");
     if (valor.length < 3) { lista.innerHTML = ""; lista.style.display = "none"; return; }
     try {
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765&apiKey=${GEOAPIFY_KEY}`;
+        // Mesma área de filtro para Schroeder aparecer na busca
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.2562,-26.5414,-48.8500,-26.3500&apiKey=${GEOAPIFY_KEY}`;
         const response = await fetch(url);
         const data = await response.json();
         if (data.features) {
