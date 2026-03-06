@@ -211,32 +211,59 @@ function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
 async function buscarSugestoes(valor) {
     const lista = document.getElementById("lista-sugestoes");
+    
+    // Começa a sugerir com 3 caracteres para pegar "Rob..."
     if (valor.length < 3) {
         lista.style.display = "none";
         return;
     }
 
     try {
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(valor)}&filter=rect:-49.20,-26.55,-48.95,-26.40&apiKey=${GEOAPIFY_KEY}`;
-        const resp = await fetch(url);
-        const data = await resp.json();
+        // Parametros explicados:
+        // bias=proximity: -49.08,-26.47 -> Dá prioridade total para resultados perto da sua hamburgueria
+        // filter=rect -> Restringe a busca apenas à região de Jaraguá/Guaramirim
+        // lang=pt -> Garante nomes em português
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?` + 
+                    `text=${encodeURIComponent(valor)}` +
+                    `&filter=rect:-49.2562,-26.5414,-48.9135,-26.3765` + 
+                    `&bias=proximity:-49.083,-26.471` +
+                    `&type=street` +
+                    `&lang=pt` +
+                    `&limit=5` +
+                    `&apiKey=${GEOAPIFY_KEY}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
 
         if (data.features && data.features.length > 0) {
-            lista.innerHTML = "";
+            lista.innerHTML = ""; 
             lista.style.display = "block";
 
             data.features.forEach(feature => {
-                const props = feature.properties;
+                const endereco = feature.properties;
                 const item = document.createElement("div");
-                item.className = "sugestao-item"; // Use CSS para estilizar
-                item.style = "padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;";
                 
-                item.innerHTML = `<strong>${props.address_line1}</strong><br><small>${props.address_line2}</small>`;
+                // O Geoapify já lida com o "fuzzy matching" (Zieamann vs Ziemann)
+                // Ele retornará o nome correto mesmo que o usuário digite errado.
                 
-                item.onclick = () => {
-                    const lat = feature.geometry.coordinates[1];
-                    const lon = feature.geometry.coordinates[0];
-                    selecionarEndereco(props.address_line1, lat, lon, props.district || props.suburb, props.city);
+                item.className = "sugestao-item";
+                item.style = "padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; background: white;";
+                
+                item.innerHTML = `
+                    <div style="font-weight: bold; color: #333;">${endereco.address_line1}</div>
+                    <div style="font-size: 12px; color: #777;">${endereco.address_line2}</div>
+                `;
+
+                item.onclick = function() {
+                    // Ao clicar, o sistema assume o nome CORRETO retornado pela API
+                    document.getElementById("rua").value = endereco.street || endereco.name;
+                    document.getElementById("bairro").value = endereco.district || endereco.suburb || "";
+                    document.getElementById("cidade").value = endereco.city || "";
+                    
+                    const [lon, lat] = feature.geometry.coordinates;
+                    selecionarEndereco(endereco.address_line1, lat, lon, endereco.district, endereco.city);
+                    
+                    lista.style.display = "none";
                     document.getElementById("numero").focus();
                 };
                 lista.appendChild(item);
@@ -244,9 +271,10 @@ async function buscarSugestoes(valor) {
         } else {
             lista.style.display = "none";
         }
-    } catch (e) { console.error("Erro Autocomplete:", e); }
+    } catch (error) {
+        console.error("Erro na inteligência de busca:", error);
+    }
 }
-
 function selecionarEndereco(rua, lat, lon, bairro, cidade) {
     document.getElementById("rua").value = rua;
     if (bairro) document.getElementById("bairro").value = bairro;
