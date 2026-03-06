@@ -359,3 +359,25 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     background-color: #f8f9fa !important;
     color: #ffc107; /* Cor de destaque (amarelo King Burger) */
 }
+
+/* --- ESTILO DO MAPA (O QUE ESTAVA FALTANDO) --- */
+#mapa-entrega {
+    width: 100%;
+    height: 200px; /* Altura ideal para mobile */
+    border-radius: 15px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    background-color: #eee; /* Cor de fundo enquanto carrega */
+    z-index: 1; /* Garante que não cubra os menus */
+}
+
+/* Ajuste para o container do formulário de entrega não esconder o mapa */
+#form-entrega {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+/* Deixa a lista de sugestões flutuando corretamente sobre o mapa */
+.form-grid {
+    position: relative;
+}
