@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KINGS BURGER</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css" />
-    
-    
 </head>
 <body>
 
@@ -64,7 +63,10 @@
         <div class="modal-header-clean"><h3>Meu Carrinho</h3><button onclick="fecharCarrinho()" class="btn-fechar-modal">✕</button></div>
         <div id="cart-items" class="cart-items-list"></div>
         <div class="cupom-secao">
-            <div class="cupom-container"><input type="text" id="input-cupom" placeholder="Cupom"><button id="btn-aplicar-cupom">Ok</button></div>
+            <div class="cupom-container">
+                <input type="text" id="input-cupom" placeholder="Cupom">
+                <button id="btn-aplicar-cupom">Ok</button>
+            </div>
             <div id="msg-cupom-feedback" class="cupom-msg-erro"></div>
         </div>
         <div class="summary-box">
@@ -83,7 +85,7 @@
         <div id="form-entrega">
             <div class="modal-header-clean">
                 <h3>Entrega</h3>
-                <button onclick="document.getElementById('delivery-modal').style.display='none'; mostrarRodape();" class="btn-fechar-modal">✕</button>
+                <button onclick="fecharModalDelivery()" class="btn-fechar-modal">✕</button>
             </div>
             
             <div class="form-grid">
@@ -98,13 +100,13 @@
                 <div class="row-inputs" style="display: flex; gap: 10px; position: relative;">
                     <div style="flex: 3; position: relative;">
                         <input type="text" id="rua" placeholder="Rua" style="width: 100%;" oninput="buscarSugestoes(this.value)" autocomplete="off">
-                        <div id="lista-sugestoes" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #ddd; z-index: 10000; border-radius: 0 0 8px 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto;"></div>
+                        <div id="lista-sugestoes"></div>
                     </div>
                     <input type="text" id="numero" placeholder="Nº" style="flex: 1;">
                 </div>
 
                 <input type="text" id="bairro" placeholder="Bairro">
-                <input type="text" id="celular" placeholder="contato 47 99999-9999">
+                <input type="text" id="celular" placeholder="Contato 47 99999-9999">
                 <input type="text" id="referencia" placeholder="Ponto de Referência">
                 
                 <textarea id="obsPedido" placeholder="Observações (ex: Sem cebola)" rows="2" class="form-control mb-2"></textarea>
@@ -123,8 +125,6 @@
             <button class="btn-principal w-100 mt-3" onclick="processarResumoGeo()">Próximo</button>
         </div>
 
-        
-
         <div id="resumo-pedido" style="display:none;">
             <div class="modal-header-clean"><h3>Resumo Final</h3></div>
             <div id="resumo-itens" class="resumo-lista"></div>
@@ -137,33 +137,19 @@
         </div>
     </div>
 </div>
-    <div id="resumo-pedido" style="display:none;">
-            <div class="modal-header-clean"><h3>Resumo Final</h3></div>
-            <div id="resumo-itens" class="resumo-lista"></div>
-            <div id="resumo-taxa" class="resumo-valores p-2 bg-light rounded"></div>
-            <h4 id="resumo-total" class="resumo-total-final text-center mt-3"></h4>
-            <div class="modal-actions">
-                <button class="btn-secundario" onclick="voltarParaEntrega()">Voltar</button>
-                <button class="btn-whatsapp" onclick="enviarPedidoFirebase()">Finalizar Pedido</button>
-            </div>
-        </div>
-    </div>
-</div> <div id="modal-status-cliente" class="modal-overlay" style="display:none;">
+
+<div id="modal-status-cliente" class="modal-overlay" style="display:none;">
     <div class="status-card">
         <div class="status-header">
             <h3>Acompanhar Pedido</h3>
             <button class="btn-fechar-status" onclick="fecharStatus()">✕</button>
         </div>
-        
         <div class="status-conteudo">
             <div id="status-icone-animado" class="status-icone">⌛</div>
             <h2 id="status-texto-titulo">Aguardando...</h2>
             <p id="status-texto-desc">Estamos verificando seu pedido.</p>
-            
-            <div class="status-detalhes-pedido" id="status-detalhes-lista">
-            </div>
+            <div class="status-detalhes-pedido" id="status-detalhes-lista"></div>
         </div>
-
         <div class="status-footer">
             <button class="btn-principal" onclick="fecharStatus()">Voltar ao Cardápio</button>
         </div>
@@ -172,29 +158,27 @@
 
 <div class="bottom-nav-container">
     <nav class="bottom-nav">
-    <div class="bottom-nav-container">
-    <nav class="bottom-nav">
         <a href="javascript:void(0)" class="nav-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
             <i class="fas fa-home"></i>
             <span class="nav-label">Início</span>
         </a>
-
         <a href="javascript:void(0)" class="nav-item" onclick="verificarStatusPedido()">
             <i class="fas fa-receipt"></i>
             <span class="nav-label">Pedidos</span>
         </a>
-
         <a href="javascript:void(0)" class="nav-item" onclick="abrirPainelAdmin()">
             <i class="fas fa-user-shield"></i>
             <span class="nav-label">Admin</span>
         </a>
     </nav>
 </div>
-        
-<script src="https://unpkg.com/@geoapify/geocoder-autocomplete@^1/dist/index.min.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/@geoapify/geocoder-autocomplete@^1/dist/index.min.js"></script>
+
 <script>
+    // Inicialização do Firebase (Deve vir antes do script.js)
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
         authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -204,23 +188,11 @@
         messagingSenderId: "884850608032",
         appId: "1:884850608032:web:79db6983346c3c20edc6c5"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
 </script>
+
 <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
