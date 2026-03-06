@@ -1,10 +1,9 @@
-// --- CONFIGURAÇÕES GLOBAIS ---
+// --- CONFIGURAÇÕES GLOBAIS ATUALIZADAS ---
 const ID_LOJA = "kings_burger"; 
-const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
-// CORREÇÃO: Padrão [Longitude, Latitude] para bater com a API
-const RESTAURANTE_COORD = [-49.0670, -26.4860]; 
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; // Chave do script 100%
+const RESTAURANTE_COORD = [-49.024909, -26.464334]; // Coordenadas do script 100%
 const TAXA_BASE = 5.00; 
-const VALOR_POR_KM = 4.00; 
+const VALOR_POR_KM = 4.00;
 
 let carrinho = [];
 let produtosGeral = [];
@@ -204,48 +203,55 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 async function processarResumoGeo() {
-    const nome = document.getElementById("nomeCliente").value;
-    const rua = document.getElementById("rua").value;
-    const num = document.getElementById("numero").value;
-    const cidade = document.getElementById("cidade")?.value || "Jaraguá do Sul";
-    const bairro = document.getElementById("bairro").value;
+    // Tenta pegar os IDs de ambos os modelos de HTML para não dar erro
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || "";
+    const cidade = "Guaramirim"; // Forçando a cidade do script 100%
 
-    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
     try {
+        // Montagem da query idêntica ao script 100%
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`);
         const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
+        // Delay para garantir que o loader apareça e a API responda
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         if (data.features && data.features.length > 0) {
             const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
             
-            // CORREÇÃO: Passando Latitude (index 1) e Longitude (index 0) corretamente
+            // Cálculo Haversine usando as coordenadas do restaurante
             const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latDestino, lonDestino);
             
+            console.log("Distância calculada:", dist.toFixed(2), "km");
             taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
         } else {
-            console.warn("GPS não localizou, usando taxa base.");
+            console.warn("Endereço não localizado pela API, usando taxa base.");
             taxaEntregaCalculada = TAXA_BASE; 
         }
 
+        // Garante que a taxa nunca seja menor que a base
         if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+        
         mostrarResumoFinal();
 
     } catch (e) {
-        console.error("Erro na busca:", e);
+        console.error("Erro na busca de endereço:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
         if (loader) loader.style.display = "none";
     }
 }
-
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
