@@ -1,10 +1,14 @@
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
+
 const RESTAURANTE_COORD = [-26.464334, -49.024909];
+
+const TAXA_BASE = 0;
+
 const VALOR_POR_KM = 4.00;
-const LIMITE_KM = 10; // limite máximo entrega
+
+const LIMITE_KM = 10;
+
 let taxaEntregaCalculada = 0;
-
-
 let carrinho = [];
 
 let produtosGeral = [];
@@ -399,89 +403,70 @@ function removerItem(idx) {
 
 async function processarResumoGeo() {
 
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || "";
+    const nome = document.getElementById("nomeCliente").value;
+    const rua = document.getElementById("rua").value;
+    const num = document.getElementById("numero").value;
+    const bairro = document.getElementById("bairro").value || "";
+    const cidade = document.getElementById("cidade").value;
 
     if (!nome || !rua || !num) {
         alert("Preencha Nome, Rua e Número!");
         return;
     }
 
-    const loader = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
+    const loader = document.getElementById("loading-geral");
     if(loader) loader.style.display = "flex";
 
     try {
 
-        const cidade = "Jaraguá do Sul";
+        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
 
-        const query = encodeURIComponent(`${rua}, ${num}, ${cidade}, SC, Brasil`);
-
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(endereco)}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
         if (!data.features || data.features.length === 0) {
-
             alert("Endereço não encontrado.");
-            taxaEntregaCalculada = TAXA_BASE;
-            mostrarResumoFinal();
+            if(loader) loader.style.display = "none";
             return;
-
         }
 
         const destino = data.features[0].geometry.coordinates;
 
-        const lonDestino = destino[0];
         const latDestino = destino[1];
+        const lonDestino = destino[0];
 
         const latRest = RESTAURANTE_COORD[0];
         const lonRest = RESTAURANTE_COORD[1];
 
         const distancia = calcularDistancia(latRest, lonRest, latDestino, lonDestino);
 
-        console.log("Distância:", distancia);
+        console.log("Distância KM:", distancia);
 
         if (distancia > LIMITE_KM) {
-
-            alert("Desculpe, estamos fora da área de entrega.");
-            taxaEntregaCalculada = 0;
+            alert("Desculpe, não entregamos nessa região.");
+            if(loader) loader.style.display = "none";
             return;
-
         }
 
         taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
-
-        if (taxaEntregaCalculada < TAXA_BASE) {
-            taxaEntregaCalculada = TAXA_BASE;
-        }
-
         taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
+
+        console.log("Taxa entrega:", taxaEntregaCalculada);
 
         mostrarResumoFinal();
 
     } catch (erro) {
 
-        console.error("Erro cálculo entrega:", erro);
-        taxaEntregaCalculada = TAXA_BASE;
-        mostrarResumoFinal();
-
-    } finally {
-
-        if(loader) loader.style.display = "none";
+        console.error("Erro Geoapify:", erro);
+        alert("Erro ao calcular entrega.");
 
     }
 
+    if(loader) loader.style.display = "none";
+
 }
-
-
-// FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
-
-// --- FUNÇÃO ENVIAR CORRIGIDA ---
-
-
 
     // 3. FUNÇÃO PARA LIMPAR E REINICIAR O SITE
 
