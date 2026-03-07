@@ -279,24 +279,16 @@ async function processarResumoGeo() {
 
         console.log("Distância cliente:", distanciaKm);
 
-        // bloqueio se passar do limite
         if (distanciaKm > LIMITE_KM) {
-
             alert("Desculpe, ainda não entregamos nessa região.");
-
             if (loader) loader.style.display = "none";
-
             return;
         }
 
-        // cálculo da taxa
         taxaEntregaCalculada = TAXA_MINIMA + (distanciaKm * VALOR_POR_KM);
 
-        // garante taxa mínima
         if (taxaEntregaCalculada < TAXA_MINIMA) {
-
             taxaEntregaCalculada = TAXA_MINIMA;
-
         }
 
         taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
@@ -316,7 +308,6 @@ async function processarResumoGeo() {
         if (loader) loader.style.display = "none";
 
     }
-
 }
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
