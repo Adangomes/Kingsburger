@@ -244,7 +244,7 @@ async function processarResumoGeo() {
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
     const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
 
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
+    if (!nome || !rua || !num) return alert("Preencha os dados!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
@@ -254,7 +254,6 @@ async function processarResumoGeo() {
         const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Jaraguá do Sul, SC, Brasil`);
 
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
-
         const data = await resp.json();
 
         if (data.features && data.features.length > 0) {
@@ -263,11 +262,11 @@ async function processarResumoGeo() {
 
             const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
 
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            taxaEntregaCalculada = TAXA_MINIMA + (dist * VALOR_POR_KM);
 
         } else {
 
-            taxaEntregaCalculada = TAXA_BASE;
+            taxaEntregaCalculada = TAXA_MINIMA;
 
         }
 
@@ -275,9 +274,9 @@ async function processarResumoGeo() {
 
     } catch (e) {
 
-        console.error("Erro ao calcular taxa:", e);
+        console.error(e);
 
-        taxaEntregaCalculada = TAXA_BASE;
+        taxaEntregaCalculada = TAXA_MINIMA;
 
         mostrarResumoFinal();
 
