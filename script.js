@@ -255,51 +255,44 @@ async function processarResumoGeo() {
         const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
         const query = encodeURIComponent(endereco);
 
-        const geoResp = await fetch(
+        const resp = await fetch(
             `https://api.geoapify.com/v1/geocode/search?text=${query}&limit=1&apiKey=${GEOAPIFY_KEY}`
         );
 
-        const geoData = await geoResp.json();
+        const data = await resp.json();
 
-        if (!geoData.features || geoData.features.length === 0) {
+        if (!data.features || data.features.length === 0) {
             throw new Error("Endereço não encontrado");
         }
 
-        const [lonDestino, latDestino] =
-            geoData.features[0].geometry.coordinates;
+        const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
 
-        // verifica zona fixa
-        if (ZONAS_FIXAS[bairro]) {
+        // distância em KM
+        const distanciaKm = calcularDistancia(
+            RESTAURANTE_COORD[1],
+            RESTAURANTE_COORD[0],
+            latDestino,
+            lonDestino
+        );
 
-            taxaEntregaCalculada = ZONAS_FIXAS[bairro];
+        console.log("Distância cliente:", distanciaKm);
 
-        } else {
+        // limite máximo
+        const LIMITE_ENTREGA = 10;
 
-            // calcula rota real
-            const rotaResp = await fetch(
-                `https://api.geoapify.com/v1/routing?waypoints=${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}|${latDestino},${lonDestino}&mode=drive&apiKey=${GEOAPIFY_KEY}`
-            );
-
-            const rotaData = await rotaResp.json();
-
-            const distanciaKm =
-                rotaData.features[0].properties.distance / 1000;
-
-            console.log("Distância real:", distanciaKm);
-
-            if (distanciaKm > LIMITE_KM) {
-                alert("Desculpe, ainda não entregamos nessa região.");
-                if (loader) loader.style.display = "none";
-                return;
-            }
-
-            taxaEntregaCalculada =
-                TAXA_MINIMA + (distanciaKm * VALOR_POR_KM);
-
+        if (distanciaKm > LIMITE_ENTREGA) {
+            alert("Desculpe, ainda não entregamos nessa região.");
+            if (loader) loader.style.display = "none";
+            return;
         }
 
-        if (taxaEntregaCalculada < TAXA_MINIMA)
-            taxaEntregaCalculada = TAXA_MINIMA;
+        // cálculo da taxa
+        taxaEntregaCalculada = TAXA_BASE + (distanciaKm * VALOR_POR_KM);
+
+        // taxa mínima
+        if (taxaEntregaCalculada < TAXA_BASE) {
+            taxaEntregaCalculada = TAXA_BASE;
+        }
 
         taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
 
@@ -307,9 +300,9 @@ async function processarResumoGeo() {
 
     } catch (erro) {
 
-        console.error("Erro entrega:", erro);
+        console.error("Erro cálculo entrega:", erro);
 
-        taxaEntregaCalculada = TAXA_MINIMA;
+        taxaEntregaCalculada = TAXA_BASE;
 
         mostrarResumoFinal();
 
@@ -318,7 +311,6 @@ async function processarResumoGeo() {
         if (loader) loader.style.display = "none";
 
     }
-
 }
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
