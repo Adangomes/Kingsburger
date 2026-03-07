@@ -5,7 +5,7 @@ const ID_LOJA = "kings_burger";
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 
 // localização do restaurante (Vila Nova - Jaraguá do Sul)
-const RESTAURANTE_COORD = [-49.0851, -26.4854]; 
+const RESTAURANTE_COORD = [-49.024909, -26.464334]; 
 // [longitude, latitude]
 
 // taxa mínima
@@ -239,75 +239,54 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 async function processarResumoGeo() {
 
-    const nome = document.getElementById("nomeCliente")?.value;
-    const rua = document.getElementById("rua")?.value;
-    const num = document.getElementById("numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || "";
-    const cidade = document.getElementById("cidade")?.value || "Jaraguá do Sul";
+    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
 
-    if (!nome || !rua || !num) {
-        alert("Preencha Nome, Rua e Número!");
-        return;
-    }
+    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
     try {
 
-        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
-        const query = encodeURIComponent(endereco);
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Jaraguá do Sul, SC, Brasil`);
 
-        const resp = await fetch(
-            `https://api.geoapify.com/v1/geocode/search?text=${query}&limit=1&apiKey=${GEOAPIFY_KEY}`
-        );
+        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
 
         const data = await resp.json();
 
-        if (!data.features || data.features.length === 0) {
-            throw new Error("Endereço não encontrado");
+        if (data.features && data.features.length > 0) {
+
+            const [lon, lat] = data.features[0].geometry.coordinates;
+
+            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
+
+            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+
+        } else {
+
+            taxaEntregaCalculada = TAXA_BASE;
+
         }
-
-        const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
-
-        const distanciaKm = calcularDistancia(
-            RESTAURANTE_COORD[1],
-            RESTAURANTE_COORD[0],
-            latDestino,
-            lonDestino
-        );
-
-        console.log("Distância cliente:", distanciaKm);
-
-        if (distanciaKm > LIMITE_KM) {
-            alert("Desculpe, ainda não entregamos nessa região.");
-            if (loader) loader.style.display = "none";
-            return;
-        }
-
-        taxaEntregaCalculada = TAXA_MINIMA + (distanciaKm * VALOR_POR_KM);
-
-        if (taxaEntregaCalculada < TAXA_MINIMA) {
-            taxaEntregaCalculada = TAXA_MINIMA;
-        }
-
-        taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
 
         mostrarResumoFinal();
 
-    } catch (erro) {
+    } catch (e) {
 
-        console.error("Erro cálculo entrega:", erro);
+        console.error("Erro ao calcular taxa:", e);
 
-        taxaEntregaCalculada = TAXA_MINIMA;
+        taxaEntregaCalculada = TAXA_BASE;
 
         mostrarResumoFinal();
 
     } finally {
 
-        if (loader) loader.style.display = "none";
+        if(loader) loader.style.display = "none";
 
     }
+
 }
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
