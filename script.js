@@ -1,9 +1,29 @@
-// --- CONFIGURAÇÕES GLOBAIS ATUALIZADAS ---
-const ID_LOJA = "kings_burger"; 
-const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775"; 
-const RESTAURANTE_COORD = [-49.024909, -26.464334]; // [Longitude, Latitude]
-const TAXA_BASE = 5.00; 
-const VALOR_POR_KM = 4.00;
+// --- CONFIGURAÇÕES DELIVERY PRO ---
+
+const ID_LOJA = "kings_burger";
+
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
+
+// localização do restaurante (Vila Nova - Jaraguá do Sul)
+const RESTAURANTE_COORD = [-49.0851, -26.4854]; 
+// [longitude, latitude]
+
+// taxa mínima
+const TAXA_MINIMA = 5.00;
+
+// valor por km rodado
+const VALOR_POR_KM = 3.50;
+
+// limite máximo de entrega
+const LIMITE_KM = 12;
+
+// zonas opcionais (bairro -> taxa fixa)
+const ZONAS_FIXAS = {
+    "Vila Nova": 5,
+    "Centro": 7,
+    "Amizade": 6,
+    "Baependi": 8
+};
 
 let carrinho = [];
 let produtosGeral = [];
@@ -217,71 +237,79 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 async function processarResumoGeo() {
 
     const nome = document.getElementById("nomeCliente")?.value;
-    const cidade = document.getElementById("cidade")?.value || "Guaramirim";
     const rua = document.getElementById("rua")?.value;
     const num = document.getElementById("numero")?.value;
     const bairro = document.getElementById("bairro")?.value || "";
+    const cidade = document.getElementById("cidade")?.value || "Jaraguá do Sul";
 
-    if (!nome || !rua || !num)
-        return alert("Por favor preencha Nome, Rua e Número!");
+    if (!nome || !rua || !num) {
+        alert("Preencha Nome, Rua e Número!");
+        return;
+    }
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
-
     try {
 
-        // monta endereço completo
         const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
         const query = encodeURIComponent(endereco);
 
-        const resp = await fetch(
-            `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`
+        const geoResp = await fetch(
+            `https://api.geoapify.com/v1/geocode/search?text=${query}&limit=1&apiKey=${GEOAPIFY_KEY}`
         );
 
-        const data = await resp.json();
+        const geoData = await geoResp.json();
 
+        if (!geoData.features || geoData.features.length === 0) {
+            throw new Error("Endereço não encontrado");
+        }
 
-        // delay visual
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const [lonDestino, latDestino] =
+            geoData.features[0].geometry.coordinates;
 
+        // verifica zona fixa
+        if (ZONAS_FIXAS[bairro]) {
 
-        if (data.features && data.features.length > 0) {
-
-            const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
-
-            const distanciaKm = calcularDistancia(
-                RESTAURANTE_COORD[1],
-                RESTAURANTE_COORD[0],
-                latDestino,
-                lonDestino
-            );
-
-
-            // cálculo real
-            taxaEntregaCalculada = TAXA_BASE + (distanciaKm * VALOR_POR_KM);
+            taxaEntregaCalculada = ZONAS_FIXAS[bairro];
 
         } else {
 
-            taxaEntregaCalculada = TAXA_BASE;
+            // calcula rota real
+            const rotaResp = await fetch(
+                `https://api.geoapify.com/v1/routing?waypoints=${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}|${latDestino},${lonDestino}&mode=drive&apiKey=${GEOAPIFY_KEY}`
+            );
+
+            const rotaData = await rotaResp.json();
+
+            const distanciaKm =
+                rotaData.features[0].properties.distance / 1000;
+
+            console.log("Distância real:", distanciaKm);
+
+            if (distanciaKm > LIMITE_KM) {
+                alert("Desculpe, ainda não entregamos nessa região.");
+                if (loader) loader.style.display = "none";
+                return;
+            }
+
+            taxaEntregaCalculada =
+                TAXA_MINIMA + (distanciaKm * VALOR_POR_KM);
 
         }
 
+        if (taxaEntregaCalculada < TAXA_MINIMA)
+            taxaEntregaCalculada = TAXA_MINIMA;
 
-        // proteção mínima
-        if (taxaEntregaCalculada < TAXA_BASE) {
-            taxaEntregaCalculada = TAXA_BASE;
-        }
-
+        taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
 
         mostrarResumoFinal();
 
-
     } catch (erro) {
 
-        console.error("Erro cálculo entrega:", erro);
+        console.error("Erro entrega:", erro);
 
-        taxaEntregaCalculada = TAXA_BASE;
+        taxaEntregaCalculada = TAXA_MINIMA;
 
         mostrarResumoFinal();
 
