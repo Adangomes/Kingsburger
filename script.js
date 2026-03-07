@@ -215,8 +215,11 @@ function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 // --- 4. MOTOR DE CÁLCULO DE ENTREGA ---
 // --- MOTOR DE CÁLCULO DE ENTREGA (VERSÃO 100% FUNCIONAL) ---
 
+// --- 4. MOTOR DE CÁLCULO DE ENTREGA ---
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // raio da terra em KM
+
+    const R = 6371;
 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -230,7 +233,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // distância em KM
+    return R * c;
 }
 
 
@@ -267,7 +270,6 @@ async function processarResumoGeo() {
 
         const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
 
-        // distância em KM
         const distanciaKm = calcularDistancia(
             RESTAURANTE_COORD[1],
             RESTAURANTE_COORD[0],
@@ -277,21 +279,24 @@ async function processarResumoGeo() {
 
         console.log("Distância cliente:", distanciaKm);
 
-        // limite máximo
-        const LIMITE_ENTREGA = 10;
+        // bloqueio se passar do limite
+        if (distanciaKm > LIMITE_KM) {
 
-        if (distanciaKm > LIMITE_ENTREGA) {
             alert("Desculpe, ainda não entregamos nessa região.");
+
             if (loader) loader.style.display = "none";
+
             return;
         }
 
         // cálculo da taxa
-        taxaEntregaCalculada = TAXA_BASE + (distanciaKm * VALOR_POR_KM);
+        taxaEntregaCalculada = TAXA_MINIMA + (distanciaKm * VALOR_POR_KM);
 
-        // taxa mínima
-        if (taxaEntregaCalculada < TAXA_BASE) {
-            taxaEntregaCalculada = TAXA_BASE;
+        // garante taxa mínima
+        if (taxaEntregaCalculada < TAXA_MINIMA) {
+
+            taxaEntregaCalculada = TAXA_MINIMA;
+
         }
 
         taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
@@ -302,7 +307,7 @@ async function processarResumoGeo() {
 
         console.error("Erro cálculo entrega:", erro);
 
-        taxaEntregaCalculada = TAXA_BASE;
+        taxaEntregaCalculada = TAXA_MINIMA;
 
         mostrarResumoFinal();
 
@@ -311,6 +316,7 @@ async function processarResumoGeo() {
         if (loader) loader.style.display = "none";
 
     }
+
 }
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
