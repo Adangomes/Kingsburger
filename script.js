@@ -1,6 +1,6 @@
 pega esse script  // --- CONFIGURAÇÕES GLOBAIS ---
 
-const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
+const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
 
 const RESTAURANTE_COORD = [-49.024909, -26.464334]; 
 
