@@ -193,54 +193,105 @@ function atualizarCarrinho() {
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
 
 // --- 4. MOTOR DE CÁLCULO DE ENTREGA ---
+// --- MOTOR DE CÁLCULO DE ENTREGA (VERSÃO 100% FUNCIONAL) ---
+
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; 
+    const R = 6371; // raio da terra em KM
+
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // distância em KM
 }
 
+
 async function processarResumoGeo() {
+
     const nome = document.getElementById("nomeCliente")?.value;
-    const cidade = document.getElementById("cidade")?.value; 
+    const cidade = document.getElementById("cidade")?.value || "Guaramirim";
     const rua = document.getElementById("rua")?.value;
     const num = document.getElementById("numero")?.value;
-    const bairro = document.getElementById("bairro")?.value;
+    const bairro = document.getElementById("bairro")?.value || "";
 
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número!");
+    if (!nome || !rua || !num)
+        return alert("Por favor preencha Nome, Rua e Número!");
 
     const loader = document.getElementById("loading-geral");
     if (loader) loader.style.display = "flex";
 
-    try {
-        const enderecoCompleto = `${rua}, ${num} - ${bairro}, ${cidade}, SC, Brasil`;
-        const query = encodeURIComponent(enderecoCompleto);
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
-        const resp = await fetch(url);
+    try {
+
+        // monta endereço completo
+        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
+        const query = encodeURIComponent(endereco);
+
+        const resp = await fetch(
+            `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`
+        );
+
         const data = await resp.json();
 
+
+        // delay visual
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+
         if (data.features && data.features.length > 0) {
+
             const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], latDestino, lonDestino);
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+
+            const distanciaKm = calcularDistancia(
+                RESTAURANTE_COORD[1],
+                RESTAURANTE_COORD[0],
+                latDestino,
+                lonDestino
+            );
+
+
+            // cálculo real
+            taxaEntregaCalculada = TAXA_BASE + (distanciaKm * VALOR_POR_KM);
+
         } else {
+
+            taxaEntregaCalculada = TAXA_BASE;
+
+        }
+
+
+        // proteção mínima
+        if (taxaEntregaCalculada < TAXA_BASE) {
             taxaEntregaCalculada = TAXA_BASE;
         }
 
-        if (taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
+
         mostrarResumoFinal();
 
-    } catch (e) {
+
+    } catch (erro) {
+
+        console.error("Erro cálculo entrega:", erro);
+
         taxaEntregaCalculada = TAXA_BASE;
-        mostrarResumoFinal();
-    } finally {
-        if (loader) loader.style.display = "none";
-    }
-}
 
+        mostrarResumoFinal();
+
+    } finally {
+
+        if (loader) loader.style.display = "none";
+
+    }
+
+}
 // --- 5. FIREBASE E STATUS ---
 async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
