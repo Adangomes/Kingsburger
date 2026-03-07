@@ -1,13 +1,8 @@
-pega esse script  // --- CONFIGURAÇÕES GLOBAIS ---
-
-const GEOAPIFY_KEY = "982bec83e14648a0b7c9b1e0c4873b04";
-
-const RESTAURANTE_COORD = [-49.024909, -26.464334]; 
-
-const VALOR_POR_KM = 4.0;
-
-const WHATSAPP_NUMERO = "5547992745867";
-
+const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
+const RESTAURANTE_COORD = [-26.464334, -49.024909];
+const VALOR_POR_KM = 4.00;
+const LIMITE_KM = 10; // limite máximo entrega
+let taxaEntregaCalculada = 0;
 
 
 let carrinho = [];
@@ -405,86 +400,75 @@ function removerItem(idx) {
 async function processarResumoGeo() {
 
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
+    const bairro = document.getElementById("bairro")?.value || "";
 
-
-
-    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
-
-    
-
-// 1. ATIVA O EFEITO (O Círculo Girando)
-
-    const loader = document.getElementById("loading-geral");
-
-    if (loader) {
-
-        loader.style.display = "flex"; 
-
+    if (!nome || !rua || !num) {
+        alert("Preencha Nome, Rua e Número!");
+        return;
     }
 
-
+    const loader = document.getElementById("container-loading-taxa") || document.getElementById("loading-geral");
+    if(loader) loader.style.display = "flex";
 
     try {
 
-        // 2. CHAMADA DA API GEOAPIFY
+        const cidade = "Jaraguá do Sul";
 
-        const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
+        const query = encodeURIComponent(`${rua}, ${num}, ${cidade}, SC, Brasil`);
 
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`;
 
+        const resp = await fetch(url);
         const data = await resp.json();
 
+        if (!data.features || data.features.length === 0) {
 
-
-        // 3. FORÇAR UM DELAY DE 2 SEGUNDOS (Para o usuário ver que está processando)
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-
-
-        if (data.features && data.features.length > 0) {
-
-            const [lon, lat] = data.features[0].geometry.coordinates;
-
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
-
-            
-
-            // Cálculo da taxa: Base + (KM * Valor)
-
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-
-        } else {
-
-            // Se não achar a rua, coloca a taxa base padrão
-
+            alert("Endereço não encontrado.");
             taxaEntregaCalculada = TAXA_BASE;
+            mostrarResumoFinal();
+            return;
 
         }
 
+        const destino = data.features[0].geometry.coordinates;
 
+        const lonDestino = destino[0];
+        const latDestino = destino[1];
 
-        // 4. MOSTRAR RESULTADO FINAL
+        const latRest = RESTAURANTE_COORD[0];
+        const lonRest = RESTAURANTE_COORD[1];
+
+        const distancia = calcularDistancia(latRest, lonRest, latDestino, lonDestino);
+
+        console.log("Distância:", distancia);
+
+        if (distancia > LIMITE_KM) {
+
+            alert("Desculpe, estamos fora da área de entrega.");
+            taxaEntregaCalculada = 0;
+            return;
+
+        }
+
+        taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
+
+        if (taxaEntregaCalculada < TAXA_BASE) {
+            taxaEntregaCalculada = TAXA_BASE;
+        }
+
+        taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
 
         mostrarResumoFinal();
 
+    } catch (erro) {
 
-
-    } catch (e) {
-
-        console.error("Erro ao calcular taxa:", e);
-
+        console.error("Erro cálculo entrega:", erro);
         taxaEntregaCalculada = TAXA_BASE;
-
         mostrarResumoFinal();
 
     } finally {
-
-        // 5. ESCONDER O LOADING
 
         if(loader) loader.style.display = "none";
 
@@ -493,74 +477,9 @@ async function processarResumoGeo() {
 }
 
 
-
 // FUNÇÃO PARA ENVIAR (WhatsApp + Local para Firebase)
 
 // --- FUNÇÃO ENVIAR CORRIGIDA ---
-
-function enviarWhatsApp() {
-
-    const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-
-    const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-
-    const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value;
-
-    const pag = document.getElementById("pagamento")?.value || "A combinar";
-
-    const totalMsg = document.getElementById("resumo-total")?.innerText || "";
-
-
-
-    if (!nome || !rua) return alert("Preencha os dados de entrega!");
-
-
-
-    // 1. MONTAGEM DA MENSAGEM
-
-    let msg = `*NOVO PEDIDO - SNOOP LANCHE*\n`;
-
-    msg += `------------------------------\n`;
-
-    msg += ` *Cliente:* ${nome}\n`;
-
-    msg += ` *Endereço:* ${rua}, ${num}\n`;
-
-    msg += ` *Bairro:* ${bairro}\n`;
-
-    msg += ` *Pagamento:* ${pag}\n`;
-
-    msg += `------------------------------\n`;
-
-    msg += ` *ITENS:*\n`;
-
-    carrinho.forEach(i => msg += `• ${i.title} - R$ ${i.price.toFixed(2)}\n`);
-
-    msg += `------------------------------\n`;
-
-    msg += ` *Taxa de Entrega:* R$ ${taxaEntregaCalculada.toFixed(2)}\n`;
-
-    msg += ` *${totalMsg}*`;
-
-
-
-    const urlZap = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMERO}&text=${encodeURIComponent(msg)}`;
-
-
-
-    // 2. INTERFACE: Trava o botão para não clicar duas vezes
-
-    const btnWhats = document.querySelector("#resumo-pedido button");
-
-    if(btnWhats) {
-
-        btnWhats.innerText = "PROCESSANDO...";
-
-        btnWhats.disabled = true;
-
-    }
 
 
 
@@ -633,15 +552,18 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371;
 
     const dLat = (lat2 - lat1) * Math.PI / 180;
-
     const dLon = (lon2 - lon1) * Math.PI / 180;
 
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
 
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-
+    return R * c;
 }
 
 
