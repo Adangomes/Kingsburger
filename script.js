@@ -20,23 +20,28 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- 1. CARREGAMENTO ---
+// --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
 async function carregarCardapioCompleto() {
     try {
         const res = await fetch("content/produtos.json?v=" + Date.now());
         const data = await res.json();
         produtosGeral = data.produtos;
         renderizarCardapio();
-    } catch (e) { console.error("Erro JSON:", e); }
+    } catch (e) { 
+        console.error("Erro JSON:", e); 
+    }
 }
 
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
     if(!corpo || !nav) return;
+    
     corpo.innerHTML = "";
     nav.innerHTML = "";
+
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
+
     categorias.forEach((cat, idx) => {
         const btn = document.createElement("button");
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
@@ -44,14 +49,18 @@ function renderizarCardapio() {
         btn.onclick = () => scrollToCategoria(cat);
         btn.setAttribute("data-categoria", cat);
         nav.appendChild(btn);
+
         const section = document.createElement("section");
         section.className = "secao-categoria";
         section.id = `secao-${cat}`;
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
+
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
+
             const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
+
             section.innerHTML += `
                 <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
                     <div class="info-produto">
@@ -86,6 +95,7 @@ function abrirModalSelecao(nome) {
     document.getElementById("pizza-modal-title").innerText = nome;
     document.getElementById("pergunta-qtd-sabores").style.display = "none";
     document.getElementById("secao-sabores").style.display = "none";
+
     if (itemMestreTemporario.categoria === 'pizza') {
         if (nome.includes("PIZZA P")) {
             tamanhoSelecionadoGlobal = "P";
@@ -116,6 +126,7 @@ function montarListaSabores(n, tipo) {
     const opcoes = (tipo === 'pizza') 
         ? produtosGeral.filter(p => p.categoria === 'pizza' && !p.title.includes("PIZZA ")) 
         : produtosGeral.filter(p => p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg"));
+
     opcoes.forEach(opt => {
         grid.innerHTML += `
             <div class="item-sabor-wizard" onclick="toggleSabor('${opt.title}')">
@@ -190,16 +201,16 @@ function removerItem(idx) {
     atualizarCarrinho();
 }
 
-// --- 4. CÁLCULO DE ENTREGA (GEOAPIFY ULTRA CORRIGIDO) ---
+// --- 4. RESUMO E ENTREGA ---
 async function processarResumoGeo() {
+    const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
     const bairro = document.getElementById("bairro").value || "";
-    // Se você não tiver um campo cidade no HTML, use a cidade do restaurante fixo
-    const cidade = document.getElementById("cidade")?.value || "Jaraguá do Sul"; 
+    const cidade = document.getElementById("cidade").value;
 
-    if (!rua || !num) {
-        alert("Por favor, preencha Rua e Número!");
+    if (!nome || !rua || !num) {
+        alert("Preencha Nome, Rua e Número!");
         return;
     }
 
@@ -207,53 +218,36 @@ async function processarResumoGeo() {
     if(loader) loader.style.display = "flex";
 
     try {
-        // Montamos o endereço da forma que o GPS entende melhor
-        const enderecoCompleto = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
-        
-        // Adicionamos bias (proximidade) para o GPS focar na sua região
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(enderecoCompleto)}&bias=proximity:${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}&apiKey=${GEOAPIFY_KEY}`;
+        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(endereco)}&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
         if (!data.features || data.features.length === 0) {
-            // Se falhou com o bairro, tentamos uma última vez sem o bairro (mais genérico)
-            const urlSimples = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(rua + ", " + num + ", " + cidade)}&apiKey=${GEOAPIFY_KEY}`;
-            const resp2 = await fetch(urlSimples);
-            const data2 = await resp2.json();
-            
-            if(!data2.features || data2.features.length === 0) {
-                alert("Endereço não localizado. Tente digitar apenas o nome da rua e o número.");
-                if(loader) loader.style.display = "none";
-                return;
-            }
-            processarResultadoGPS(data2.features[0], loader);
-        } else {
-            processarResultadoGPS(data.features[0], loader);
+            alert("Endereço não encontrado.");
+            if(loader) loader.style.display = "none";
+            return;
         }
 
+        const destino = data.features[0].geometry.coordinates;
+        const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], destino[1], destino[0]);
+
+        if (distancia > LIMITE_KM) {
+            alert("Desculpe, não entregamos nessa região.");
+            if(loader) loader.style.display = "none";
+            return;
+        }
+
+        taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
+        taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
+
+        mostrarResumoFinal();
     } catch (erro) {
-        console.error("Erro GPS:", erro);
-        alert("Erro na conexão com o GPS.");
-        if(loader) loader.style.display = "none";
+        console.error("Erro Geoapify:", erro);
+        alert("Erro ao calcular entrega.");
     }
-}
-
-function processarResultadoGPS(feature, loader) {
-    const [lonDest, latDest] = feature.geometry.coordinates;
-    const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDest, lonDest);
-
-    if (distancia > LIMITE_KM) {
-        alert(`Distância de ${distancia.toFixed(1)}km está fora da nossa área de entrega (${LIMITE_KM}km).`);
-        if(loader) loader.style.display = "none";
-        return;
-    }
-
-    taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
-    taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
-    
     if(loader) loader.style.display = "none";
-    mostrarResumoFinal();
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -263,26 +257,34 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
-// --- 5. RESUMO E WHATSAPP ---
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
     if(!resumoItens) return;
+
     resumoItens.innerHTML = "";
     let sub = 0;
     carrinho.forEach(i => {
         sub += i.price;
         resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
+
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa: R$ ${taxaEntregaCalculada.toFixed(2)}`;
+    document.getElementById("resumo-taxa").innerHTML = `
+        Subtotal: R$ ${sub.toFixed(2)}<br>
+        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
+        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
+    `;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
+    
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
+// --- 5. FINALIZAÇÃO E WHATSAPP ---
 function enviarWhatsApp() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
@@ -290,31 +292,55 @@ function enviarWhatsApp() {
     const pag = document.querySelector('input[name="pagamento"]:checked')?.value || "Não informado";
     
     let sub = carrinho.reduce((acc, i) => acc + i.price, 0);
-    let total = sub + taxaEntregaCalculada;
+    let total = sub + taxaEntregaCalculada - descontoAplicado;
 
-    let txt = `*NOVO PEDIDO*\n\n*Cliente:* ${nome}\n*Endereço:* ${rua}, ${num}\n*Pagamento:* ${pag}\n\n*ITENS:*\n`;
-    carrinho.forEach(i => txt += `- ${i.title}\n`);
-    txt += `\n*Total:* R$ ${total.toFixed(2)}`;
-
-    const urlZap = `https://api.whatsapp.com/send?phone=5547999999999&text=${encodeURIComponent(txt)}`;
+    let mensagem = `*NOVO PEDIDO*\n\n`;
+    mensagem += `*Cliente:* ${nome}\n`;
+    mensagem += `*Endereço:* ${rua}, ${num}\n`;
+    mensagem += `*Pagamento:* ${pag}\n\n`;
+    mensagem += `*ITENS:*\n`;
     
-    if (typeof salvarPedidoFirebase === 'function') {
-        salvarPedidoFirebase({ nome, rua, num, pag }).then(() => {
-            localStorage.removeItem("carrinho");
-            window.location.href = urlZap;
-        });
-    } else {
+    carrinho.forEach(i => {
+        mensagem += `- ${i.title} (R$ ${i.price.toFixed(2)})\n`;
+    });
+
+    mensagem += `\n*Subtotal:* R$ ${sub.toFixed(2)}`;
+    mensagem += `\n*Taxa:* R$ ${taxaEntregaCalculada.toFixed(2)}`;
+    mensagem += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
+
+    const fone = "5547999999999"; // COLOQUE SEU NUMERO AQUI
+    const urlZap = `https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(mensagem)}`;
+
+    const finalizarEVoltarInicio = () => {
         localStorage.removeItem("carrinho");
         window.location.href = urlZap;
+        setTimeout(() => { location.reload(); }, 1500);
+    };
+
+    // Tenta salvar no Firebase antes de ir pro Zap
+    if (typeof salvarPedidoFirebase === 'function') {
+        const segurancaTimeout = setTimeout(finalizarEVoltarInicio, 4000);
+        salvarPedidoFirebase({ nome, rua, num, pag })
+            .then(() => {
+                clearTimeout(segurancaTimeout);
+                finalizarEVoltarInicio();
+            })
+            .catch(() => {
+                clearTimeout(segurancaTimeout);
+                finalizarEVoltarInicio();
+            });
+    } else {
+        finalizarEVoltarInicio();
     }
 }
 
-// --- AUXILIARES ---
+// --- OUTROS AUXILIARES ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if(!el) return;
-    const h = new Date().getHours();
-    const aberto = h >= 18 && h < 23; 
+    const agora = new Date();
+    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
+    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; 
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
@@ -333,13 +359,17 @@ function fecharDelivery() { document.getElementById("delivery-modal").style.disp
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
     if(!el) return;
-    el.innerText = t + " adicionado! ✅"; el.style.display = "block";
+    el.innerText = t + " adicionado! ✅"; 
+    el.style.display = "block";
     setTimeout(() => el.style.display = "none", 2000);
 }
 
 function carregarCarrinhoStorage() {
     const s = localStorage.getItem("carrinho");
-    if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
+    if (s) { 
+        carrinho = JSON.parse(s); 
+        atualizarCarrinho(); 
+    }
 }
 
 function scrollToCategoria(cat) {
@@ -351,7 +381,11 @@ function sincronizarScrollMenu() {
     const secoes = document.querySelectorAll(".secao-categoria");
     const botoes = document.querySelectorAll(".cat-item");
     let atual = "";
-    secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
+    secoes.forEach(s => { 
+        if (window.pageYOffset >= s.offsetTop - 160) {
+            atual = s.getAttribute("id").replace("secao-", ""); 
+        }
+    });
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
 
@@ -363,19 +397,33 @@ function voltarParaEntrega() {
 // --- FIREBASE ---
 function inicializarFirebase() {
     if (typeof firebase !== 'undefined') {
-        const config = {
+        const firebaseConfig = {
             apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
             authDomain: "myproject26-10f0e.firebaseapp.com",
             databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e"
+            projectId: "myproject26-10f0e",
+            storageBucket: "myproject26-10f0e.firebasestorage.app",
+            messagingSenderId: "884850608032",
+            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
         };
-        if (!firebase.apps.length) firebase.initializeApp(config);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         return firebase.database();
     }
     return null;
 }
+
 const db = inicializarFirebase();
+
 function salvarPedidoFirebase(dados) {
     if (!db) return Promise.resolve();
-    return db.ref('pedidos').push({ ...dados, itens: carrinho, total: (carrinho.reduce((acc,i)=>acc+i.price,0)+taxaEntregaCalculada) });
+    const novoPedidoRef = db.ref('pedidos').push();
+    return novoPedidoRef.set({
+        cliente: dados.nome,
+        endereco: `${dados.rua}, ${dados.num}`,
+        pagamento: dados.pag,
+        itens: carrinho,
+        taxaEntrega: taxaEntregaCalculada,
+        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada),
+        horario: new Date().toLocaleTimeString('pt-BR')
+    });
 }
