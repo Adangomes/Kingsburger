@@ -2,7 +2,7 @@ const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 const RESTAURANTE_COORD = [-26.464334, -49.024909];
 const TAXA_BASE = 0;
 const VALOR_POR_KM = 4.00;
-const LIMITE_KM = 10;
+const LIMITE_KM = 15;
 
 let carrinho = [];
 let produtosGeral = [];
@@ -13,6 +13,16 @@ let saboresSelecionados = [];
 let limiteSabores = 0;
 let tamanhoSelecionadoGlobal = ""; 
 
+// Tabela de Taxas Fixas (Caso o GPS falhe)
+const TAXAS_POR_BAIRRO = {
+    "amizade": 5.00,
+    "centro": 4.00,
+    "baependi": 5.00,
+    "ilha da figueira": 7.00,
+    "vila nova": 6.00,
+    "default": 7.00
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     carregarStatusLoja();
     carregarCardapioCompleto();
@@ -20,16 +30,14 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
+// --- 1. CARREGAMENTO ---
 async function carregarCardapioCompleto() {
     try {
         const res = await fetch("content/produtos.json?v=" + Date.now());
         const data = await res.json();
         produtosGeral = data.produtos;
         renderizarCardapio();
-    } catch (e) { 
-        console.error("Erro JSON:", e); 
-    }
+    } catch (e) { console.error("Erro ao carregar produtos:", e); }
 }
 
 function renderizarCardapio() {
@@ -39,7 +47,6 @@ function renderizarCardapio() {
     
     corpo.innerHTML = "";
     nav.innerHTML = "";
-
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
 
     categorias.forEach((cat, idx) => {
@@ -58,9 +65,7 @@ function renderizarCardapio() {
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
             if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
             if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
-
             const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
-
             section.innerHTML += `
                 <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
                     <div class="info-produto">
@@ -92,6 +97,7 @@ function abrirModalSelecao(nome) {
     itemMestreTemporario = produtosGeral.find(p => p.title === nome);
     saboresSelecionados = [];
     const modal = document.getElementById("pizza-options-modal");
+    toggleRodape(false);
     document.getElementById("pizza-modal-title").innerText = nome;
     document.getElementById("pergunta-qtd-sabores").style.display = "none";
     document.getElementById("secao-sabores").style.display = "none";
@@ -183,10 +189,7 @@ function atualizarCarrinho() {
         sub += item.price;
         box.innerHTML += `
             <div class="cart-item-row">
-                <div style="flex:1">
-                    <strong>${item.title}</strong><br>
-                    <b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b>
-                </div>
+                <div style="flex:1"><strong>${item.title}</strong><br><b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b></div>
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
@@ -201,13 +204,14 @@ function removerItem(idx) {
     atualizarCarrinho();
 }
 
-// --- 4. RESUMO E ENTREGA ---
+// --- 4. TAXA E ENTREGA (CORRIGIDO) ---
 async function processarResumoGeo() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
-    const bairro = document.getElementById("bairro").value || "";
-    const cidade = document.getElementById("cidade").value;
+    const bairro = document.getElementById("bairro").value.trim();
+    const cidadeElem = document.getElementById("cidade");
+    const cidade = cidadeElem.options[cidadeElem.selectedIndex].value;
 
     if (!nome || !rua || !num) {
         alert("Preencha Nome, Rua e Número!");
@@ -218,34 +222,32 @@ async function processarResumoGeo() {
     if(loader) loader.style.display = "flex";
 
     try {
-        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(endereco)}&apiKey=${GEOAPIFY_KEY}`;
+        const enderecoBusca = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(enderecoBusca)}&limit=1&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
-        if (!data.features || data.features.length === 0) {
-            alert("Endereço não encontrado.");
-            if(loader) loader.style.display = "none";
-            return;
+        if (data.features && data.features.length > 0) {
+            const [lonDest, latDest] = data.features[0].geometry.coordinates;
+            const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDest, lonDest);
+            
+            if (distancia <= LIMITE_KM) {
+                taxaEntregaCalculada = Number((TAXA_BASE + (distancia * VALOR_POR_KM)).toFixed(2));
+            } else {
+                alert(`Distância excedida (${distancia.toFixed(1)}km). Nosso limite é ${LIMITE_KM}km.`);
+                if(loader) loader.style.display = "none";
+                return;
+            }
+        } else {
+            // Fallback: Taxa por bairro se GPS não localizar
+            const bairroKey = bairro.toLowerCase();
+            taxaEntregaCalculada = TAXAS_POR_BAIRRO[bairroKey] || TAXAS_POR_BAIRRO["default"];
         }
-
-        const destino = data.features[0].geometry.coordinates;
-        const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], destino[1], destino[0]);
-
-        if (distancia > LIMITE_KM) {
-            alert("Desculpe, não entregamos nessa região.");
-            if(loader) loader.style.display = "none";
-            return;
-        }
-
-        taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
-        taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
-
         mostrarResumoFinal();
     } catch (erro) {
-        console.error("Erro Geoapify:", erro);
-        alert("Erro ao calcular entrega.");
+        taxaEntregaCalculada = 7.00;
+        mostrarResumoFinal();
     }
     if(loader) loader.style.display = "none";
 }
@@ -257,119 +259,92 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 function mostrarResumoFinal() {
     const resumoItens = document.getElementById("resumo-itens");
-    if(!resumoItens) return;
-
     resumoItens.innerHTML = "";
     let sub = 0;
     carrinho.forEach(i => {
         sub += i.price;
         resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
-
     const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
-    document.getElementById("resumo-taxa").innerHTML = `
-        Subtotal: R$ ${sub.toFixed(2)}<br>
-        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
-    `;
+    document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)}<br>Taxa: R$ ${taxaEntregaCalculada.toFixed(2)}`;
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
-    
     document.getElementById("form-entrega").style.display = "none";
     document.getElementById("resumo-pedido").style.display = "block";
 }
 
 // --- 5. FINALIZAÇÃO E WHATSAPP ---
-function enviarWhatsApp() {
+async function enviarPedidoFirebase() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
-    const pag = document.querySelector('input[name="pagamento"]:checked')?.value || "Não informado";
+    const bairro = document.getElementById("bairro").value;
+    const pag = document.getElementById("pagamento").value;
+    const obs = document.getElementById("obsPedido").value || "Nenhuma";
     
     let sub = carrinho.reduce((acc, i) => acc + i.price, 0);
     let total = sub + taxaEntregaCalculada - descontoAplicado;
 
-    let mensagem = `*NOVO PEDIDO*\n\n`;
-    mensagem += `*Cliente:* ${nome}\n`;
-    mensagem += `*Endereço:* ${rua}, ${num}\n`;
-    mensagem += `*Pagamento:* ${pag}\n\n`;
-    mensagem += `*ITENS:*\n`;
-    
-    carrinho.forEach(i => {
-        mensagem += `- ${i.title} (R$ ${i.price.toFixed(2)})\n`;
-    });
-
-    mensagem += `\n*Subtotal:* R$ ${sub.toFixed(2)}`;
-    mensagem += `\n*Taxa:* R$ ${taxaEntregaCalculada.toFixed(2)}`;
-    mensagem += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
-
-    const fone = "5547999999999"; // COLOQUE SEU NUMERO AQUI
-    const urlZap = `https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(mensagem)}`;
-
-    const finalizarEVoltarInicio = () => {
-        localStorage.removeItem("carrinho");
-        window.location.href = urlZap;
-        setTimeout(() => { location.reload(); }, 1500);
+    const pedido = {
+        cliente: nome,
+        endereco: `${rua}, ${num} - ${bairro}`,
+        itens: carrinho,
+        total: total,
+        pagamento: pag,
+        obs: obs,
+        data: new Date().toLocaleString('pt-BR')
     };
 
-    // Tenta salvar no Firebase antes de ir pro Zap
-    if (typeof salvarPedidoFirebase === 'function') {
-        const segurancaTimeout = setTimeout(finalizarEVoltarInicio, 4000);
-        salvarPedidoFirebase({ nome, rua, num, pag })
-            .then(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            })
-            .catch(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            });
-    } else {
-        finalizarEVoltarInicio();
-    }
+    try {
+        if (typeof firebase !== 'undefined') {
+            await firebase.database().ref('pedidos').push(pedido);
+        }
+        
+        let msg = `*NOVO PEDIDO - KINGS BURGER*\n\n*Cliente:* ${nome}\n*Endereço:* ${rua}, ${num} - ${bairro}\n*Pagamento:* ${pag}\n*Obs:* ${obs}\n\n*ITENS:*\n`;
+        carrinho.forEach(i => msg += `- ${i.title}\n`);
+        msg += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
+
+        const fone = "5547984196636";
+        localStorage.removeItem("carrinho");
+        window.location.href = `https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`;
+    } catch (e) { alert("Erro ao finalizar. Tente novamente."); }
 }
 
-// --- OUTROS AUXILIARES ---
+// --- AUXILIARES E RODAPÉ ---
+function toggleRodape(visivel) {
+    const nav = document.querySelector(".bottom-nav-container");
+    if(nav) nav.style.display = visivel ? "block" : "none";
+}
+
+function abrirCarrinho() { toggleRodape(false); document.getElementById("cart-modal").style.display = "flex"; }
+function fecharCarrinho() { toggleRodape(true); document.getElementById("cart-modal").style.display = "none"; }
+function abrirDelivery() { fecharCarrinho(); toggleRodape(false); document.getElementById("delivery-modal").style.display = "flex"; }
+function fecharDelivery() { toggleRodape(true); document.getElementById("delivery-modal").style.display = "none"; }
+function fecharModalSelecao() { toggleRodape(true); document.getElementById("pizza-options-modal").style.display = "none"; }
+
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if(!el) return;
-    const agora = new Date();
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; 
+    const h = new Date().getHours();
+    const aberto = h >= 18 && h < 23; 
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
 
-function abrirDelivery() {
-    if (carrinho.length === 0) return alert("Carrinho vazio!");
-    fecharCarrinho();
-    document.getElementById("delivery-modal").style.display = "flex";
-}
-
-function fecharModalSelecao() { document.getElementById("pizza-options-modal").style.display = "none"; }
-function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; }
-function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; }
-function fecharDelivery() { document.getElementById("delivery-modal").style.display = "none"; }
-
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
     if(!el) return;
-    el.innerText = t + " adicionado! ✅"; 
-    el.style.display = "block";
+    el.innerText = t + " adicionado! ✅"; el.style.display = "block";
     setTimeout(() => el.style.display = "none", 2000);
 }
 
 function carregarCarrinhoStorage() {
     const s = localStorage.getItem("carrinho");
-    if (s) { 
-        carrinho = JSON.parse(s); 
-        atualizarCarrinho(); 
-    }
+    if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
 }
 
 function scrollToCategoria(cat) {
@@ -381,11 +356,7 @@ function sincronizarScrollMenu() {
     const secoes = document.querySelectorAll(".secao-categoria");
     const botoes = document.querySelectorAll(".cat-item");
     let atual = "";
-    secoes.forEach(s => { 
-        if (window.pageYOffset >= s.offsetTop - 160) {
-            atual = s.getAttribute("id").replace("secao-", ""); 
-        }
-    });
+    secoes.forEach(s => { if (window.pageYOffset >= s.offsetTop - 160) atual = s.getAttribute("id").replace("secao-", ""); });
     botoes.forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-categoria") === atual));
 }
 
@@ -394,36 +365,7 @@ function voltarParaEntrega() {
     document.getElementById("form-entrega").style.display = "block";
 }
 
-// --- FIREBASE ---
-function inicializarFirebase() {
-    if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-            authDomain: "myproject26-10f0e.firebaseapp.com",
-            databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-            projectId: "myproject26-10f0e",
-            storageBucket: "myproject26-10f0e.firebasestorage.app",
-            messagingSenderId: "884850608032",
-            appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        return firebase.database();
-    }
-    return null;
+function toggleTroco(val) {
+    document.getElementById("div-troco").style.display = (val === "Dinheiro") ? "block" : "none";
 }
 
-const db = inicializarFirebase();
-
-function salvarPedidoFirebase(dados) {
-    if (!db) return Promise.resolve();
-    const novoPedidoRef = db.ref('pedidos').push();
-    return novoPedidoRef.set({
-        cliente: dados.nome,
-        endereco: `${dados.rua}, ${dados.num}`,
-        pagamento: dados.pag,
-        itens: carrinho,
-        taxaEntrega: taxaEntregaCalculada,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada),
-        horario: new Date().toLocaleTimeString('pt-BR')
-    });
-}
