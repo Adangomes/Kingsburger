@@ -201,7 +201,7 @@ function removerItem(idx) {
     atualizarCarrinho();
 }
 
-// --- 4. RESUMO E ENTREGA ---
+// --- 4. RESUMO E ENTREGA (GEOAPIFY CORRIGIDO) ---
 async function processarResumoGeo() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
@@ -209,8 +209,8 @@ async function processarResumoGeo() {
     const bairro = document.getElementById("bairro").value || "";
     const cidade = document.getElementById("cidade").value;
 
-    if (!nome || !rua || !num) {
-        alert("Preencha Nome, Rua e Número!");
+    if (!nome || !rua || !num || !cidade) {
+        alert("Preencha Nome, Rua, Número e Cidade!");
         return;
     }
 
@@ -218,40 +218,44 @@ async function processarResumoGeo() {
     if(loader) loader.style.display = "flex";
 
     try {
-        const endereco = `${rua}, ${num}, ${bairro}, ${cidade}, SC, Brasil`;
-        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(endereco)}&apiKey=${GEOAPIFY_KEY}`;
+        // Formatação de busca otimizada para o Geoapify
+        const enderecoBusca = `${rua} ${num}, ${bairro}, ${cidade}, Santa Catarina, Brazil`;
+        const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(enderecoBusca)}&limit=1&apiKey=${GEOAPIFY_KEY}`;
 
         const resp = await fetch(url);
         const data = await resp.json();
 
         if (!data.features || data.features.length === 0) {
-            alert("Endereço não encontrado.");
+            alert("Endereço não localizado. Verifique se o nome da rua e o número estão corretos.");
             if(loader) loader.style.display = "none";
             return;
         }
 
-        const destino = data.features[0].geometry.coordinates;
-        const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], destino[1], destino[0]);
+        // Coordenadas encontradas
+        const [lonDestino, latDestino] = data.features[0].geometry.coordinates;
+
+        const distancia = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], latDestino, lonDestino);
 
         if (distancia > LIMITE_KM) {
-            alert("Desculpe, não entregamos nessa região.");
+            alert(`Distância de ${distancia.toFixed(1)}km excede nosso limite de ${LIMITE_KM}km.`);
             if(loader) loader.style.display = "none";
             return;
         }
 
+        // Cálculo da taxa baseado na distância real
         taxaEntregaCalculada = TAXA_BASE + (distancia * VALOR_POR_KM);
         taxaEntregaCalculada = Number(taxaEntregaCalculada.toFixed(2));
 
         mostrarResumoFinal();
     } catch (erro) {
         console.error("Erro Geoapify:", erro);
-        alert("Erro ao calcular entrega.");
+        alert("Ocorreu um erro ao calcular a entrega. Tente novamente.");
     }
     if(loader) loader.style.display = "none";
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371;
+    const R = 6371; // Raio da Terra em KM
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -289,15 +293,18 @@ function enviarWhatsApp() {
     const nome = document.getElementById("nomeCliente").value;
     const rua = document.getElementById("rua").value;
     const num = document.getElementById("numero").value;
+    const bairro = document.getElementById("bairro").value || "Centro";
     const pag = document.querySelector('input[name="pagamento"]:checked')?.value || "Não informado";
+    const obs = document.getElementById("obs-pedido")?.value || "Nenhuma";
     
     let sub = carrinho.reduce((acc, i) => acc + i.price, 0);
     let total = sub + taxaEntregaCalculada - descontoAplicado;
 
     let mensagem = `*NOVO PEDIDO*\n\n`;
     mensagem += `*Cliente:* ${nome}\n`;
-    mensagem += `*Endereço:* ${rua}, ${num}\n`;
-    mensagem += `*Pagamento:* ${pag}\n\n`;
+    mensagem += `*Endereço:* ${rua}, ${num} - ${bairro}\n`;
+    mensagem += `*Pagamento:* ${pag}\n`;
+    mensagem += `*Observações:* ${obs}\n\n`;
     mensagem += `*ITENS:*\n`;
     
     carrinho.forEach(i => {
@@ -308,7 +315,7 @@ function enviarWhatsApp() {
     mensagem += `\n*Taxa:* R$ ${taxaEntregaCalculada.toFixed(2)}`;
     mensagem += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
 
-    const fone = "5547999999999"; // COLOQUE SEU NUMERO AQUI
+    const fone = "5547999999999"; // SUBSTITUA PELO SEU NÚMERO
     const urlZap = `https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(mensagem)}`;
 
     const finalizarEVoltarInicio = () => {
@@ -317,24 +324,16 @@ function enviarWhatsApp() {
         setTimeout(() => { location.reload(); }, 1500);
     };
 
-    // Tenta salvar no Firebase antes de ir pro Zap
     if (typeof salvarPedidoFirebase === 'function') {
-        const segurancaTimeout = setTimeout(finalizarEVoltarInicio, 4000);
-        salvarPedidoFirebase({ nome, rua, num, pag })
-            .then(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            })
-            .catch(() => {
-                clearTimeout(segurancaTimeout);
-                finalizarEVoltarInicio();
-            });
+        salvarPedidoFirebase({ nome, rua, num, bairro, pag })
+            .then(finalizarEVoltarInicio)
+            .catch(finalizarEVoltarInicio);
     } else {
         finalizarEVoltarInicio();
     }
 }
 
-// --- OUTROS AUXILIARES ---
+// --- UTILITÁRIOS ---
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if(!el) return;
@@ -394,7 +393,6 @@ function voltarParaEntrega() {
     document.getElementById("form-entrega").style.display = "block";
 }
 
-// --- FIREBASE ---
 function inicializarFirebase() {
     if (typeof firebase !== 'undefined') {
         const firebaseConfig = {
@@ -419,7 +417,7 @@ function salvarPedidoFirebase(dados) {
     const novoPedidoRef = db.ref('pedidos').push();
     return novoPedidoRef.set({
         cliente: dados.nome,
-        endereco: `${dados.rua}, ${dados.num}`,
+        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
         pagamento: dados.pag,
         itens: carrinho,
         taxaEntrega: taxaEntregaCalculada,
@@ -427,4 +425,3 @@ function salvarPedidoFirebase(dados) {
         horario: new Date().toLocaleTimeString('pt-BR')
     });
 }
-
