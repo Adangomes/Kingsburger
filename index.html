@@ -1,79 +1,166 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>KINGS BURGER</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KINGS BURGER</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-
-<div class="header">
-<div class="logo">KINGS BURGER</div>
+<div id="loading-geral" class="loading-overlay" style="display:none;">
+    <div class="spinner-border text-warning" role="status"></div>
+    <p id="loading-text" class="mt-2" style="color: white; font-weight: bold;">Carregando...</p>
 </div>
-
-<div class="container mt-4">
-
-<h3>Cardápio</h3>
-
-<div id="lista-produtos"></div>
-
-<hr>
-
-<h4>Carrinho</h4>
-
-<div id="carrinho"></div>
-
-<p>
-Subtotal: <b id="subtotal">R$ 0</b>
-</p>
-
-<button onclick="abrirEntrega()">Finalizar Pedido</button>
-
+<div id="toast-geral" class="toast-custom">Produto adicionado! ✅</div>
+<header class="header">
+    <div class="header-top">
+        <div class="logo-container">
+            <div class="logo">KINGS BURGER</div>
+            <div id="status-loja" class="status">VERIFICANDO...</div>
+        </div>
+        <div id="cart-icon-container" class="cart" onclick="abrirCarrinho()">
+            <span class="cart-emoji">🛒</span>
+            <span id="cart-count" class="cart-badge">0</span>
+        </div>
+    </div>
+</header>
+<nav id="categorias-nav" class="categorias-nav">
+    <div id="categorias-scroll" class="categorias-scroll"></div>
+</nav>
+<main id="cardapio-corpo" class="container-main"></main>
+<div id="pizza-options-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header-clean">
+            <h3 id="pizza-modal-title">Escolha</h3>
+            <button onclick="fecharModalSelecao()" class="btn-fechar-modal">✕</button>
+        </div>
+        <div id="pergunta-qtd-sabores" class="text-center p-3" style="display:none;">
+            <p>Deseja quantos sabores?</p>
+            <div class="d-flex justify-content-center gap-2" id="botoes-qtd-sabores"></div>
+        </div>
+        <div id="secao-sabores" style="display:none;">
+            <p class="instrucao-modal" id="instrucao-limite"></p>
+            <div id="lista-sabores-meia" class="lista-check-custom"></div>
+            <div class="modal-actions mt-3">
+                <button id="btn-confirmar-pizza" class="btn-principal" onclick="confirmarSelecao()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 </div>
-
-<!-- MODAL ENTREGA -->
-
-<div id="modalEntrega" style="display:none;padding:20px">
-
-<h3>Endereço</h3>
-
-<input id="nomeCliente" class="form-control mb-2" placeholder="Seu nome">
-
-<input id="telefone" class="form-control mb-2" placeholder="Telefone">
-
-<div style="position:relative">
-
-<input id="rua" class="form-control mb-2" placeholder="Digite seu endereço">
-
-<div id="sugestoes"></div>
-
+<div id="cart-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header-clean"><h3>Meu Carrinho</h3><button onclick="fecharCarrinho()" class="btn-fechar-modal">✕</button></div>
+        <div id="cart-items" class="cart-items-list"></div>
+        <div class="cupom-secao">
+            <div class="cupom-container">
+                <input type="text" id="input-cupom" placeholder="Cupom">
+                <button id="btn-aplicar-cupom">Ok</button>
+            </div>
+            <div id="msg-cupom-feedback" class="cupom-msg-erro"></div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-line"><span>Subtotal</span><span id="subtotal">R$ 0,00</span></div>
+            <div class="summary-line total"><span>Total</span><span id="total">R$ 0,00</span></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-finalizar" onclick="abrirDelivery()">Finalizar Pedido</button>
+            <button class="btn-continuar" onclick="fecharCarrinho()">Continuar</button>
+        </div>
+    </div>
 </div>
-
-<input id="numero" class="form-control mb-2" placeholder="Número">
-
-<input id="bairro" class="form-control mb-2" placeholder="Bairro">
-
-<button onclick="processarResumoGeo()">Calcular Entrega</button>
-
-<hr>
-
-<div id="resumo"></div>
-
-<button onclick="enviarPedidoFirebase()">Enviar Pedido</button>
-
+<div id="delivery-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div id="form-entrega">
+            <div class="modal-header-clean"><h3>Entrega</h3><button onclick="document.getElementById('delivery-modal').style.display='none'" class="btn-fechar-modal">✕</button></div>
+            <div class="form-grid">
+                <input type="text" id="nomeCliente" placeholder="Seu Nome">
+                <input type="text" id="telefone" placeholder="Seu telefone">
+                <select id="cidade">
+                    <option value="Jaraguá do Sul">Jaraguá do Sul</option>
+                    <option value="Guaramirim">Guaramirim</option>
+                    <option value="Schroeder">Schroeder</option>
+                </select>
+                <div class="row-inputs">
+                    <input type="text" id="rua" placeholder="Rua" style="flex:3">
+                    <input type="text" id="numero" placeholder="Nº" style="flex:1">
+                </div>
+                <input type="text" id="bairro" placeholder="Bairro">
+                <input type="text" id="referencia" placeholder="Ponto de Referência">
+                <textarea id="obsPedido" placeholder="Observações (ex: Sem cebola)" rows="2" class="form-control mb-2"></textarea>
+                <select id="pagamento" onchange="toggleTroco(this.value)">
+                    <option value="Pix">Pix</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
+                <div id="div-troco" style="display:none;"><input type="text" id="trocoPara" placeholder="Troco para?"></div>
+            </div>
+            <button class="btn-principal w-100 mt-3" onclick="processarResumoGeo()">Próximo</button>
+        </div>
+        <div id="resumo-pedido" style="display:none;">
+            <div class="modal-header-clean"><h3>Resumo Final</h3></div>
+            <div id="resumo-itens" class="resumo-lista"></div>
+            <div id="resumo-taxa" class="resumo-valores p-2 bg-light rounded"></div>
+            <h4 id="resumo-total" class="resumo-total-final text-center mt-3"></h4>
+            <div class="modal-actions">
+                <button class="btn-secundario" onclick="voltarParaEntrega()">Voltar</button>
+                <button class="btn-whatsapp" onclick="enviarPedidoFirebase()">Finalizar Pedido</button>
+            </div>
+        </div>
+    </div>
 </div>
-
+<div id="modal-status-cliente" class="modal-overlay" style="display:none;">
+    <div class="status-card">
+        <div class="status-header">
+            <h3>Acompanhar Pedido</h3>
+            <button class="btn-fechar-status" onclick="fecharStatus()">✕</button>
+        </div>
+        <div class="status-conteudo">
+            <div id="status-icone-animado" class="status-icone">⌛</div>
+            <h2 id="status-texto-titulo">Aguardando...</h2>
+            <p id="status-texto-desc">Estamos verificando seu pedido.</p>
+            <div class="status-detalhes-pedido" id="status-detalhes-lista"></div>
+        </div>
+        <div class="status-footer">
+            <button class="btn-principal" onclick="fecharStatus()">Voltar ao Cardápio</button>
+        </div>
+    </div>
+</div>
+<div class="bottom-nav-container">
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="nav-item" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <i class="fas fa-home"></i>
+            <span class="nav-label">Início</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="verificarStatusPedido()">
+            <i class="fas fa-receipt"></i>
+            <span class="nav-label">Pedidos</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="abrirPainelAdmin()">
+            <i class="fas fa-user-shield"></i>
+            <span class="nav-label">Admin</span>
+        </a>
+    </nav>
+</div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+<script src="https://unpkg.com/@geoapify/geocoder-autocomplete@^1/dist/index.min.js"></script>
+<script>
+    // Inicialização do Firebase (Deve vir antes do script.js)
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+        authDomain: "myproject26-10f0e.firebaseapp.com",
+        databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+        projectId: "myproject26-10f0e",
+        storageBucket: "myproject26-10f0e.firebasestorage.app",
+        messagingSenderId: "884850608032",
+        appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+</script>
 <script src="script.js"></script>
-
 </body>
 </html>
