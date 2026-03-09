@@ -882,3 +882,35 @@ function salvarPedidoFirebase(dados) {
     });
 
 }
+// FUNÇÃO PARA MIGRAR OS DADOS DO ARQUIVO PARA O FIREBASE
+async function migrarArquivoParaFirebase() {
+    if (!confirm("Isso vai ler o seu arquivo produtos.json e salvar tudo no Firebase. Confirmar?")) return;
+
+    const btn = event.target;
+    btn.innerText = "⏳ Importando...";
+    btn.disabled = true;
+
+    try {
+        // 1. Busca o arquivo local (que você postou acima)
+        const res = await fetch("content/produtos.json?v=" + Date.now());
+        const data = await res.json();
+
+        if (data && data.produtos) {
+            // 2. Salva a lista de produtos no Firebase
+            await db.ref('cardapio/produtos').set(data.produtos);
+            
+            alert("Sucesso! " + data.produtos.length + " produtos foram salvos no Firebase.");
+            
+            // 3. Recarrega a tela para mostrar os dados vindo da nuvem
+            carregarProdutos(); 
+        } else {
+            alert("O arquivo produtos.json parece estar vazio ou no formato errado.");
+        }
+    } catch (err) {
+        console.error("Erro na migração:", err);
+        alert("Erro ao ler o arquivo. Certifique-se que 'content/produtos.json' existe no servidor.");
+    } finally {
+        btn.innerText = "📥 Importar do JSON";
+        btn.disabled = false;
+    }
+}
