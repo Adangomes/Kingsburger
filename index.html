@@ -3,208 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KINGS BURGER</title>
+    <title>KINGS BURGER - Finalize seu Pedido</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #f8f8f8; color: #222; overflow-x: hidden; }
-
-        /* HEADER */
-        .header { background: #000; padding: 15px; position: sticky; top: 0; z-index: 1100; display: flex; justify-content: space-between; align-items: center; }
-        .logo { color: #fff; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
-
-        /* LISTA DE PRODUTOS */
-        .container-main { padding: 15px; max-width: 600px; margin: auto; padding-bottom: 100px; }
-        .item-produto { background: #fff; display: flex; justify-content: space-between; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
-        /* MODAIS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: flex-end; justify-content: center; }
-        .modal-box { background: #fff; width: 100%; max-width: 500px; border-radius: 25px 25px 0 0; padding: 20px; max-height: 90vh; overflow-y: auto; }
-
-        /* AUTOCOMPLETE SUPER Z-INDEX */
-        #lista-sugestoes { 
-            position: absolute; width: 100%; background: white; border: 2px solid #ff6b00; 
-            z-index: 999999 !important; border-radius: 8px; display: none; max-height: 200px; overflow-y: auto;
-        }
-        .sugestao-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #000; }
-
-        /* LOADING TRAVAMENTO */
-        #loading-geral { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; 
-            display: none; flex-direction: column; justify-content: center; align-items: center; color: #fff; 
+        :root {
+            --bg-dark: #121212;
+            --card-dark: #1e1e1e;
+            --primary-orange: #f4511e;
+            --text-gray: #a0a0a0;
+            --border-color: #333;
         }
 
-        /* BOTTOM NAV */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px; z-index: 1000; }
-        .nav-hidden { display: none !important; }
-        .btn-principal { background: #ff6b00; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: 800; margin-top: 10px; }
+        body { background-color: var(--bg-dark); color: #fff; font-family: 'Segoe UI', Roboto, sans-serif; }
+
+        /* BARRA DE PROGRESSO */
+        .steps-container { display: flex; justify-content: space-between; align-items: center; padding: 20px 10px; max-width: 400px; margin: auto; }
+        .step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; }
+        .step-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--primary-orange); display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 5px; background: var(--bg-dark); z-index: 2; }
+        .step.active .step-circle { background: var(--primary-orange); color: #fff; }
+        .step-label { font-size: 10px; color: var(--text-gray); text-transform: uppercase; }
+        .step:not(:last-child)::after { content: ''; position: absolute; height: 2px; background: var(--border-color); width: 100%; top: 17px; left: 50%; z-index: 1; }
+
+        /* MODAL E CARDS */
+        .checkout-box { background: var(--card-dark); border-radius: 15px 15px 0 0; padding: 20px; position: fixed; bottom: 0; width: 100%; max-width: 500px; left: 50%; transform: translateX(-50%); max-height: 90vh; overflow-y: auto; }
+        
+        .form-control { background: transparent; border: 1px solid var(--border-color); color: #fff; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+        .form-control:focus { background: transparent; border-color: var(--primary-orange); color: #fff; box-shadow: none; }
+        .form-control::placeholder { color: #555; }
+
+        .btn-orange { background: var(--primary-orange); border: none; color: #fff; font-weight: bold; padding: 14px; border-radius: 10px; width: 100%; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; }
+
+        /* AUTOCOMPLETE PROFISSIONAL */
+        #lista-sugestoes { background: #222; border: 1px solid var(--border-color); border-radius: 8px; position: absolute; width: 100%; z-index: 9999; display: none; margin-top: -10px; }
+        .sugestao-item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; font-size: 14px; }
+        .sugestao-item:last-child { border: none; }
+
+        #loading-geral { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
 <div id="loading-geral">
     <div class="spinner-border text-warning"></div>
-    <p class="mt-2">Calculando frete real...</p>
+    <p class="mt-3">Calculando frete real...</p>
 </div>
 
-<header class="header">
-    <div class="logo">KINGS BURGER</div>
-    <div onclick="abrirCarrinho()" style="color:white; cursor:pointer">🛒 <span id="cart-count">0</span></div>
-</header>
+<div class="steps-container">
+    <div class="step active"><div class="step-circle">1</div><div class="step-label">Entrega</div></div>
+    <div class="step"><div class="step-circle">2</div><div class="step-label">Pagamento</div></div>
+    <div class="step"><div class="step-circle">3</div><div class="step-label">Revisão</div></div>
+    <div class="step"><div class="step-circle">4</div><div class="step-label">Acompanhar</div></div>
+</div>
 
-<main class="container-main" id="cardapio"></main>
+<div class="checkout-box">
+    <div id="tela-dados">
+        <h5 class="mb-4">Preencha seus dados</h5>
+        <input type="text" id="nome" class="form-control" placeholder="Nome">
+        <input type="text" id="telefone" class="form-control" placeholder="Telefone">
+        <button class="btn-orange" onclick="proximo('entrega')">Próximo</button>
+    </div>
 
-<div id="delivery-modal" class="modal-overlay">
-    <div class="modal-box">
-        <div id="form-entrega">
-            <div class="d-flex justify-content-between mb-3">
-                <h3>Entrega</h3>
-                <button onclick="fecharDelivery()" class="btn">✕</button>
-            </div>
-            <input type="text" id="nomeCliente" class="form-control mb-2" placeholder="Seu Nome">
-            <select id="cidade" class="form-select mb-2">
-                <option value="Jaraguá do Sul">Jaraguá do Sul</option>
-                <option value="Guaramirim">Guaramirim</option>
-            </select>
-            <div style="position:relative">
-                <input type="text" id="rua" class="form-control mb-2" placeholder="Nome da Rua" autocomplete="off">
-                <div id="lista-sugestoes"></div>
-            </div>
-            <input type="text" id="numero" class="form-control mb-2" placeholder="Número">
-            <button class="btn-principal" onclick="processarResumoGeo()">Calcular Taxa</button>
+    <div id="tela-entrega" style="display:none">
+        <h5 class="mb-4">Endereço de Entrega</h5>
+        <div style="position:relative">
+            <input type="text" id="rua-busca" class="form-control" placeholder="Buscar endereço e número">
+            <div id="lista-sugestoes"></div>
         </div>
-
-        <div id="resumo-pedido" style="display:none;">
-            <h3>Resumo Final</h3>
-            <div id="detalhes-resumo" class="my-3"></div>
-            <button class="btn-principal bg-success" onclick="finalizarPedido()">Enviar WhatsApp</button>
-            <button class="btn btn-link w-100" onclick="voltar()">Corrigir Endereço</button>
+        
+        <div id="campos-detalhe" style="display:none">
+            <input type="text" id="numero" class="form-control" placeholder="Número">
+            <input type="text" id="bairro" class="form-control" placeholder="Bairro">
+            <input type="text" id="ponto" class="form-control" placeholder="Ponto de Referência (Opcional)">
+            <button class="btn-orange" onclick="calcularFreteFinal()">Calcular Taxa e Ver Resumo</button>
         </div>
+    </div>
+
+    <div id="tela-resumo" style="display:none">
+        <h5 class="mb-3">Resumo Final</h5>
+        <div id="detalhes-pedido" class="p-3 mb-3" style="background:#262626; border-radius:10px">
+            </div>
+        <button class="btn-orange" style="background:#25d366" onclick="enviarWhats()">Confirmar e Enviar Pedido</button>
+        <button class="btn-outline" onclick="voltar()">Corrigir Endereço</button>
     </div>
 </div>
 
-<nav class="bottom-nav" id="menu-inferior">
-    <div style="color:white text-align:center">🏠<br>Início</div>
-    <div style="color:white text-align:center">📋<br>Pedidos</div>
-</nav>
-
 <script>
-    const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
-    const RESTAURANTE_COORD = { lat: -26.464334, lon: -49.024909 };
-    const TAXA_BASE = 5.00;
-    const VALOR_POR_KM = 4.00;
-
-    let carrinho = [];
+    const GEO_KEY = "208f6874a48c45e68761f3d994db6775";
+    const ORIGEM = { lat: -26.464334, lon: -49.024909 };
     let latDestino = null, lonDestino = null;
 
-    // Renderizar Cardápio Simples
-    const itens = [{t: "Kings Tradicional", p: 23.99}, {t: "Kings Duplo", p: 34.99}];
-    document.getElementById('cardapio').innerHTML = itens.map(i => `
-        <div class="item-produto" onclick="add('${i.t}', ${i.p})">
-            <span>${i.t}</span><b>R$ ${i.p}</b>
-        </div>
-    `).join('');
+    // Autocomplete Lógica
+    const inputBusca = document.getElementById('rua-busca');
+    const lista = document.getElementById('lista-sugestoes');
 
-    function add(t, p) {
-        carrinho.push({t, p});
-        document.getElementById('cart-count').innerText = carrinho.length;
-        abrirCarrinho();
-    }
-
-    // AUTOCOMPLETE
-    const inputRua = document.getElementById('rua');
-    const sugestaoBox = document.getElementById('lista-sugestoes');
-
-    inputRua.addEventListener('input', async () => {
-        if(inputRua.value.length < 3) return sugestaoBox.style.display = 'none';
+    inputBusca.addEventListener('input', async () => {
+        if(inputBusca.value.length < 3) return lista.style.display = 'none';
+        
         try {
-            const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(inputRua.value)}&apiKey=${GEOAPIFY_KEY}`);
+            const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(inputBusca.value + " Jaraguá do Sul")}&apiKey=${GEO_KEY}`);
             const data = await res.json();
-            sugestaoBox.innerHTML = data.features.map(f => `
-                <div class="sugestao-item" onclick="sel('${f.properties.street}', ${f.properties.lat}, ${f.properties.lon})">
-                    ${f.properties.street}
+            
+            lista.innerHTML = data.features.map(f => `
+                <div class="sugestao-item" onclick="selecionar('${f.properties.street}', '${f.properties.suburb}', ${f.properties.lat}, ${f.properties.lon})">
+                    <small>📍</small> ${f.properties.street}, ${f.properties.suburb || 'Jaraguá'}
                 </div>
             `).join('');
-            sugestaoBox.style.display = 'block';
-        } catch(e) { console.error("Erro busca", e); }
+            lista.style.display = 'block';
+        } catch(e) { console.error(e); }
     });
 
-    function sel(r, lt, ln) {
-        inputRua.value = r;
-        latDestino = lt; lonDestino = ln;
-        sugestaoBox.style.display = 'none';
+    function selecionar(rua, bairro, lat, lon) {
+        inputBusca.value = rua;
+        document.getElementById('bairro').value = bairro || "";
+        latDestino = lat; lonDestino = lon;
+        lista.style.display = 'none';
+        document.getElementById('campos-detalhe').style.display = 'block';
     }
 
-    // CÁLCULO COM TIMEOUT (IMPEDE TRAVAMENTO)
-    async function processarResumoGeo() {
-        const loading = document.getElementById('loading-geral');
-        loading.style.display = 'flex';
-
-        // Cria uma promessa de "limite de tempo" de 8 segundos
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
-
-        try {
-            // Tenta buscar a coordenada se não tiver clicado na lista
-            if(!latDestino) {
-                const buscaReal = fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(inputRua.value)}&apiKey=${GEOAPIFY_KEY}`).then(r => r.json());
-                const data = await Promise.race([buscaReal, timeout]); // Quem ganhar leva!
-                if(data.features?.length > 0) {
-                    latDestino = data.features[0].geometry.coordinates[1];
-                    lonDestino = data.features[0].geometry.coordinates[0];
-                }
-            }
-
-            let taxa = TAXA_BASE;
-            if(latDestino) {
-                const dist = calcDist(RESTAURANTE_COORD.lat, RESTAURANTE_COORD.lon, latDestino, lonDestino);
-                taxa = TAXA_BASE + (dist * VALOR_POR_KM);
-            }
-
-            exibirResumo(taxa);
-        } catch (e) {
-            console.warn("API demorou ou falhou. Usando taxa mínima.");
-            exibirResumo(TAXA_BASE);
-        } finally {
-            loading.style.display = 'none';
+    function proximo(fase) {
+        if(fase === 'entrega') {
+            document.getElementById('tela-dados').style.display = 'none';
+            document.getElementById('tela-entrega').style.display = 'block';
         }
     }
 
-    function calcDist(l1, o1, l2, o2) {
+    async function calcularFreteFinal() {
+        if(!latDestino) return alert("Selecione a rua na lista!");
+        
+        document.getElementById('loading-geral').style.display = 'flex';
+
+        // Cálculo Haversine
         const R = 6371;
-        const dLat = (l2-l1)*Math.PI/180;
-        const dLon = (o2-o1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        const dLat = (latDestino - ORIGEM.lat) * Math.PI / 180;
+        const dLon = (lonDestino - ORIGEM.lon) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(ORIGEM.lat*Math.PI/180) * Math.cos(latDestino*Math.PI/180) * Math.sin(dLon/2)**2;
+        const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+
+        const taxa = 5 + (dist * 4); // R$ 5 base + 4 por KM
+        
+        setTimeout(() => {
+            document.getElementById('loading-geral').style.display = 'none';
+            document.getElementById('tela-entrega').style.display = 'none';
+            document.getElementById('tela-resumo').style.display = 'block';
+            
+            document.getElementById('detalhes-pedido').innerHTML = `
+                <div class="d-flex justify-content-between mb-2"><span>Subtotal:</span> <b>R$ 47.98</b></div>
+                <div class="d-flex justify-content-between mb-2"><span style="color:#25d366">Taxa de Entrega:</span> <b>R$ ${taxa.toFixed(2)}</b></div>
+                <hr style="border-color:#444">
+                <div class="d-flex justify-content-between"><h5>Total:</h5> <h5>R$ ${(47.98 + taxa).toFixed(2)}</h5></div>
+            `;
+        }, 1500);
     }
 
-    function exibirResumo(taxa) {
-        const sub = carrinho.reduce((a,b) => a + b.p, 0);
-        document.getElementById('form-entrega').style.display = 'none';
-        document.getElementById('resumo-pedido').style.display = 'block';
-        document.getElementById('detalhes-resumo').innerHTML = `
-            Subtotal: R$ ${sub.toFixed(2)}<br>
-            Taxa Entrega: R$ ${taxa.toFixed(2)}<br>
-            <b>Total: R$ ${(sub + taxa).toFixed(2)}</b>
-        `;
-    }
-
-    // MODAIS
-    function abrirCarrinho() { 
-        document.getElementById('delivery-modal').style.display = 'flex'; 
-        document.getElementById('menu-inferior').classList.add('nav-hidden');
-    }
-    function fecharDelivery() { 
-        document.getElementById('delivery-modal').style.display = 'none'; 
-        document.getElementById('menu-inferior').classList.remove('nav-hidden');
-    }
     function voltar() {
-        document.getElementById('resumo-pedido').style.display = 'none';
-        document.getElementById('form-entrega').style.display = 'block';
+        document.getElementById('tela-resumo').style.display = 'none';
+        document.getElementById('tela-entrega').style.display = 'block';
+    }
+
+    function enviarWhats() {
+        alert("Pedido enviado para o WhatsApp!");
     }
 </script>
+
 </body>
 </html>
+
 
 
