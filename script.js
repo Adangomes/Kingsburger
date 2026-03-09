@@ -452,7 +452,12 @@ async function processarResumoGeo() {
 
             const [lon, lat] = data.features[0].geometry.coordinates;
 
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lon, lat,);
+const dist = calcularDistancia(
+    RESTAURANTE_COORD[0],
+    RESTAURANTE_COORD[1],
+    lat,
+    lon
+);
 
             
 
