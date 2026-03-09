@@ -3,57 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KINGS BURGER - Delivery</title>
+    <title>KINGS BURGER</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- CSS COMPLETO --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #f8f8f8; color: #222; overflow-x: hidden; padding-bottom: 80px; }
+        body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
+        /* HEADER */
         .header { background: #000; padding: 15px; position: sticky; top: 0; z-index: 1100; display: flex; justify-content: space-between; align-items: center; }
         .logo { color: #fff; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
-        .status.aberto { color: #00a650; font-size: 11px; font-weight: 800; }
 
-        .container-main { padding: 15px; max-width: 600px; margin: auto; }
-        .item-produto-lista { background: #fff; display: flex; justify-content: space-between; padding: 15px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
-        .info-produto strong { display: block; font-size: 15px; }
-        .info-produto span { color: #00a650; font-weight: 700; }
+        /* LISTA DE PRODUTOS */
+        .container-main { padding: 15px; max-width: 600px; margin: auto; padding-bottom: 100px; }
+        .item-produto { background: #fff; display: flex; justify-content: space-between; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         /* MODAIS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: flex-end; justify-content: center; }
-        .modal-box { background: #fff; width: 100%; max-width: 500px; border-radius: 25px 25px 0 0; padding: 20px; max-height: 90vh; overflow-y: visible; position: relative; }
-        
-        /* AUTOCOMPLETE - O QUE RESOLVE O SEU PROBLEMA */
-        .form-grid { position: relative; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: flex-end; justify-content: center; }
+        .modal-box { background: #fff; width: 100%; max-width: 500px; border-radius: 25px 25px 0 0; padding: 20px; max-height: 90vh; overflow-y: auto; }
+
+        /* AUTOCOMPLETE SUPER Z-INDEX */
         #lista-sugestoes { 
-            display: none; 
-            position: absolute !important; 
-            top: 55px; 
-            left: 0; 
-            right: 0; 
-            background: white !important; 
-            border: 2px solid #ff6b00 !important; 
-            border-radius: 10px; 
-            z-index: 100000 !important; /* Na frente de tudo */
-            max-height: 200px; 
-            overflow-y: auto; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            position: absolute; width: 100%; background: white; border: 2px solid #ff6b00; 
+            z-index: 999999 !important; border-radius: 8px; display: none; max-height: 200px; overflow-y: auto;
         }
-        .sugestao-item { padding: 12px; border-bottom: 1px solid #eee; color: #000; font-size: 14px; cursor: pointer; background: #fff; text-align: left; }
+        .sugestao-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #000; }
 
-        /* RODAPÉ */
-        .bottom-nav-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; border-top: 1px solid #333; z-index: 998; transition: 0.3s; }
-        .nav-hidden { transform: translateY(100%); opacity: 0; }
-        .bottom-nav { display: flex; justify-content: space-around; height: 65px; align-items: center; }
-        .nav-item { color: #8e8e93; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; }
+        /* LOADING TRAVAMENTO */
+        #loading-geral { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; 
+            display: none; flex-direction: column; justify-content: center; align-items: center; color: #fff; 
+        }
 
-        /* BOTÕES */
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px; z-index: 1000; }
+        .nav-hidden { display: none !important; }
         .btn-principal { background: #ff6b00; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: 800; margin-top: 10px; }
-        .btn-excluir-apenas-x { background: #000; color: #fff; border: none; width: 30px; height: 30px; border-radius: 8px; }
-        
-        #loading-geral { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: #fff; }
     </style>
 </head>
 <body>
@@ -65,203 +51,157 @@
 
 <header class="header">
     <div class="logo">KINGS BURGER</div>
-    <div class="status aberto">ABERTO</div>
-    <div class="cart text-white" onclick="abrirCarrinho()" style="cursor:pointer">
-        🛒 <span id="cart-count" class="badge bg-danger">0</span>
-    </div>
+    <div onclick="abrirCarrinho()" style="color:white; cursor:pointer">🛒 <span id="cart-count">0</span></div>
 </header>
 
-<main id="cardapio-corpo" class="container-main"></main>
+<main class="container-main" id="cardapio"></main>
 
-<div id="cart-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-box">
-        <div class="d-flex justify-content-between mb-3">
-            <h3>Carrinho</h3>
-            <button onclick="fecharCarrinho()" class="btn btn-light">✕</button>
-        </div>
-        <div id="cart-items" class="mb-3"></div>
-        <div class="border-top pt-2">
-            <div class="d-flex justify-content-between"><strong>Total Itens:</strong><strong id="total-carrinho">R$ 0,00</strong></div>
-        </div>
-        <button class="btn-principal" onclick="abrirDelivery()">Ir para Entrega</button>
-    </div>
-</div>
-
-<div id="delivery-modal" class="modal-overlay" style="display:none;">
+<div id="delivery-modal" class="modal-overlay">
     <div class="modal-box">
         <div id="form-entrega">
             <div class="d-flex justify-content-between mb-3">
                 <h3>Entrega</h3>
-                <button onclick="fecharDelivery()" class="btn btn-light">✕</button>
+                <button onclick="fecharDelivery()" class="btn">✕</button>
             </div>
-            <div class="form-grid">
-                <input type="text" id="nomeCliente" class="form-control mb-2" placeholder="Seu Nome">
-                <select id="cidade" class="form-select mb-2">
-                    <option value="Jaraguá do Sul">Jaraguá do Sul</option>
-                    <option value="Guaramirim">Guaramirim</option>
-                </select>
-                <div style="position:relative">
-                    <input type="text" id="rua" class="form-control mb-2" placeholder="Nome da Rua" autocomplete="off">
-                    <div id="lista-sugestoes"></div>
-                </div>
-                <div class="d-flex gap-2">
-                    <input type="text" id="numero" class="form-control mb-2" placeholder="Nº">
-                    <input type="text" id="bairro" class="form-control mb-2" placeholder="Bairro">
-                </div>
-                <button class="btn-principal" onclick="processarResumoGeo()">Calcular Taxa</button>
+            <input type="text" id="nomeCliente" class="form-control mb-2" placeholder="Seu Nome">
+            <select id="cidade" class="form-select mb-2">
+                <option value="Jaraguá do Sul">Jaraguá do Sul</option>
+                <option value="Guaramirim">Guaramirim</option>
+            </select>
+            <div style="position:relative">
+                <input type="text" id="rua" class="form-control mb-2" placeholder="Nome da Rua" autocomplete="off">
+                <div id="lista-sugestoes"></div>
             </div>
+            <input type="text" id="numero" class="form-control mb-2" placeholder="Número">
+            <button class="btn-principal" onclick="processarResumoGeo()">Calcular Taxa</button>
         </div>
 
         <div id="resumo-pedido" style="display:none;">
-            <h3>Resumo</h3>
-            <div id="resumo-itens" class="my-3"></div>
-            <div id="resumo-taxa" class="p-2 bg-light rounded"></div>
-            <h4 id="resumo-total" class="text-center mt-3 fw-bold"></h4>
-            <button class="btn-principal bg-success" onclick="enviarPedidoFirebase()">Confirmar Pedido</button>
-            <button class="btn btn-link w-100 mt-2" onclick="voltarParaEntrega()">Corrigir Endereço</button>
+            <h3>Resumo Final</h3>
+            <div id="detalhes-resumo" class="my-3"></div>
+            <button class="btn-principal bg-success" onclick="finalizarPedido()">Enviar WhatsApp</button>
+            <button class="btn btn-link w-100" onclick="voltar()">Corrigir Endereço</button>
         </div>
     </div>
 </div>
 
-<div class="bottom-nav-container">
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item"><i class="fas fa-home fa-lg"></i><span>Início</span></a>
-        <a href="#" class="nav-item"><i class="fas fa-receipt fa-lg"></i><span>Pedidos</span></a>
-        <a href="#" class="nav-item"><i class="fas fa-user fa-lg"></i><span>Perfil</span></a>
-    </nav>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<nav class="bottom-nav" id="menu-inferior">
+    <div style="color:white text-align:center">🏠<br>Início</div>
+    <div style="color:white text-align:center">📋<br>Pedidos</div>
+</nav>
 
 <script>
-    // --- LÓGICA COMPLETA ---
-    const ID_LOJA = "kings_burger";
     const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
     const RESTAURANTE_COORD = { lat: -26.464334, lon: -49.024909 };
     const TAXA_BASE = 5.00;
     const VALOR_POR_KM = 4.00;
 
     let carrinho = [];
-    let latDestino = null, lonDestino = null, taxaEntregaCalculada = 0;
+    let latDestino = null, lonDestino = null;
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-        authDomain: "myproject26-10f0e.firebaseapp.com",
-        databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-        projectId: "myproject26-10f0e",
-        storageBucket: "myproject26-10f0e.firebasestorage.app",
-        messagingSenderId: "884850608032",
-        appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Iniciar Cardápio
-    const produtos = [
-        {title: "Kings Burger Tradicional", price: 23.99, cat: "Lanches"},
-        {title: "Kings Duplo Bacon", price: 34.99, cat: "Lanches"},
-        {title: "Coca-Cola Lata", price: 6.99, cat: "Bebidas"}
-    ];
-
-    function renderizar() {
-        const corpo = document.getElementById("cardapio-corpo");
-        corpo.innerHTML = produtos.map(p => `
-            <div class="item-produto-lista" onclick="add('${p.title}', ${p.price})">
-                <div class="info-produto"><strong>${p.title}</strong><span>R$ ${p.price.toFixed(2)}</span></div>
-                <button class="btn btn-warning">+</button>
-            </div>
-        `).join('');
-    }
-    renderizar();
+    // Renderizar Cardápio Simples
+    const itens = [{t: "Kings Tradicional", p: 23.99}, {t: "Kings Duplo", p: 34.99}];
+    document.getElementById('cardapio').innerHTML = itens.map(i => `
+        <div class="item-produto" onclick="add('${i.t}', ${i.p})">
+            <span>${i.t}</span><b>R$ ${i.p}</b>
+        </div>
+    `).join('');
 
     function add(t, p) {
-        carrinho.push({title: t, price: p});
-        document.getElementById("cart-count").innerText = carrinho.length;
+        carrinho.push({t, p});
+        document.getElementById('cart-count').innerText = carrinho.length;
+        abrirCarrinho();
     }
 
     // AUTOCOMPLETE
-    const inputRua = document.getElementById("rua");
-    const sugestaoBox = document.getElementById("lista-sugestoes");
+    const inputRua = document.getElementById('rua');
+    const sugestaoBox = document.getElementById('lista-sugestoes');
 
-    inputRua.addEventListener("input", async () => {
-        const val = inputRua.value;
-        if(val.length < 3) return sugestaoBox.style.display = "none";
-        
-        const cidade = document.getElementById("cidade").value;
-        const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(val + " " + cidade)}&apiKey=${GEOAPIFY_KEY}`);
-        const data = await res.json();
-        
-        sugestaoBox.innerHTML = data.features.map(f => `
-            <div class="sugestao-item" onclick="selecionarRua('${f.properties.street}', '${f.properties.district || ''}', ${f.properties.lat}, ${f.properties.lon})">
-                ${f.properties.street}, ${f.properties.district || ''}
-            </div>
-        `).join('');
-        sugestaoBox.style.display = "block";
+    inputRua.addEventListener('input', async () => {
+        if(inputRua.value.length < 3) return sugestaoBox.style.display = 'none';
+        try {
+            const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(inputRua.value)}&apiKey=${GEOAPIFY_KEY}`);
+            const data = await res.json();
+            sugestaoBox.innerHTML = data.features.map(f => `
+                <div class="sugestao-item" onclick="sel('${f.properties.street}', ${f.properties.lat}, ${f.properties.lon})">
+                    ${f.properties.street}
+                </div>
+            `).join('');
+            sugestaoBox.style.display = 'block';
+        } catch(e) { console.error("Erro busca", e); }
     });
 
-    function selecionarRua(rua, bairro, lat, lon) {
-        inputRua.value = rua;
-        document.getElementById("bairro").value = bairro;
-        latDestino = lat; lonDestino = lon;
-        sugestaoBox.style.display = "none";
-        document.getElementById("numero").focus();
+    function sel(r, lt, ln) {
+        inputRua.value = r;
+        latDestino = lt; lonDestino = ln;
+        sugestaoBox.style.display = 'none';
     }
 
-    // CÁLCULO
+    // CÁLCULO COM TIMEOUT (IMPEDE TRAVAMENTO)
     async function processarResumoGeo() {
-        const rua = inputRua.value;
-        const num = document.getElementById("numero").value;
-        if(!rua || !num) return alert("Preencha tudo!");
+        const loading = document.getElementById('loading-geral');
+        loading.style.display = 'flex';
 
-        document.getElementById("loading-geral").style.display = "flex";
+        // Cria uma promessa de "limite de tempo" de 8 segundos
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
 
-        // Busca forçada caso não tenha clicado na lista
-        if(!latDestino) {
-            const busca = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(rua + " " + num + " " + document.getElementById("cidade").value)}&apiKey=${GEOAPIFY_KEY}`);
-            const d = await busca.json();
-            if(d.features.length > 0) {
-                latDestino = d.features[0].geometry.coordinates[1];
-                lonDestino = d.features[0].geometry.coordinates[0];
+        try {
+            // Tenta buscar a coordenada se não tiver clicado na lista
+            if(!latDestino) {
+                const buscaReal = fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(inputRua.value)}&apiKey=${GEOAPIFY_KEY}`).then(r => r.json());
+                const data = await Promise.race([buscaReal, timeout]); // Quem ganhar leva!
+                if(data.features?.length > 0) {
+                    latDestino = data.features[0].geometry.coordinates[1];
+                    lonDestino = data.features[0].geometry.coordinates[0];
+                }
             }
+
+            let taxa = TAXA_BASE;
+            if(latDestino) {
+                const dist = calcDist(RESTAURANTE_COORD.lat, RESTAURANTE_COORD.lon, latDestino, lonDestino);
+                taxa = TAXA_BASE + (dist * VALOR_POR_KM);
+            }
+
+            exibirResumo(taxa);
+        } catch (e) {
+            console.warn("API demorou ou falhou. Usando taxa mínima.");
+            exibirResumo(TAXA_BASE);
+        } finally {
+            loading.style.display = 'none';
         }
-
-        if(latDestino) {
-            const R = 6371;
-            const dLat = (latDestino - RESTAURANTE_COORD.lat) * Math.PI / 180;
-            const dLon = (lonDestino - RESTAURANTE_COORD.lon) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(RESTAURANTE_COORD.lat*Math.PI/180) * Math.cos(latDestino*Math.PI/180) * Math.sin(dLon/2)**2;
-            const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-            
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
-        } else {
-            taxaEntregaCalculada = TAXA_BASE;
-        }
-
-        if(taxaEntregaCalculada < TAXA_BASE) taxaEntregaCalculada = TAXA_BASE;
-
-        // Mostrar Resumo
-        document.getElementById("form-entrega").style.display = "none";
-        document.getElementById("resumo-pedido").style.display = "block";
-        
-        let sub = carrinho.reduce((a,b) => a + b.price, 0);
-        document.getElementById("resumo-taxa").innerHTML = `Subtotal: R$ ${sub.toFixed(2)} <br> Taxa: R$ ${taxaEntregaCalculada.toFixed(2)}`;
-        document.getElementById("resumo-total").innerText = `Total: R$ ${(sub + taxaEntregaCalculada).toFixed(2)}`;
-        document.getElementById("loading-geral").style.display = "none";
     }
 
-    // MODAIS CONTROLE
-    function controlarRodape(h) { document.querySelector('.bottom-nav-container').classList.toggle('nav-hidden', h); }
-    function abrirCarrinho() { document.getElementById("cart-modal").style.display = "flex"; controlarRodape(true); }
-    function fecharCarrinho() { document.getElementById("cart-modal").style.display = "none"; controlarRodape(false); }
-    function abrirDelivery() { fecharCarrinho(); document.getElementById("delivery-modal").style.display = "flex"; controlarRodape(true); }
-    function fecharDelivery() { document.getElementById("delivery-modal").style.display = "none"; controlarRodape(false); }
-    function voltarParaEntrega() { document.getElementById("resumo-pedido").style.display = "none"; document.getElementById("form-entrega").style.display = "block"; }
+    function calcDist(l1, o1, l2, o2) {
+        const R = 6371;
+        const dLat = (l2-l1)*Math.PI/180;
+        const dLon = (o2-o1)*Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
 
-    async function enviarPedidoFirebase() {
-        alert("Enviando Pedido...");
-        // Lógica de push para o Firebase aqui
-        location.reload();
+    function exibirResumo(taxa) {
+        const sub = carrinho.reduce((a,b) => a + b.p, 0);
+        document.getElementById('form-entrega').style.display = 'none';
+        document.getElementById('resumo-pedido').style.display = 'block';
+        document.getElementById('detalhes-resumo').innerHTML = `
+            Subtotal: R$ ${sub.toFixed(2)}<br>
+            Taxa Entrega: R$ ${taxa.toFixed(2)}<br>
+            <b>Total: R$ ${(sub + taxa).toFixed(2)}</b>
+        `;
+    }
+
+    // MODAIS
+    function abrirCarrinho() { 
+        document.getElementById('delivery-modal').style.display = 'flex'; 
+        document.getElementById('menu-inferior').classList.add('nav-hidden');
+    }
+    function fecharDelivery() { 
+        document.getElementById('delivery-modal').style.display = 'none'; 
+        document.getElementById('menu-inferior').classList.remove('nav-hidden');
+    }
+    function voltar() {
+        document.getElementById('resumo-pedido').style.display = 'none';
+        document.getElementById('form-entrega').style.display = 'block';
     }
 </script>
 </body>
