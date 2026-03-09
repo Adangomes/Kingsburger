@@ -938,25 +938,32 @@ async function migrarArquivoParaFirebase() {
 
 // --- SISTEMA DE CUPONS E DESCONTO ---
 
+// --- SISTEMA DE CUPONS E DESCONTO (VERSÃO CORRIGIDA) ---
 async function aplicarCupom() {
-    const inputCupom = document.getElementById("input-cupom")?.value.toUpperCase();
+    const inputCupom = document.getElementById("input-cupom")?.value.trim().toUpperCase();
     if (!inputCupom) return alert("Digite um código de cupom!");
 
     try {
-        // Busca a lista de cupons no Firebase
         const snapshot = await db.ref('configuracoes/cupons').once('value');
         const cupons = snapshot.val();
 
         if (!cupons) return alert("Nenhum cupom disponível no momento.");
 
-        // Procura o cupom digitado
-        const cupomValido = Object.values(cupons).find(c => c.codigo === inputCupom && c.ativo === true);
+        // Procura o cupom (funciona para objetos ou arrays vindos do Firebase)
+        const listaCupons = Array.isArray(cupons) ? cupons : Object.values(cupons);
+        const cupomValido = listaCupons.find(c => c.codigo === inputCupom && c.ativo === true);
 
         if (cupomValido) {
-            descontoAplicado = cupomValido.valor;
-            alert(`Cupom ${inputCupom} aplicado! Desconto de R$ ${descontoAplicado.toFixed(2)}`);
-            
-            // Atualiza o carrinho visualmente com o novo total
+            let subtotalAtual = carrinho.reduce((acc, i) => acc + i.price, 0);
+
+            // Lógica para % ou R$
+            if (cupomValido.tipo === "porcentagem") {
+                descontoAplicado = subtotalAtual * (cupomValido.valor / 100);
+            } else {
+                descontoAplicado = cupomValido.valor;
+            }
+
+            alert(`Cupom ${inputCupom} aplicado! ✅\nDesconto de R$ ${descontoAplicado.toFixed(2)}`);
             atualizarCarrinho(); 
         } else {
             alert("Cupom inválido ou expirado.");
