@@ -773,3 +773,48 @@ padding-bottom: 20px;
 position: relative;
 
 } 
+#lista-sugestoes {
+
+position: absolute;
+
+top: 100%;
+
+left: 0;
+
+right: 0;
+
+background: white;
+
+border: 1px solid #ccc;
+
+border-radius: 0 0 8px 8px;
+
+z-index: 10000;
+
+max-height: 200px;
+
+overflow-y: auto;
+
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+display: none;
+
+}
+
+.sugestao-item {
+
+padding: 12px;
+
+cursor: pointer;
+
+border-bottom: 1px solid #eee;
+
+color: #333;
+
+}
+
+.sugestao-item:hover {
+
+background-color: #f8f8f8;
+
+}
