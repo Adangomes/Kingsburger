@@ -202,7 +202,7 @@ function atualizarCarrinho() {
     });
     document.getElementById("subtotal").innerText = `R$ ${sub.toFixed(2)}`;
     document.getElementById("total").innerText = `R$ ${sub.toFixed(2)}`;
-    document.getElementById("cart-count").innerText = carrinho.length;
+    document.getElementById("cart-count").innerText = carrinho.length; 
 }
 
 function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinho(); }
