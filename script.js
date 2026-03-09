@@ -884,37 +884,46 @@ function salvarPedidoFirebase(dados) {
 }
 // FUNÇÃO PARA MIGRAR OS DADOS DO ARQUIVO PARA O FIREBASE
 async function migrarArquivoParaFirebase() {
-    if (!confirm("Isso vai ler o seu arquivo produtos.json e salvar tudo no Firebase. Confirmar?")) return;
+    if (!confirm("Isso vai ler 'produtos.json' e 'cupons.json' e salvar no Firebase. Confirmar?")) return;
 
     const btn = event.target;
     btn.innerText = "⏳ Importando...";
     btn.disabled = true;
 
     try {
-        // 1. Busca o arquivo local (que você postou acima)
+        // --- 1. IMPORTAR PRODUTOS ---
         const res = await fetch("content/produtos.json?v=" + Date.now());
         const data = await res.json();
 
         if (data && data.produtos) {
-            // 2. Salva a lista de produtos no Firebase
             await db.ref('cardapio/produtos').set(data.produtos);
-            
-            alert("Sucesso! " + data.produtos.length + " produtos foram salvos no Firebase.");
-            
-            // 3. Recarrega a tela para mostrar os dados vindo da nuvem
-            carregarProdutos(); 
-        } else {
-            alert("O arquivo produtos.json parece estar vazio ou no formato errado.");
+            console.log("Produtos migrados! ✅");
         }
+
+        // --- 2. IMPORTAR CUPONS (ADICIONADO AQUI) ---
+        try {
+            const resCupons = await fetch("content/cupons.json?v=" + Date.now());
+            const dataCupons = await resCupons.json();
+            if (dataCupons && dataCupons.cupons) {
+                await db.ref('configuracoes/cupons').set(dataCupons.cupons);
+                console.log("Cupons migrados! ✅");
+            }
+        } catch (e) { 
+            console.warn("Arquivo cupons.json não encontrado ou vazio. Pulando cupons..."); 
+        }
+
+        // --- FINALIZAÇÃO ---
+        alert("Sucesso! Cardápio e Cupons foram sincronizados com o Firebase.");
+        carregarProdutos(); // Recarrega a lista na tela do admin
+        
     } catch (err) {
         console.error("Erro na migração:", err);
-        alert("Erro ao ler o arquivo. Certifique-se que 'content/produtos.json' existe no servidor.");
+        alert("Erro crítico ao ler os arquivos. Verifique a pasta 'content'.");
     } finally {
         btn.innerText = "📥 Importar do JSON";
         btn.disabled = false;
     }
 }
-
 
 
 
