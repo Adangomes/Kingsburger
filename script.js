@@ -8,7 +8,7 @@ const TAXA_BASE = 5;
 
 const VALOR_POR_KM = 4.0;
 
-const WHATSAPP_NUMERO = "5547992745867";
+const WHATSAPP_NUMERO = "5547997278232";
 
 
 
