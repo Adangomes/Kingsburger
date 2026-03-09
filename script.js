@@ -697,23 +697,22 @@ function mostrarResumoFinal() {
 
 
 // --- OUTROS ---
-
 function carregarStatusLoja() {
-
     const el = document.getElementById("status-loja");
+    if (!db) return;
 
-    const agora = new Date();
-
-    const tempoAtual = (agora.getHours() * 60) + agora.getMinutes();
-
-    const aberto = tempoAtual >= 540 && tempoAtual <= 1410; // 09:00 as 23:30
-
-    el.innerText = aberto ? "ABERTO" : "FECHADO";
-
-    el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
-
+    // Fica "ouvindo" o Firebase. Se você mudar no Admin, muda pro cliente na hora!
+    db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
+        const aberto = snapshot.val(); // Recebe true ou false do banco
+        
+        el.innerText = aberto ? "ABERTO" : "FECHADO";
+        el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
+        
+        // Dica: Se quiser impedir o botão de "Pedir" quando estiver fechado:
+        const btnPedir = document.querySelector(".btn-finalizar-carrinho"); // Ajuste o seletor se for outro nome
+        if (btnPedir) btnPedir.disabled = !aberto;
+    });
 }
-
 
 
 function abrirDelivery() {
@@ -914,4 +913,29 @@ async function migrarArquivoParaFirebase() {
         btn.innerText = "📥 Importar do JSON";
         btn.disabled = false;
     }
+}
+
+
+// Escuta o status atual para marcar o switch corretamente ao abrir o painel
+db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
+    const aberto = snapshot.val();
+    const txt = document.getElementById("txtStatus");
+    const sw = document.getElementById("switchStatus");
+    
+    if (aberto) {
+        txt.innerText = "Aberto";
+        txt.className = "badge bg-success text-uppercase";
+        sw.checked = true;
+    } else {
+        txt.innerText = "Fechado";
+        txt.className = "badge bg-danger text-uppercase";
+        sw.checked = false;
+    }
+});
+
+// Função que o botão chama para mudar no Firebase
+function alterarStatusLoja(novoStatus) {
+    db.ref('configuracoes/statusLoja').set(novoStatus)
+    .then(() => console.log("Status atualizado!"))
+    .catch(err => alert("Erro ao mudar status: " + err.message));
 }
