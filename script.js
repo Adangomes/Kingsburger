@@ -884,47 +884,56 @@ function salvarPedidoFirebase(dados) {
 }
 // FUNÇÃO PARA MIGRAR OS DADOS DO ARQUIVO PARA O FIREBASE
 async function migrarArquivoParaFirebase() {
-    if (!confirm("Isso vai ler 'produtos.json' e 'cupons.json' e salvar no Firebase. Confirmar?")) return;
+    if (!confirm("Deseja realizar a migração total? (Produtos, Status e Descontos)")) return;
 
     const btn = event.target;
-    btn.innerText = "⏳ Importando...";
+    const textoOriginal = btn.innerText;
+    btn.innerText = "⏳ Migrando Tudo...";
     btn.disabled = true;
 
     try {
-        // --- 1. IMPORTAR PRODUTOS ---
-        const res = await fetch("content/produtos.json?v=" + Date.now());
-        const data = await res.json();
+        console.log("Iniciando migração total...");
 
-        if (data && data.produtos) {
-            await db.ref('cardapio/produtos').set(data.produtos);
+        // 1. MIGRAR PRODUTOS
+        const resProdutos = await fetch("content/produtos.json?v=" + Date.now());
+        const dataProdutos = await resProdutos.json();
+        if (dataProdutos && dataProdutos.produtos) {
+            await db.ref('cardapio/produtos').set(dataProdutos.produtos);
             console.log("Produtos migrados! ✅");
         }
 
-        // --- 2. IMPORTAR CUPONS (ADICIONADO AQUI) ---
-        try {
-            const resCupons = await fetch("content/cupons.json?v=" + Date.now());
-            const dataCupons = await resCupons.json();
-            if (dataCupons && dataCupons.cupons) {
-                await db.ref('configuracoes/cupons').set(dataCupons.cupons);
-                console.log("Cupons migrados! ✅");
-            }
-        } catch (e) { 
-            console.warn("Arquivo cupons.json não encontrado ou vazio. Pulando cupons..."); 
+        // 2. MIGRAR STATUS (HORÁRIOS E ABERTO/FECHADO)
+        const resStatus = await fetch("content/status.json?v=" + Date.now());
+        const dataStatus = await resStatus.json();
+        if (dataStatus) {
+            await db.ref('configuracoes/geral').set(dataStatus);
+            // Atualiza o atalho do status principal para o switch
+            await db.ref('configuracoes/statusLoja').set(dataStatus.aberto || dataStatus.statusLoja || false);
+            console.log("Status da loja migrado! ✅");
         }
 
-        // --- FINALIZAÇÃO ---
-        alert("Sucesso! Cardápio e Cupons foram sincronizados com o Firebase.");
-        carregarProdutos(); // Recarrega a lista na tela do admin
+        // 3. MIGRAR CUPONS (APLICARDESCONTO.JSON)
+        const resCupons = await fetch("content/aplicardesconto.json?v=" + Date.now());
+        const dataCupons = await resCupons.json();
+        if (dataCupons && dataCupons.cupons) {
+            await db.ref('configuracoes/cupons').set(dataCupons.cupons);
+            console.log("Cupons de desconto migrados! ✅");
+        }
+
+        alert("Migração Completa! Todos os dados foram sincronizados com o Firebase.");
         
+        // Recarrega a visualização no Admin
+        carregarProdutos();
+        if (typeof monitorarStatusLoja === 'function') monitorarStatusLoja();
+
     } catch (err) {
-        console.error("Erro na migração:", err);
-        alert("Erro crítico ao ler os arquivos. Verifique a pasta 'content'.");
+        console.error("Erro na migração total:", err);
+        alert("Erro ao ler um ou mais arquivos JSON. Verifique a pasta 'content'.");
     } finally {
-        btn.innerText = "📥 Importar do JSON";
+        btn.innerText = textoOriginal;
         btn.disabled = false;
     }
 }
-
 
 
 // --- SISTEMA DE CUPONS E DESCONTO ---
