@@ -447,30 +447,22 @@ async function processarResumoGeo() {
 
 
         if (data.features && data.features.length > 0) {
-
             const [lon, lat] = data.features[0].geometry.coordinates;
+            const dist = calcularDistancia(
+                RESTAURANTE_COORD[0],
+                RESTAURANTE_COORD[1],
+                lat,
+                lon
+            );
 
-const dist = calcularDistancia(
-    RESTAURANTE_COORD[0],
-    RESTAURANTE_COORD[1],
-    lat,
-    lon
-);
-
-            
-
-            // Cálculo da taxa: Base + (KM * Valor)
-
-            taxaEntregaCalculada = (dist * VALOR_POR_KM);
+            // CÁLCULO ATUALIZADO: Soma a TAXA_BASE e arredonda
+            let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
+            taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
 
         } else {
-
-            // Se não achar a rua, coloca a taxa base padrão
-
+            // Se não achar a rua, usa a taxa base como segurança
             taxaEntregaCalculada = TAXA_BASE;
-
         }
-
 
 
         // 4. MOSTRAR RESULTADO FINAL
