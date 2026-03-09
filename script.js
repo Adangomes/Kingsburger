@@ -916,3 +916,36 @@ async function migrarArquivoParaFirebase() {
 }
 
 
+
+
+// --- SISTEMA DE CUPONS E DESCONTO ---
+
+async function aplicarCupom() {
+    const inputCupom = document.getElementById("input-cupom")?.value.toUpperCase();
+    if (!inputCupom) return alert("Digite um código de cupom!");
+
+    try {
+        // Busca a lista de cupons no Firebase
+        const snapshot = await db.ref('configuracoes/cupons').once('value');
+        const cupons = snapshot.val();
+
+        if (!cupons) return alert("Nenhum cupom disponível no momento.");
+
+        // Procura o cupom digitado
+        const cupomValido = Object.values(cupons).find(c => c.codigo === inputCupom && c.ativo === true);
+
+        if (cupomValido) {
+            descontoAplicado = cupomValido.valor;
+            alert(`Cupom ${inputCupom} aplicado! Desconto de R$ ${descontoAplicado.toFixed(2)}`);
+            
+            // Atualiza o carrinho visualmente com o novo total
+            atualizarCarrinho(); 
+        } else {
+            alert("Cupom inválido ou expirado.");
+            descontoAplicado = 0;
+            atualizarCarrinho();
+        }
+    } catch (err) {
+        console.error("Erro ao validar cupom:", err);
+    }
+}
