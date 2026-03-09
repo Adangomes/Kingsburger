@@ -942,16 +942,19 @@ async function migrarArquivoParaFirebase() {
 async function aplicarCupom() {
     const inputField = document.getElementById("input-cupom");
     const feedback = document.getElementById("msg-cupom-feedback");
+    const btnOk = document.getElementById("btn-aplicar-cupom");
     const codigo = inputField?.value.trim().toUpperCase();
+
+    // Se o cupom já foi aplicado, não faz nada
+    if (inputField.disabled) return;
 
     if (!codigo) {
         feedback.innerText = "Digite um código!";
-        feedback.className = "cupom-msg-erro";
+        feedback.style.color = "red";
         return;
     }
 
     try {
-        // Busca os cupons do Firebase
         const snapshot = await db.ref('configuracoes/cupons').once('value');
         const cupons = snapshot.val();
 
@@ -960,27 +963,31 @@ async function aplicarCupom() {
             return;
         }
 
-        // Converte para lista e procura o cupom
         const listaCupons = Array.isArray(cupons) ? cupons : Object.values(cupons);
         const cupomValido = listaCupons.find(c => c.codigo === codigo && c.ativo === true);
 
         if (cupomValido) {
             let subtotalAtual = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-            // Se for porcentagem, calcula sobre o subtotal. Se não, usa valor fixo.
-            if (cupomValido.tipo === "porcentagem") {
+            if (cupomValido.tipo === "porcentagem" || cupomValido.tipo === "percentual") {
                 descontoAplicado = subtotalAtual * (cupomValido.valor / 100);
             } else {
-                descontoAplicado = cupomValido.valor;
+                descontoAplicado = parseFloat(cupomValido.valor);
             }
 
             feedback.innerText = `Cupom aplicado: R$ ${descontoAplicado.toFixed(2)} OFF! ✅`;
-            feedback.className = "text-success small mt-1"; // Classe de sucesso
+            feedback.style.color = "#00a650"; // Verde Sucesso
+            
+            // --- SEGURANÇA: TRAVA O CAMPO PARA USAR APENAS 1 VEZ ---
+            inputField.disabled = true;
+            btnOk.disabled = true;
+            btnOk.style.opacity = "0.5";
+            inputField.style.backgroundColor = "#f0f0f0";
             
             atualizarCarrinho(); 
         } else {
             feedback.innerText = "Cupom inválido ou expirado. ❌";
-            feedback.className = "cupom-msg-erro";
+            feedback.style.color = "red";
             descontoAplicado = 0;
             atualizarCarrinho();
         }
