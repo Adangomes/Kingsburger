@@ -940,37 +940,52 @@ async function migrarArquivoParaFirebase() {
 
 // --- SISTEMA DE CUPONS E DESCONTO (VERSÃO CORRIGIDA) ---
 async function aplicarCupom() {
-    const inputCupom = document.getElementById("input-cupom")?.value.trim().toUpperCase();
-    if (!inputCupom) return alert("Digite um código de cupom!");
+    const inputField = document.getElementById("input-cupom");
+    const feedback = document.getElementById("msg-cupom-feedback");
+    const codigo = inputField?.value.trim().toUpperCase();
+
+    if (!codigo) {
+        feedback.innerText = "Digite um código!";
+        feedback.className = "cupom-msg-erro";
+        return;
+    }
 
     try {
+        // Busca os cupons do Firebase
         const snapshot = await db.ref('configuracoes/cupons').once('value');
         const cupons = snapshot.val();
 
-        if (!cupons) return alert("Nenhum cupom disponível no momento.");
+        if (!cupons) {
+            feedback.innerText = "Nenhum cupom ativo.";
+            return;
+        }
 
-        // Procura o cupom (funciona para objetos ou arrays vindos do Firebase)
+        // Converte para lista e procura o cupom
         const listaCupons = Array.isArray(cupons) ? cupons : Object.values(cupons);
-        const cupomValido = listaCupons.find(c => c.codigo === inputCupom && c.ativo === true);
+        const cupomValido = listaCupons.find(c => c.codigo === codigo && c.ativo === true);
 
         if (cupomValido) {
             let subtotalAtual = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-            // Lógica para % ou R$
+            // Se for porcentagem, calcula sobre o subtotal. Se não, usa valor fixo.
             if (cupomValido.tipo === "porcentagem") {
                 descontoAplicado = subtotalAtual * (cupomValido.valor / 100);
             } else {
                 descontoAplicado = cupomValido.valor;
             }
 
-            alert(`Cupom ${inputCupom} aplicado! ✅\nDesconto de R$ ${descontoAplicado.toFixed(2)}`);
+            feedback.innerText = `Cupom aplicado: R$ ${descontoAplicado.toFixed(2)} OFF! ✅`;
+            feedback.className = "text-success small mt-1"; // Classe de sucesso
+            
             atualizarCarrinho(); 
         } else {
-            alert("Cupom inválido ou expirado.");
+            feedback.innerText = "Cupom inválido ou expirado. ❌";
+            feedback.className = "cupom-msg-erro";
             descontoAplicado = 0;
             atualizarCarrinho();
         }
     } catch (err) {
         console.error("Erro ao validar cupom:", err);
+        feedback.innerText = "Erro ao validar. Tente novamente.";
     }
 }
