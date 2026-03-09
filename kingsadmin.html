@@ -155,6 +155,27 @@
             console.error(err);
         }
     }
+    // --- NO PAINEL ADMIN ---
+
+// Faz o switch (botão) refletir o estado real do banco ao abrir a página
+db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
+    const aberto = snapshot.val();
+    const txt = document.getElementById("txtStatus");
+    const sw = document.getElementById("switchStatus");
+    
+    if (txt && sw) {
+        txt.innerText = aberto ? "Aberto" : "Fechado";
+        txt.className = aberto ? "badge bg-success text-uppercase" : "badge bg-danger text-uppercase";
+        sw.checked = aberto;
+    }
+});
+
+// Salva a alteração quando você clica no switch
+function alterarStatusLoja(novoStatus) {
+    db.ref('configuracoes/statusLoja').set(novoStatus)
+    .then(() => console.log("Status atualizado no Firebase! ✅"))
+    .catch(err => alert("Erro ao mudar status: " + err.message));
+}
 
     carregarProdutos();
 </script>
