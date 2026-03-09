@@ -2,13 +2,13 @@
 {
   "cupons": [
     {
-      "codigo": "kings10",
+      "codigo": "Adan10",
       "tipo": "porcentagem",
       "valor": 10,
       "ativo": true
     },
     {
-      "codigo": "DESCONTO5",
+      "codigo": "Adan5",
       "tipo": "fixo",
       "valor": 5,
       "ativo": true
