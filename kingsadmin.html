@@ -203,6 +203,58 @@ function alterarStatusLoja(novoStatus) {
     .then(() => console.log("Status atualizado no Firebase! ✅"))
     .catch(err => alert("Erro ao mudar status: " + err.message));
 }
+    // --- FUNÇÕES DO ADMIN PARA CUPONS ---
+
+function renderizarCupons(cuponsObj) {
+    const container = document.getElementById("listaCuponsAdmin");
+    if (!container) return;
+    
+    container.innerHTML = "<h4>Gerenciar Cupons</h4>";
+    const cupons = cuponsObj ? Object.entries(cuponsObj) : [];
+
+    cupons.forEach(([id, c]) => {
+        container.innerHTML += `
+            <div class="card-prod border-info mb-2">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Código</label>
+                        <input class="form-control" value="${c.codigo}" onchange="editarCupom('${id}', 'codigo', this.value.toUpperCase())">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Valor (R$)</label>
+                        <input class="form-control" type="number" value="${c.valor}" onchange="editarCupom('${id}', 'valor', parseFloat(this.value))">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-center mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" ${c.ativo ? 'checked' : ''} onchange="editarCupom('${id}', 'ativo', this.checked)">
+                            <label class="ms-2">${c.ativo ? 'Ativo' : 'Inativo'}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-end mt-3">
+                        <button class="btn btn-danger btn-sm" onclick="excluirCupom('${id}')">Remover</button>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+function novoCupom() {
+    const novo = {
+        codigo: "NOVO10",
+        valor: 10.00,
+        ativo: true
+    };
+    db.ref('configuracoes/cupons').push(novo);
+}
+function editarCupom(id, campo, valor) {
+    db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor });
+}
+function excluirCupom(id) {
+    if(confirm("Excluir este cupom?")) db.ref(`configuracoes/cupons/${id}`).remove();
+}
+// Escuta mudanças nos cupons em tempo real no Admin
+db.ref('configuracoes/cupons').on('value', (snapshot) => {
+    renderizarCupons(snapshot.val());
+});
 
     carregarProdutos();
 </script>
