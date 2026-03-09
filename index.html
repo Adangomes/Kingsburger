@@ -62,9 +62,12 @@
     <div class="modal-box">
         <div class="modal-header-clean"><h3>Meu Carrinho</h3><button onclick="fecharCarrinho()" class="btn-fechar-modal">✕</button></div>
         <div id="cart-items" class="cart-items-list"></div>
-        <div class="cupom-container">
-    <input type="text" id="input-cupom" placeholder="Cupom">
-    <button id="btn-aplicar-cupom" onclick="aplicarCupom()">Ok</button>
+        <div class="cupom-secao">
+    <div class="cupom-container">
+        <input type="text" id="input-cupom" placeholder="Cupom">
+        <button id="btn-aplicar-cupom" onclick="aplicarCupom()">Ok</button>
+    </div>
+    <div id="msg-cupom-feedback" class="cupom-msg-erro"></div>
 </div>
         <div class="summary-box">
             <div class="summary-line"><span>Subtotal</span><span id="subtotal">R$ 0,00</span></div>
@@ -137,6 +140,7 @@
 <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
