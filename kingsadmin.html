@@ -56,219 +56,136 @@
         <p class="text-center text-muted">Carregando cardápio do Firebase...</p>
     </div>
 </div>
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
-        authDomain: "myproject26-10f0e.firebaseapp.com",
-        databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
-        projectId: "myproject26-10f0e",
-        storageBucket: "myproject26-10f0e.firebasestorage.app",
-        messagingSenderId: "884850608032",
-        appId: "1:884850608032:web:79db6983346c3c20edc6c5"
-    };
+// --- CONFIGURAÇÃO FIREBASE ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+    authDomain: "myproject26-10f0e.firebaseapp.com",
+    databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+    projectId: "myproject26-10f0e",
+    storageBucket: "myproject26-10f0e.firebasestorage.app",
+    messagingSenderId: "884850608032",
+    appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+};
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    let produtos = [];
+let produtos = [];
 
-    async function carregarProdutos() {
-        const lista = document.getElementById("listaProdutos");
-        db.ref('cardapio/produtos').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                produtos = Array.isArray(data) ? data : Object.values(data);
-                renderizar();
-            } else {
-                lista.innerHTML = '<p class="text-center text-danger">Nenhum produto no Firebase. Use o botão "Importar do JSON"!</p>';
-                produtos = [];
-            }
-        });
-    }
-
-    function renderizar() {
-        const lista = document.getElementById("listaProdutos");
-        lista.innerHTML = "";
-        produtos.forEach((p, i) => {
-            lista.innerHTML += `
-            <div class="card-prod">
-                <div class="row align-items-center">
-                    <div class="col-md-1 text-center">
-                        <img src="${p.image}" onerror="this.src='https://via.placeholder.com/100?text=Sem+Foto'">
-                    </div>
-                    <div class="col-md-3">
-                        <label>Título</label>
-                        <input class="form-control" value="${p.title || ''}" onchange="editar(${i}, 'title', this.value)">
-                    </div>
-                    <div class="col-md-2">
-                        <label>Preço</label>
-                        <input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="editar(${i}, 'price', this.value)">
-                    </div>
-                    <div class="col-md-2">
-                        <label>Categoria</label>
-                        <input class="form-control" value="${p.categoria || ''}" onchange="editar(${i}, 'categoria', this.value)">
-                    </div>
-                    <div class="col-md-3">
-                        <label>Imagem (URL)</label>
-                        <input class="form-control" value="${p.image || ''}" onchange="editar(${i}, 'image', this.value)">
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button class="btn btn-outline-danger btn-sm" onclick="excluir(${i})">X</button>
-                    </div>
-                    <div class="col-12 mt-3">
-                        <label>Ingredientes</label>
-                        <input class="form-control" value="${p.ingredientes || ''}" onchange="editar(${i}, 'ingredientes', this.value)">
-                    </div>
-                </div>
-            </div>`;
-        });
-    }
-
-    function editar(index, campo, valor) {
-        if (campo === "price") valor = parseFloat(valor);
-        produtos[index][campo] = valor;
-    }
-
-    function excluir(i) {
-        if (confirm("Excluir item?")) { produtos.splice(i, 1); renderizar(); }
-    }
-
-    function novoProduto() {
-        produtos.unshift({ title: "Novo Burger", price: 0.00, categoria: "burger", ingredientes: "", image: "imagens/placeholder.png" });
+// --- GESTÃO DE PRODUTOS ---
+async function carregarProdutos() {
+    db.ref('cardapio/produtos').on('value', (snapshot) => {
+        const data = snapshot.val();
+        produtos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
         renderizar();
-    }
-
-    function salvarNoFirebase() {
-        const btn = document.getElementById("btnSalvar");
-        btn.innerText = "⏳ SALVANDO...";
-        btn.disabled = true;
-        db.ref('cardapio/produtos').set(produtos)
-        .then(() => alert("Atualizado no Firebase! ✅"))
-        .finally(() => { btn.innerText = "☁️ Salvar no Cloud"; btn.disabled = false; });
-    }
-
-    // --- NOVA FUNÇÃO DE MIGRAÇÃO ---
-   // --- FUNÇÃO DE MIGRAÇÃO UNIFICADA ---
-async function migrarArquivoParaFirebase() {
-    if (!confirm("Isso vai ler 'produtos.json' e 'status.json' e salvar tudo no Firebase. Confirma?")) return;
-    
-    const btn = event.target;
-    btn.innerText = "⏳ Importando...";
-    btn.disabled = true;
-
-    try {
-        // 1. IMPORTAR PRODUTOS
-        const resProdutos = await fetch("content/produtos.json?v=" + Date.now());
-        const dataProdutos = await resProdutos.json();
-        
-        if (dataProdutos && dataProdutos.produtos) {
-            await db.ref('cardapio/produtos').set(dataProdutos.produtos);
-            console.log("Produtos migrados! ✅");
-        }
-
-        // 2. IMPORTAR STATUS E CONFIGURAÇÕES
-        const resStatus = await fetch("content/status.json?v=" + Date.now());
-        const dataStatus = await resStatus.json();
-
-        if (dataStatus) {
-            // Salva o objeto de status inteiro (aberto, horários, mensagem)
-            await db.ref('configuracoes/geral').set(dataStatus);
-            // Também garante que o statusLoja principal seja atualizado para o switch
-            await db.ref('configuracoes/statusLoja').set(dataStatus.aberto);
-            console.log("Configurações de status migradas! ✅");
-        }
-
-        alert("Importação completa realizada com sucesso!");
-        
-        // Recarrega os dados na tela do Admin
-        carregarProdutos();
-        if (typeof monitorarStatusLoja === 'function') monitorarStatusLoja();
-
-    } catch (err) {
-        alert("Erro ao ler os arquivos JSON. Verifique se eles estão na pasta 'content'.");
-        console.error(err);
-    } finally {
-        btn.innerText = "📥 Importar do JSON";
-        btn.disabled = false;
-    }
+    });
 }
-    // --- NO PAINEL ADMIN ---
 
-// Faz o switch (botão) refletir o estado real do banco ao abrir a página
+function renderizar() {
+    const lista = document.getElementById("listaProdutos");
+    if (!lista) return;
+    lista.innerHTML = produtos.length ? "" : '<p class="text-center text-danger">Nenhum produto no Firebase.</p>';
+    
+    produtos.forEach((p, i) => {
+        lista.innerHTML += `
+        <div class="card-prod">
+            <div class="row align-items-center">
+                <div class="col-md-1 text-center"><img src="${p.image}" onerror="this.src='https://via.placeholder.com/100'"></div>
+                <div class="col-md-3"><label>Título</label><input class="form-control" value="${p.title || ''}" onchange="editar(${i}, 'title', this.value)"></div>
+                <div class="col-md-2"><label>Preço</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="editar(${i}, 'price', this.value)"></div>
+                <div class="col-md-2"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="editar(${i}, 'categoria', this.value)"></div>
+                <div class="col-md-3"><label>Imagem (URL)</label><input class="form-control" value="${p.image || ''}" onchange="editar(${i}, 'image', this.value)"></div>
+                <div class="col-md-1 text-end"><button class="btn btn-outline-danger btn-sm" onclick="excluir(${i})">X</button></div>
+                <div class="col-12 mt-2"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="editar(${i}, 'ingredientes', this.value)"></div>
+            </div>
+        </div>`;
+    });
+}
+
+function editar(i, campo, valor) { produtos[i][campo] = campo === "price" ? parseFloat(valor) : valor; }
+function excluir(i) { if (confirm("Excluir item?")) { produtos.splice(i, 1); salvarNoFirebase(); } }
+function novoProduto() { produtos.unshift({ title: "Novo Burger", price: 0, categoria: "burger", ingredientes: "", image: "" }); renderizar(); }
+function salvarNoFirebase() { db.ref('cardapio/produtos').set(produtos).then(() => alert("Cloud Atualizado! ✅")); }
+
+// --- GESTÃO DE STATUS ---
 db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
     const aberto = snapshot.val();
     const txt = document.getElementById("txtStatus");
     const sw = document.getElementById("switchStatus");
-    
     if (txt && sw) {
         txt.innerText = aberto ? "Aberto" : "Fechado";
-        txt.className = aberto ? "badge bg-success text-uppercase" : "badge bg-danger text-uppercase";
+        txt.className = aberto ? "badge bg-success" : "badge bg-danger";
         sw.checked = aberto;
     }
 });
 
-// Salva a alteração quando você clica no switch
-function alterarStatusLoja(novoStatus) {
-    db.ref('configuracoes/statusLoja').set(novoStatus)
-    .then(() => console.log("Status atualizado no Firebase! ✅"))
-    .catch(err => alert("Erro ao mudar status: " + err.message));
-}
-    // --- FUNÇÕES DO ADMIN PARA CUPONS ---
+function alterarStatusLoja(novoStatus) { db.ref('configuracoes/statusLoja').set(novoStatus); }
 
+// --- GESTÃO DE CUPONS ---
 function renderizarCupons(cuponsObj) {
     const container = document.getElementById("listaCuponsAdmin");
     if (!container) return;
-    
-    container.innerHTML = "<h4>Gerenciar Cupons</h4>";
-    const cupons = cuponsObj ? Object.entries(cuponsObj) : [];
+    container.innerHTML = "";
 
-    cupons.forEach(([id, c]) => {
+    if (!cuponsObj) {
+        container.innerHTML = "<p class='text-muted text-center'>Nenhum cupom ativo.</p>";
+        return;
+    }
+
+    Object.entries(cuponsObj).forEach(([id, c]) => {
         container.innerHTML += `
-            <div class="card-prod border-info mb-2">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label>Código</label>
-                        <input class="form-control" value="${c.codigo}" onchange="editarCupom('${id}', 'codigo', this.value.toUpperCase())">
-                    </div>
-                    <div class="col-md-3">
-                        <label>Valor (R$)</label>
-                        <input class="form-control" type="number" value="${c.valor}" onchange="editarCupom('${id}', 'valor', parseFloat(this.value))">
-                    </div>
-                    <div class="col-md-3 d-flex align-items-center mt-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" ${c.ativo ? 'checked' : ''} onchange="editarCupom('${id}', 'ativo', this.checked)">
-                            <label class="ms-2">${c.ativo ? 'Ativo' : 'Inativo'}</label>
-                        </div>
-                    </div>
-                    <div class="col-md-2 text-end mt-3">
-                        <button class="btn btn-danger btn-sm" onclick="excluirCupom('${id}')">Remover</button>
-                    </div>
-                </div>
-            </div>`;
+        <div class="bg-dark p-2 mb-2 rounded border border-secondary row align-items-center mx-1">
+            <div class="col-md-4"><label class="d-block text-info">Código</label><input class="form-control form-control-sm" value="${c.codigo}" onchange="editarCupom('${id}', 'codigo', this.value.toUpperCase())"></div>
+            <div class="col-md-3"><label class="d-block text-info">Valor</label><input class="form-control form-control-sm" type="number" value="${c.valor}" onchange="editarCupom('${id}', 'valor', parseFloat(this.value))"></div>
+            <div class="col-md-3 mt-3"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${c.ativo ? 'checked' : ''} onchange="editarCupom('${id}', 'ativo', this.checked)"><label class="ms-2">Ativo</label></div></div>
+            <div class="col-md-2 text-end mt-3"><button class="btn btn-sm btn-outline-danger" onclick="excluirCupom('${id}')">🗑️</button></div>
+        </div>`;
     });
 }
-function novoCupom() {
-    const novo = {
-        codigo: "NOVO10",
-        valor: 10.00,
-        ativo: true
-    };
-    db.ref('configuracoes/cupons').push(novo);
-}
-function editarCupom(id, campo, valor) {
-    db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor });
-}
-function excluirCupom(id) {
-    if(confirm("Excluir este cupom?")) db.ref(`configuracoes/cupons/${id}`).remove();
-}
-// Escuta mudanças nos cupons em tempo real no Admin
-db.ref('configuracoes/cupons').on('value', (snapshot) => {
-    renderizarCupons(snapshot.val());
-});
 
-    carregarProdutos();
+function novoCupom() { db.ref('configuracoes/cupons').push({ codigo: "NOVO10", valor: 10, ativo: true }); }
+function editarCupom(id, campo, valor) { db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor }); }
+function excluirCupom(id) { if(confirm("Excluir cupom?")) db.ref(`configuracoes/cupons/${id}`).remove(); }
+
+db.ref('configuracoes/cupons').on('value', (snapshot) => renderizarCupons(snapshot.val()));
+
+// --- MIGRAÇÃO TOTAL ---
+async function migrarArquivoParaFirebase() {
+    if (!confirm("Importar Produtos, Status e Cupons (aplicardesconto.json)?")) return;
+    try {
+        // 1. Produtos
+        const resP = await fetch("content/produtos.json?v=" + Date.now());
+        const dataP = await resP.json();
+        if (dataP.produtos) await db.ref('cardapio/produtos').set(dataP.produtos);
+
+        // 2. Status
+        const resS = await fetch("content/status.json?v=" + Date.now());
+        const dataS = await resS.json();
+        if (dataS) {
+            await db.ref('configuracoes/geral').set(dataS);
+            await db.ref('configuracoes/statusLoja').set(dataS.aberto);
+        }
+
+        // 3. Cupons (Usando o nome correto do seu arquivo)
+        const resC = await fetch("content/aplicardesconto.json?v=" + Date.now());
+        const dataC = await resC.json();
+        if (dataC.cupons) {
+            // Limpa cupons antigos e insere os novos do JSON
+            await db.ref('configuracoes/cupons').set(null); 
+            for (let c of dataC.cupons) {
+                await db.ref('configuracoes/cupons').push(c);
+            }
+        }
+
+        alert("Migração completa realizada! ✅");
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao importar. Verifique se os arquivos existem na pasta content.");
+    }
+}
+
+// Inicializar
+carregarProdutos();
 </script>
 </body>
 </html>
