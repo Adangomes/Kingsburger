@@ -916,26 +916,3 @@ async function migrarArquivoParaFirebase() {
 }
 
 
-// Escuta o status atual para marcar o switch corretamente ao abrir o painel
-db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-    const aberto = snapshot.val();
-    const txt = document.getElementById("txtStatus");
-    const sw = document.getElementById("switchStatus");
-    
-    if (aberto) {
-        txt.innerText = "Aberto";
-        txt.className = "badge bg-success text-uppercase";
-        sw.checked = true;
-    } else {
-        txt.innerText = "Fechado";
-        txt.className = "badge bg-danger text-uppercase";
-        sw.checked = false;
-    }
-});
-
-// Função que o botão chama para mudar no Firebase
-function alterarStatusLoja(novoStatus) {
-    db.ref('configuracoes/statusLoja').set(novoStatus)
-    .then(() => console.log("Status atualizado!"))
-    .catch(err => alert("Erro ao mudar status: " + err.message));
-}
