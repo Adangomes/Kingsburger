@@ -2,7 +2,7 @@
 {
   "cupons": [
     {
-      "codigo": "SNOOP10",
+      "codigo": "kings10",
       "tipo": "porcentagem",
       "valor": 10,
       "ativo": true
