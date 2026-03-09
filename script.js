@@ -527,7 +527,7 @@ function enviarWhatsApp() {
 
     // 1. MONTAGEM DA MENSAGEM
 
-    let msg = `*NOVO PEDIDO - SNOOP LANCHE*\n`;
+    let msg = `*NOVO PEDIDO - KINGSBURG*\n`;
 
     msg += `------------------------------\n`;
 
