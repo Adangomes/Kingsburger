@@ -4,7 +4,7 @@ const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 
 const RESTAURANTE_COORD = [-49.024909, -26.464334]; 
 
-const TAXA_BASE = 5;
+const TAXA_BASE = 0;
 
 const VALOR_POR_KM = 4.0;
 
@@ -434,7 +434,7 @@ async function processarResumoGeo() {
 
         // 2. CHAMADA DA API GEOAPIFY
 
-        const query = encodeURIComponent(`${rua}, ${num}, Guaramirim, SC, Brasil`);
+        const query = encodeURIComponent(`${rua}, ${num}, jarargua do sul, SC, Brasil`);
 
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
 
@@ -452,13 +452,13 @@ async function processarResumoGeo() {
 
             const [lon, lat] = data.features[0].geometry.coordinates;
 
-            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lat, lon);
+            const dist = calcularDistancia(RESTAURANTE_COORD[1], RESTAURANTE_COORD[0], lon, lat,);
 
             
 
             // Cálculo da taxa: Base + (KM * Valor)
 
-            taxaEntregaCalculada = TAXA_BASE + (dist * VALOR_POR_KM);
+            taxaEntregaCalculada = (dist * VALOR_POR_KM);
 
         } else {
 
