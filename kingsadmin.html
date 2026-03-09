@@ -138,23 +138,50 @@
     }
 
     // --- NOVA FUNÇÃO DE MIGRAÇÃO ---
-    async function migrarArquivoParaFirebase() {
-        if (!confirm("Isso vai ler o arquivo content/produtos.json e salvar no banco de dados. Confirma?")) return;
+   // --- FUNÇÃO DE MIGRAÇÃO UNIFICADA ---
+async function migrarArquivoParaFirebase() {
+    if (!confirm("Isso vai ler 'produtos.json' e 'status.json' e salvar tudo no Firebase. Confirma?")) return;
+    
+    const btn = event.target;
+    btn.innerText = "⏳ Importando...";
+    btn.disabled = true;
+
+    try {
+        // 1. IMPORTAR PRODUTOS
+        const resProdutos = await fetch("content/produtos.json?v=" + Date.now());
+        const dataProdutos = await resProdutos.json();
         
-        try {
-            const res = await fetch("content/produtos.json?v=" + Date.now());
-            const data = await res.json();
-            
-            if (data && data.produtos) {
-                await db.ref('cardapio/produtos').set(data.produtos);
-                alert("Importado com sucesso! " + data.produtos.length + " itens migrados.");
-                carregarProdutos();
-            }
-        } catch (err) {
-            alert("Erro ao ler o arquivo produtos.json. Verifique se ele existe na pasta content.");
-            console.error(err);
+        if (dataProdutos && dataProdutos.produtos) {
+            await db.ref('cardapio/produtos').set(dataProdutos.produtos);
+            console.log("Produtos migrados! ✅");
         }
+
+        // 2. IMPORTAR STATUS E CONFIGURAÇÕES
+        const resStatus = await fetch("content/status.json?v=" + Date.now());
+        const dataStatus = await resStatus.json();
+
+        if (dataStatus) {
+            // Salva o objeto de status inteiro (aberto, horários, mensagem)
+            await db.ref('configuracoes/geral').set(dataStatus);
+            // Também garante que o statusLoja principal seja atualizado para o switch
+            await db.ref('configuracoes/statusLoja').set(dataStatus.aberto);
+            console.log("Configurações de status migradas! ✅");
+        }
+
+        alert("Importação completa realizada com sucesso!");
+        
+        // Recarrega os dados na tela do Admin
+        carregarProdutos();
+        if (typeof monitorarStatusLoja === 'function') monitorarStatusLoja();
+
+    } catch (err) {
+        alert("Erro ao ler os arquivos JSON. Verifique se eles estão na pasta 'content'.");
+        console.error(err);
+    } finally {
+        btn.innerText = "📥 Importar do JSON";
+        btn.disabled = false;
     }
+}
     // --- NO PAINEL ADMIN ---
 
 // Faz o switch (botão) refletir o estado real do banco ao abrir a página
