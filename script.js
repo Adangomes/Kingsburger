@@ -1,14 +1,12 @@
  // --- CONFIGURAÇÕES GLOBAIS ---
 
+// --- CONFIGURAÇÕES GLOBAIS ---
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
-
-const RESTAURANTE_COORD = [-26.49624, -49.07919];
-
-const TAXA_BASE = 0;
-
-const VALOR_POR_KM = 4.0;
-
+const RESTAURANTE_COORD = [-26.49624, -49.07919]; 
+const TAXA_BASE = 4.0;       // Ajustado para R$ 4,00
+const VALOR_POR_KM = 1.50;   // Ajustado para R$ 1,50
 const WHATSAPP_NUMERO = "5547997278232";
+
 
 
 
