@@ -20,9 +20,38 @@
         .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
         .btn-warning { font-weight: bold; }
         .scale-150 { transform: scale(1.5); margin-right: 10px; }
+        /* Tela de Bloqueio */
+#lock-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; 
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+.login-box {
+    background: #1e1e1e;
+    padding: 30px;
+    border-radius: 15px;
+    border: 1px solid #ffc107;
+    text-align: center;
+}
     </style>
 </head>
 <body>
+    <div id="lock-screen">
+    <div class="login-box">
+        <h3 class="text-warning mb-3">Acesso Restrito</h3>
+        <p class="text-muted small">Painel Kings Burger</p>
+        <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
+        <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+    </div>
+</div>
+
+    
 
 <div class="container">
     <div class="header-painel">
