@@ -266,6 +266,34 @@
             btn.disabled = false;
         }
     }
+    // --- SEGURANÇA ---
+const SENHA_MESTRA = "Kings@20BR26burger"; // Defina sua senha aqui
+let timerInatividade;
+
+function verificarSenha() {
+    const senhaDigitada = document.getElementById("admin-pass").value;
+    if (senhaDigitada === SENHA_MESTRA) {
+        document.getElementById("lock-screen").style.display = "none";
+        resetarTimer();
+    } else {
+        alert("Senha incorreta!");
+    }
+}
+function bloquearPainel() {
+    document.getElementById("admin-pass").value = "";
+    document.getElementById("lock-screen").style.display = "flex";
+}
+function resetarTimer() {
+    clearTimeout(timerInatividade);
+    timerInatividade = setTimeout(bloquearPainel, 60000); // 1 minuto
+}
+// Isso faz com que a senha seja pedida toda vez que a página der F5
+document.addEventListener("DOMContentLoaded", () => {
+    bloquearPainel();
+});
+// Eventos para resetar o tempo se você estiver mexendo no painel
+document.onmousemove = resetarTimer;
+document.onkeypress = resetarTimer;
 
     // Inicialização
     carregarProdutos();
