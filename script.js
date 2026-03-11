@@ -1043,21 +1043,33 @@ function validarAcessoLoja() {
 }
 
 // --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
+// --- INICIALIZAÇÃO ÚNICA E CORRETA ---
 
-// No DOMContentLoaded, vamos pedir a localização e checar o status
 document.addEventListener("DOMContentLoaded", () => {
-    solicitarLocalizacao(); // Dispara o popup do navegador (Imagem 1)
+    // 1. Pede a localização assim que o site abre
+    solicitarLocalizacao(); 
+
+    // 2. Verifica o horário e já bloqueia se estiver fora do expediente
+    validarAcessoLoja();
+
+    // 3. Carrega as funções essenciais do seu sistema
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
+    
+    // 4. Ativa o scroll do menu
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// Modifique sua função de decidirFluxo para checar se está aberto
+// --- FUNÇÕES DE FLUXO COM TRAVA DE SEGURANÇA ---
+
 function decidirFluxo(nome) {
-    if (!validarAcessoLoja()) return; // Se estiver fechado, para aqui e abre o modal (Imagem 2)
+    // Se a loja estiver fechada, abre o modal e não deixa prosseguir
+    if (!validarAcessoLoja()) return; 
 
     const p = produtosGeral.find(prod => prod.title === nome);
+    if (!p) return;
+
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
         abrirModalSelecao(nome);
     } else {
@@ -1065,21 +1077,22 @@ function decidirFluxo(nome) {
     }
 }
 
-// Modifique sua função de abrir carrinho também
 function abrirCarrinho() {
+    // Impede de abrir o carrinho se a loja estiver fechada
     if (!validarAcessoLoja()) return; 
     document.getElementById("cart-modal").style.display = "flex";
 }
 
-// Atualize a função visual do status (aquela que fica no topo do site)
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if (!el) return;
     
+    // Verifica o horário manual definido no script
     const aberto = isLojaAberta();
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
+
 
 
 
