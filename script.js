@@ -1033,53 +1033,31 @@ function isLojaAberta() {
     return (tempoAtual >= tempoInicio && tempoAtual <= tempoFim);
 }
 
+// 3. FUNÇÃO PARA BLOQUEAR AÇÃO
 function validarAcessoLoja() {
     if (!isLojaAberta()) {
-        // Se a função for chamada por um clique em botão, ela abre o modal
         document.getElementById("modal-fechado").style.display = "flex";
-        return false; 
+        return false; // Bloqueado
     }
-    return true; 
+    return true; // Liberado
 }
 
-
-
 // --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
-// --- INICIALIZAÇÃO ÚNICA E CORRETA ---
 
+// No DOMContentLoaded, vamos pedir a localização e checar o status
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. CARREGAMENTO SILENCIOSO (Não abre janelas)
+    solicitarLocalizacao(); // Dispara o popup do navegador (Imagem 1)
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
-
-    // 2. PEDIR LOCALIZAÇÃO (Sem travas na frente)
-    setTimeout(() => {
-        solicitarLocalizacao();
-    }, 500);
-
-    // 3. VERIFICAR HORÁRIO (Só depois de 3 segundos)
-    // Isso garante que o alerta de horário não "atropele" o GPS
-    setTimeout(() => {
-        const abertoPeloHorario = isLojaAberta();
-        if (!abertoPeloHorario) {
-            document.getElementById("modal-fechado").style.display = "flex";
-        }
-    }, 3000); 
 });
 
-
-
-// --- FUNÇÕES DE FLUXO COM TRAVA DE SEGURANÇA ---
-
+// Modifique sua função de decidirFluxo para checar se está aberto
 function decidirFluxo(nome) {
-    // Se a loja estiver fechada, abre o modal e não deixa prosseguir
-    if (!validarAcessoLoja()) return; 
+    if (!validarAcessoLoja()) return; // Se estiver fechado, para aqui e abre o modal (Imagem 2)
 
     const p = produtosGeral.find(prod => prod.title === nome);
-    if (!p) return;
-
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
         abrirModalSelecao(nome);
     } else {
@@ -1087,21 +1065,22 @@ function decidirFluxo(nome) {
     }
 }
 
+// Modifique sua função de abrir carrinho também
 function abrirCarrinho() {
-    // Impede de abrir o carrinho se a loja estiver fechada
     if (!validarAcessoLoja()) return; 
     document.getElementById("cart-modal").style.display = "flex";
 }
 
+// Atualize a função visual do status (aquela que fica no topo do site)
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if (!el) return;
     
-    // Verifica o horário manual definido no script
     const aberto = isLojaAberta();
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
+
 
 
 
