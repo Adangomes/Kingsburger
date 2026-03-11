@@ -1042,25 +1042,31 @@ function validarAcessoLoja() {
     return true; // Liberado
 }
 
+
 // --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
 // --- INICIALIZAÇÃO ÚNICA E CORRETA ---
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Pede a localização IMEDIATAMENTE ao abrir o site
-    solicitarLocalizacao(); 
-
-    // 2. Carrega as funções de dados e interface
+    // 1. CARREGAMENTO INICIAL DE DADOS
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
 
-    // 3. O SEGREDO: Verifica o horário com um pequeno atraso (0.5 segundos)
-    // Isso permite que o pop-up de localização apareça antes do modal de bloqueio
+    // 2. PEDIR LOCALIZAÇÃO PRIMEIRO
+    // Usamos um timer curto para garantir que o navegador esteja pronto
+    setTimeout(() => {
+        console.log("Solicitando localização...");
+        solicitarLocalizacao();
+    }, 300);
+
+    // 3. VERIFICAR HORÁRIO (BLOQUEIO) COM ATRASO MAIOR
+    // Aguardamos 2 segundos para dar tempo do usuário ver e clicar no GPS
     setTimeout(() => {
         validarAcessoLoja();
-    }, 500); 
+    }, 2000); 
 });
+
 
 // --- FUNÇÕES DE FLUXO COM TRAVA DE SEGURANÇA ---
 
