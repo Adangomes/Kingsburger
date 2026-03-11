@@ -997,24 +997,31 @@ async function aplicarCupom() {
     }
 }
 // --- NOVAS CONFIGURAÇÕES DE HORÁRIO ---
+// --- NOVAS CONFIGURAÇÕES DE HORÁRIO ---
 const H_ABERTURA = 18;
 const M_ABERTURA = 30; // 18:30
 const H_FECHAMENTO = 22;
 const M_FECHAMENTO = 30; // 22:30
 
-// 1. FUNÇÃO PARA PEDIR LOCALIZAÇÃO (A pergunta da primeira imagem)
+// 1. FUNÇÃO PARA PEDIR LOCALIZAÇÃO (Com melhoria para não ser bloqueada)
 function solicitarLocalizacao() {
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                console.log("Localização obtida:", pos.coords.latitude, pos.coords.longitude);
-                // Aqui você poderia salvar no localStorage para usar no cálculo de frete depois
-            },
-            (err) => {
-                console.warn("Usuário recusou a localização.");
-            }
-        );
-    }
+    // Adicionamos um pequeno atraso de 1.5s para o navegador permitir o popup
+    setTimeout(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    console.log("Localização obtida:", pos.coords.latitude, pos.coords.longitude);
+                    // Opcional: Salvar para usar no cálculo de frete automático
+                    localStorage.setItem("user_lat", pos.coords.latitude);
+                    localStorage.setItem("user_lon", pos.coords.longitude);
+                },
+                (err) => {
+                    console.warn("Usuário recusou ou erro na localização:", err.message);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+    }, 1500);
 }
 
 // 2. VERIFICADOR DE LOJA ABERTA
@@ -1032,29 +1039,37 @@ function isLojaAberta() {
 
 // 3. FUNÇÃO PARA BLOQUEAR AÇÃO
 function validarAcessoLoja() {
+    // Primeiro checamos o horário
     if (!isLojaAberta()) {
-        document.getElementById("modal-fechado").style.display = "flex";
-        return false; // Bloqueado
+        const modalFechado = document.getElementById("modal-fechado");
+        if(modalFechado) modalFechado.style.display = "flex";
+        return false; 
     }
-    return true; // Liberado
+    return true; 
 }
 
-// --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
+// --- REORGANIZAÇÃO DO CARREGAMENTO ---
 
-// No DOMContentLoaded, vamos pedir a localização e checar o status
+// Importante: Verifique se não existe OUTRO window.onload ou DOMContentLoaded no arquivo
 document.addEventListener("DOMContentLoaded", () => {
-    solicitarLocalizacao(); // Dispara o popup do navegador (Imagem 1)
-    carregarStatusLoja();
-    carregarCardapioCompleto();
-    carregarCarrinhoStorage();
+    // Dispara a localização com o delay que configuramos
+    solicitarLocalizacao(); 
+    
+    // Inicia as outras funções
+    if (typeof carregarStatusLoja === "function") carregarStatusLoja();
+    if (typeof carregarCardapioCompleto === "function") carregarCardapioCompleto();
+    if (typeof carregarCarrinhoStorage === "function") carregarCarrinhoStorage();
+    
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// Modifique sua função de decidirFluxo para checar se está aberto
+// Atualização da função decidirFluxo
 function decidirFluxo(nome) {
-    if (!validarAcessoLoja()) return; // Se estiver fechado, para aqui e abre o modal (Imagem 2)
+    if (!validarAcessoLoja()) return; 
 
     const p = produtosGeral.find(prod => prod.title === nome);
+    if (!p) return;
+
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
         abrirModalSelecao(nome);
     } else {
@@ -1062,13 +1077,14 @@ function decidirFluxo(nome) {
     }
 }
 
-// Modifique sua função de abrir carrinho também
+// Atualização da função abrir carrinho
 function abrirCarrinho() {
     if (!validarAcessoLoja()) return; 
-    document.getElementById("cart-modal").style.display = "flex";
+    const cartModal = document.getElementById("cart-modal");
+    if(cartModal) cartModal.style.display = "flex";
 }
 
-// Atualize a função visual do status (aquela que fica no topo do site)
+// Atualização visual do status
 function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if (!el) return;
@@ -1077,3 +1093,4 @@ function carregarStatusLoja() {
     el.innerText = aberto ? "ABERTO" : "FECHADO";
     el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
 }
+
