@@ -701,19 +701,53 @@ function carregarStatusLoja() {
     const el = document.getElementById("status-loja");
     if (!db) return;
 
-    // Fica "ouvindo" o Firebase. Se você mudar no Admin, muda pro cliente na hora!
     db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-        const aberto = snapshot.val(); // Recebe true ou false do banco
-        
-        el.innerText = aberto ? "ABERTO" : "FECHADO";
-        el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
-        
-        // Dica: Se quiser impedir o botão de "Pedir" quando estiver fechado:
-        const btnPedir = document.querySelector(".btn-finalizar-carrinho"); // Ajuste o seletor se for outro nome
-        if (btnPedir) btnPedir.disabled = !aberto;
+
+        const data = snapshot.val();
+        if (!data) return;
+
+        const agora = new Date();
+
+        const diaSemana = agora.getDay(); // 0 = Domingo
+        const horaAtual = agora.getHours() * 60 + agora.getMinutes();
+
+        const abertoManual = data.aberto ?? false;
+        const dias = data.diasAbertos || [];
+
+        let horarioOk = true;
+
+        if (data.horarioAbertura && data.horarioFechamento) {
+
+            const [hA, mA] = data.horarioAbertura.split(":").map(Number);
+            const [hF, mF] = data.horarioFechamento.split(":").map(Number);
+
+            const aberturaMin = hA * 60 + mA;
+            const fechamentoMin = hF * 60 + mF;
+
+            horarioOk = horaAtual >= aberturaMin && horaAtual <= fechamentoMin;
+        }
+
+        const diaOk = dias.includes(diaSemana);
+
+        const lojaAberta = abertoManual && horarioOk && diaOk;
+
+        // --- ATUALIZA VISUAL ---
+        el.innerText = lojaAberta ? "ABERTO" : "FECHADO";
+        el.className = `status ${lojaAberta ? 'aberto' : 'fechado'}`;
+
+        // --- BLOQUEIA PEDIDO ---
+        const btnPedir = document.querySelector(".btn-finalizar-carrinho");
+        if (btnPedir) btnPedir.disabled = !lojaAberta;
+
+        // --- BLOQUEIA CLIQUE NO CARDÁPIO ---
+        const itens = document.querySelectorAll(".item-produto-lista");
+        itens.forEach(item => {
+            item.style.pointerEvents = lojaAberta ? "auto" : "none";
+            item.style.opacity = lojaAberta ? "1" : "0.4";
+        });
+
     });
 }
-
 
 function abrirDelivery() {
 
