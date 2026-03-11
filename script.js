@@ -999,7 +999,7 @@ async function aplicarCupom() {
 // --- NOVAS CONFIGURAÇÕES DE HORÁRIO ---
 // --- NOVAS CONFIGURAÇÕES DE HORÁRIO ---
 const H_ABERTURA = 18;
-const M_ABERTURA = 30; // 18:30
+const M_ABERTURA = 00; // 18:30
 const H_FECHAMENTO = 22;
 const M_FECHAMENTO = 30; // 22:30
 
