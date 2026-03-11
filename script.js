@@ -1068,16 +1068,21 @@ function lojaEstaAbertaAgora() {
 // MOSTRAR MODAL DE LOJA FECHADA
 // ----------------------------
 function mostrarModalFechado() {
+
     const modal = document.getElementById("modal-fechado");
     if (!modal) return;
+
     const texto = modal.querySelector("p");
-    const abertura = statusLojaAtual.horarioAbertura;
-    const fechamento = statusLojaAtual.horarioFechamento;
+
+    const abertura = statusLojaAtual.horarioAbertura || "00:00";
+    const fechamento = statusLojaAtual.horarioFechamento || "00:00";
+
     texto.innerHTML = `
     Nosso horário de funcionamento é:<br>
     <strong>Hoje das ${abertura} às ${fechamento}</strong><br>
     Por favor, tente mais tarde.
     `;
+
     modal.style.display = "flex";
 }
 // ----------------------------
