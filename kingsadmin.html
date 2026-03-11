@@ -11,63 +11,91 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        body { background: #111; color: white; padding: 30px; font-family: sans-serif; }
+        body { background: #111; color: white; padding: 20px; font-family: sans-serif; }
         .card-prod { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
         .card-prod img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #333; }
         .form-control { background: #2b2b2b; border: 1px solid #444; color: white; }
         .form-control:focus { background: #333; color: white; border-color: #ffc107; box-shadow: none; }
         label { font-size: 0.8rem; color: #888; margin-bottom: 2px; }
-        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         .btn-warning { font-weight: bold; }
         .scale-150 { transform: scale(1.5); margin-right: 10px; }
+
+        /* --- RESPONSIVIDADE (MOBILE) --- */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header-painel h2 { font-size: 1.5rem; width: 100%; text-align: center; }
+            .header-painel .text-end { width: 100%; text-align: center !important; display: flex; flex-direction: column; gap: 10px; }
+            .header-painel .btn { margin: 0 !important; width: 100%; }
+            .card-prod img { width: 80px; height: 80px; margin-bottom: 10px; }
+            .col-md-1, .col-md-2, .col-md-3 { margin-bottom: 10px; }
+            .scale-150 { transform: scale(1.2); }
+            .card-prod { padding: 15px; }
+        }
+
         /* Tela de Bloqueio */
-#lock-screen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; 
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-}
-.login-box {
-    background: #1e1e1e;
-    padding: 30px;
-    border-radius: 15px;
-    border: 1px solid #ffc107;
-    text-align: center;
-}
+        #lock-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; 
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .login-box {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #ffc107;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
     </style>
 </head>
 <body>
     <div id="lock-screen">
-    <div class="login-box">
-        <h3 class="text-warning mb-3">Acesso Restrito</h3>
-        <p class="text-muted small">Painel Kings Burger</p>
-        <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
-        <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+        <div class="login-box">
+            <h3 class="text-warning mb-3">Acesso Restrito</h3>
+            <p class="text-muted small">Painel Kings Burger</p>
+            <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
+            <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+        </div>
     </div>
-</div>
-
-    
 
 <div class="container">
     <div class="header-painel">
         <h2>Painel Admin <span class="text-warning">Kings Burger</span></h2>
-        <div>
-            <div class="card-prod d-flex justify-content-between align-items-center mb-4" style="border: 2px solid #ffc107;">
-                <h4 class="mb-0">Status da Loja: <span id="txtStatus" class="badge bg-secondary text-uppercase">Carregando...</span></h4>
-                <div class="form-check form-switch scale-150">
-                    <input class="form-check-input" type="checkbox" id="switchStatus" onchange="alterarStatusLoja(this.checked)">
+        <div class="w-100 mt-2">
+            <div class="card-prod border-warning">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Loja: <span id="txtStatus" class="badge bg-secondary">Carregando...</span></h4>
+                    <div class="form-check form-switch scale-150">
+                        <input class="form-check-input" type="checkbox" id="switchStatus" onchange="alterarStatusLoja(this.checked)">
+                    </div>
+                </div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-5">
+                        <label class="d-block">Abertura</label>
+                        <input type="time" id="horaAbre" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-5">
+                        <label class="d-block">Fechamento</label>
+                        <input type="time" id="horaFecha" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-warning btn-sm w-100" onclick="salvarHorariosKings()">OK</button>
+                    </div>
                 </div>
             </div>
 
             <div class="text-end mb-4">
-                <button class="btn btn-outline-info me-2" onclick="migrarArquivoParaFirebase()">📥 Importar do JSON</button>
-                <button class="btn btn-success me-2" onclick="novoProduto()">+ Novo Item</button>
-                <button class="btn btn-warning" id="btnSalvar" onclick="salvarNoFirebase()">☁️ Salvar no Cloud</button>
+                <button class="btn btn-outline-info btn-sm me-2" onclick="migrarArquivoParaFirebase()">📥 Importar JSON</button>
+                <button class="btn btn-success btn-sm me-2" onclick="novoProduto()">+ Novo Item</button>
+                <button class="btn btn-warning btn-sm" id="btnSalvar" onclick="salvarNoFirebase()">☁️ Salvar Cloud</button>
             </div>
         </div>
     </div>
@@ -88,7 +116,6 @@
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
         authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -123,11 +150,11 @@
             <div class="card-prod">
                 <div class="row align-items-center">
                     <div class="col-md-1 text-center"><img src="${p.image}" onerror="this.src='https://via.placeholder.com/100?text=Sem+Foto'"></div>
-                    <div class="col-md-3"><label>Título</label><input class="form-control" value="${p.title || ''}" onchange="editar(${i}, 'title', this.value)"></div>
-                    <div class="col-md-2"><label>Preço</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="editar(${i}, 'price', this.value)"></div>
-                    <div class="col-md-2"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="editar(${i}, 'categoria', this.value)"></div>
-                    <div class="col-md-3"><label>Imagem (URL)</label><input class="form-control" value="${p.image || ''}" onchange="editar(${i}, 'image', this.value)"></div>
-                    <div class="col-md-1 text-end"><button class="btn btn-outline-danger btn-sm" onclick="excluir(${i})">X</button></div>
+                    <div class="col-md-3 col-12"><label>Título</label><input class="form-control" value="${p.title || ''}" onchange="editar(${i}, 'title', this.value)"></div>
+                    <div class="col-md-2 col-6"><label>Preço</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="editar(${i}, 'price', this.value)"></div>
+                    <div class="col-md-2 col-6"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="editar(${i}, 'categoria', this.value)"></div>
+                    <div class="col-md-3 col-10"><label>Imagem (URL)</label><input class="form-control" value="${p.image || ''}" onchange="editar(${i}, 'image', this.value)"></div>
+                    <div class="col-md-1 col-2 text-end"><button class="btn btn-outline-danger btn-sm" onclick="excluir(${i})">X</button></div>
                     <div class="col-12 mt-2"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="editar(${i}, 'ingredientes', this.value)"></div>
                 </div>
             </div>`;
@@ -152,27 +179,44 @@
 
     function salvarNoFirebase() { 
         const btn = document.getElementById("btnSalvar");
-        btn.innerText = "⏳ SALVANDO...";
+        btn.innerText = "⏳...";
         btn.disabled = true;
         db.ref('cardapio/produtos').set(produtos)
             .then(() => alert("Cloud Atualizado! ✅"))
             .finally(() => { btn.innerText = "☁️ Salvar no Cloud"; btn.disabled = false; });
     }
 
-    // --- GESTÃO DE STATUS ---
+    // --- GESTÃO DE STATUS E HORÁRIO ---
     db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-        const aberto = snapshot.val();
+        const data = snapshot.val();
         const txt = document.getElementById("txtStatus");
         const sw = document.getElementById("switchStatus");
+        
         if (txt && sw) {
+            const aberto = (typeof data === 'object') ? data.aberto : data;
             txt.innerText = aberto ? "Aberto" : "Fechado";
             txt.className = aberto ? "badge bg-success" : "badge bg-danger";
             sw.checked = aberto;
+
+            if (data && data.horarioAbertura) {
+                document.getElementById("horaAbre").value = data.horarioAbertura;
+                document.getElementById("horaFecha").value = data.horarioFechamento;
+            }
         }
     });
 
     function alterarStatusLoja(novoStatus) { 
-        db.ref('configuracoes/statusLoja').set(novoStatus); 
+        db.ref('configuracoes/statusLoja').update({ aberto: novoStatus }); 
+    }
+
+    function salvarHorariosKings() {
+        const abre = document.getElementById("horaAbre").value;
+        const fecha = document.getElementById("horaFecha").value;
+        if (!abre || !fecha) return alert("Preencha os horários!");
+        db.ref('configuracoes/statusLoja').update({
+            horarioAbertura: abre,
+            horarioFechamento: fecha
+        }).then(() => alert("Horários Atualizados! ✅"));
     }
 
     // --- GESTÃO DE CUPONS ---
@@ -180,124 +224,77 @@
         const container = document.getElementById("listaCuponsAdmin");
         if (!container) return;
         container.innerHTML = "";
-
         if (!cuponsObj) {
-            container.innerHTML = "<p class='text-muted text-center small'>Nenhum cupom ativo no banco.</p>";
+            container.innerHTML = "<p class='text-muted text-center small'>Nenhum cupom ativo.</p>";
             return;
         }
-
         Object.entries(cuponsObj).forEach(([id, c]) => {
             container.innerHTML += `
             <div class="bg-dark p-2 mb-2 rounded border border-secondary row align-items-center mx-1">
-                <div class="col-md-4">
-                    <label class="d-block text-info">Código</label>
+                <div class="col-md-4 col-12 mb-2">
+                    <label class="d-block text-info small">Código</label>
                     <input class="form-control form-control-sm" value="${c.codigo}" onchange="editarCupom('${id}', 'codigo', this.value.toUpperCase())">
                 </div>
-                <div class="col-md-3">
-                    <label class="d-block text-info">Valor (${c.tipo === 'porcentagem' ? '%' : 'R$'})</label>
+                <div class="col-md-3 col-6">
+                    <label class="d-block text-info small">Valor</label>
                     <input class="form-control form-control-sm" type="number" value="${c.valor}" onchange="editarCupom('${id}', 'valor', parseFloat(this.value))">
                 </div>
-                <div class="col-md-3 mt-3">
-                    <div class="form-check form-switch">
+                <div class="col-md-3 col-6">
+                    <div class="form-check form-switch mt-3">
                         <input class="form-check-input" type="checkbox" ${c.ativo ? 'checked' : ''} onchange="editarCupom('${id}', 'ativo', this.checked)">
-                        <label class="ms-1 small text-white">${c.ativo ? 'Ativo' : 'Inativo'}</label>
+                        <label class="ms-1 small text-white">${c.ativo ? 'ON' : 'OFF'}</label>
                     </div>
                 </div>
-                <div class="col-md-2 text-end mt-3">
-                    <button class="btn btn-sm btn-outline-danger" onclick="excluirCupom('${id}')">🗑️</button>
+                <div class="col-md-2 col-12 text-end mt-2">
+                    <button class="btn btn-sm btn-outline-danger w-100" onclick="excluirCupom('${id}')">🗑️</button>
                 </div>
             </div>`;
         });
     }
 
-    function novoCupom() { 
-        db.ref('configuracoes/cupons').push({ codigo: "NOVO10", valor: 10, tipo: "fixo", ativo: true }); 
-    }
-
-    function editarCupom(id, campo, valor) { 
-        db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor }); 
-    }
-
-    function excluirCupom(id) { 
-        if(confirm("Excluir cupom?")) db.ref(`configuracoes/cupons/${id}`).remove(); 
-    }
-
-    // Escuta cupons em tempo real
+    function novoCupom() { db.ref('configuracoes/cupons').push({ codigo: "NOVO10", valor: 10, tipo: "fixo", ativo: true }); }
+    function editarCupom(id, campo, valor) { db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor }); }
+    function excluirCupom(id) { if(confirm("Excluir cupom?")) db.ref(`configuracoes/cupons/${id}`).remove(); }
     db.ref('configuracoes/cupons').on('value', (snapshot) => renderizarCupons(snapshot.val()));
 
-    // --- MIGRAÇÃO TOTAL (Mestra) ---
+    // --- MIGRAÇÃO ---
     async function migrarArquivoParaFirebase() {
-        if (!confirm("Isso vai sobrescrever o Firebase com os arquivos JSON locais. Confirma?")) return;
-        
+        if (!confirm("Confirma importação dos arquivos JSON locais?")) return;
         const btn = event.target;
-        btn.innerText = "⏳ Importando...";
+        btn.innerText = "⏳...";
         btn.disabled = true;
-
         try {
-            // 1. Produtos
             const resP = await fetch("content/produtos.json?v=" + Date.now());
             const dataP = await resP.json();
             if (dataP.produtos) await db.ref('cardapio/produtos').set(dataP.produtos);
-
-            // 2. Status
-            const resS = await fetch("content/status.json?v=" + Date.now());
-            const dataS = await resS.json();
-            if (dataS) {
-                await db.ref('configuracoes/geral').set(dataS);
-                await db.ref('configuracoes/statusLoja').set(dataS.aberto || false);
-            }
-
-            // 3. Cupons (Arquivo aplicardesconto.json)
-            const resC = await fetch("content/aplicardesconto.json?v=" + Date.now());
-            const dataC = await resC.json();
-            if (dataC.cupons) {
-                await db.ref('configuracoes/cupons').set(null); // Limpa antigos
-                for (let c of dataC.cupons) {
-                    await db.ref('configuracoes/cupons').push(c);
-                }
-            }
-
-            alert("Migração Completa realizada com sucesso! ✅");
-        } catch (err) {
-            console.error(err);
-            alert("Erro ao importar. Verifique se os arquivos (produtos, status, aplicardesconto) existem na pasta 'content'.");
-        } finally {
-            btn.innerText = "📥 Importar do JSON";
-            btn.disabled = false;
-        }
+            alert("Sucesso! ✅");
+        } catch (err) { alert("Erro ao importar."); } 
+        finally { btn.innerText = "📥 Importar JSON"; btn.disabled = false; }
     }
+
     // --- SEGURANÇA ---
-const SENHA_MESTRA = "Kings@20BR26burger"; // Defina sua senha aqui 
-let timerInatividade;
-
-function verificarSenha() {
-    const senhaDigitada = document.getElementById("admin-pass").value;
-    if (senhaDigitada === SENHA_MESTRA) {
-        document.getElementById("lock-screen").style.display = "none";
-        resetarTimer();
-    } else {
-        alert("Senha incorreta!");
+    const SENHA_MESTRA = "Kings@20BR26burger"; 
+    let timerInatividade;
+    function verificarSenha() {
+        const senhaDigitada = document.getElementById("admin-pass").value;
+        if (senhaDigitada === SENHA_MESTRA) {
+            document.getElementById("lock-screen").style.display = "none";
+            resetarTimer();
+        } else { alert("Senha incorreta!"); }
     }
-}
-function bloquearPainel() {
-    document.getElementById("admin-pass").value = "";
-    document.getElementById("lock-screen").style.display = "flex";
-}
-function resetarTimer() {
-    clearTimeout(timerInatividade);
-    timerInatividade = setTimeout(bloquearPainel, 60000); // 1 minuto
-}
-// Isso faz com que a senha seja pedida toda vez que a página der F5
-document.addEventListener("DOMContentLoaded", () => {
-    bloquearPainel();
-});
-// Eventos para resetar o tempo se você estiver mexendo no painel
-document.onmousemove = resetarTimer;
-document.onkeypress = resetarTimer;
+    function bloquearPainel() {
+        document.getElementById("admin-pass").value = "";
+        document.getElementById("lock-screen").style.display = "flex";
+    }
+    function resetarTimer() {
+        clearTimeout(timerInatividade);
+        timerInatividade = setTimeout(bloquearPainel, 300000); // 5 minutos de inatividade
+    }
+    document.addEventListener("DOMContentLoaded", bloquearPainel);
+    document.onmousemove = resetarTimer;
+    document.onkeypress = resetarTimer;
 
-    // Inicialização
     carregarProdutos();
-
 </script>
 </body>
 </html>
