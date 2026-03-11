@@ -272,6 +272,27 @@
     document.addEventListener("DOMContentLoaded", bloquearPainel);
     document.onmousemove = resetarTimer; document.onkeypress = resetarTimer;
 
+
+    
+    // Função para verificar se a loja deve fechar sozinha
+function verificarFechamentoAutomatico() {
+    db.ref('configuracoes/statusLoja').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.aberto) return; // Se já estiver fechado, não faz nada
+        const agora = new Date();
+        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + 
+                          agora.getMinutes().toString().padStart(2, '0');
+        // Se a hora atual for igual ou maior que a hora de fechamento
+        if (horaAtual >= data.horarioFechamento) {
+            console.log("Horário de fechar atingido! Desligando loja...");
+            alterarStatusLoja(false); // Chama sua função que já existe para fechar
+        }
+    });
+}
+
+// Executa a verificação a cada 30 segundos enquanto o painel estiver aberto
+setInterval(verificarFechamentoAutomatico, 30000);
+
     carregarProdutos();
 </script>
 </body>
