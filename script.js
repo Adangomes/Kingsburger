@@ -984,7 +984,7 @@ async function aplicarCupom() {
             btnOk.style.opacity = "0.5";
             inputField.style.backgroundColor = "#f0f0f0";
             
-            atualizarCarrinho(); 
+            atualizarCarrinho();  
         } else {
             feedback.innerText = "Cupom inválido ou expirado. ❌";
             feedback.style.color = "red";
