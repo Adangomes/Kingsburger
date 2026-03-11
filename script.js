@@ -1046,19 +1046,20 @@ function validarAcessoLoja() {
 // --- INICIALIZAÇÃO ÚNICA E CORRETA ---
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Pede a localização assim que o site abre
+    // 1. Pede a localização IMEDIATAMENTE ao abrir o site
     solicitarLocalizacao(); 
 
-    // 2. Verifica o horário e já bloqueia se estiver fora do expediente
-    validarAcessoLoja();
-
-    // 3. Carrega as funções essenciais do seu sistema
+    // 2. Carrega as funções de dados e interface
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
-    
-    // 4. Ativa o scroll do menu
     window.addEventListener("scroll", sincronizarScrollMenu);
+
+    // 3. O SEGREDO: Verifica o horário com um pequeno atraso (0.5 segundos)
+    // Isso permite que o pop-up de localização apareça antes do modal de bloqueio
+    setTimeout(() => {
+        validarAcessoLoja();
+    }, 500); 
 });
 
 // --- FUNÇÕES DE FLUXO COM TRAVA DE SEGURANÇA ---
