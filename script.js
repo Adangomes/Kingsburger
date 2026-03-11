@@ -999,12 +999,19 @@ async function aplicarCupom() {
 
 
 
-// 1. FUNÇÃO PARA PEDIR LOCALIZAÇÃO
+// --- NOVAS CONFIGURAÇÕES DE HORÁRIO ---
+const H_ABERTURA = 18;
+const M_ABERTURA = 30; // 18:30
+const H_FECHAMENTO = 22;
+const M_FECHAMENTO = 30; // 22:30
+
+// 1. FUNÇÃO PARA PEDIR LOCALIZAÇÃO (A pergunta da primeira imagem)
 function solicitarLocalizacao() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 console.log("Localização obtida:", pos.coords.latitude, pos.coords.longitude);
+                // Aqui você poderia salvar no localStorage para usar no cálculo de frete depois
             },
             (err) => {
                 console.warn("Usuário recusou a localização.");
@@ -1013,45 +1020,67 @@ function solicitarLocalizacao() {
     }
 }
 
-// 2. VERIFICADOR DE LOJA ABERTA (HORÁRIO MANUAL)
+// 2. VERIFICADOR DE LOJA ABERTA
 function isLojaAberta() {
     const agora = new Date();
     const hora = agora.getHours();
     const min = agora.getMinutes();
+    
     const tempoAtual = (hora * 60) + min;
     const tempoInicio = (H_ABERTURA * 60) + M_ABERTURA;
     const tempoFim = (H_FECHAMENTO * 60) + M_FECHAMENTO;
+
     return (tempoAtual >= tempoInicio && tempoAtual <= tempoFim);
 }
 
-// 3. BLOQUEIO VISUAL (ABRE O MODAL)
+// 3. FUNÇÃO PARA BLOQUEAR AÇÃO
 function validarAcessoLoja() {
     if (!isLojaAberta()) {
-        const modal = document.getElementById("modal-fechado");
-        if (modal) modal.style.display = "flex";
-        return false; 
+        document.getElementById("modal-fechado").style.display = "flex";
+        return false; // Bloqueado
     }
-    return true; 
+    return true; // Liberado
 }
 
-// --- O GATILHO QUE ARRUMA TUDO ---
-// Substitua o seu document.addEventListener("DOMContentLoaded" ... por este:
+// --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
 
+// No DOMContentLoaded, vamos pedir a localização e checar o status
 document.addEventListener("DOMContentLoaded", () => {
-    // Pede a localização assim que abre
-    solicitarLocalizacao(); 
-
-    // Carrega as funções do seu script original
+    solicitarLocalizacao(); // Dispara o popup do navegador (Imagem 1)
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
-    
-    // Ativa o scroll
     window.addEventListener("scroll", sincronizarScrollMenu);
-
-    // Checa se a loja está aberta agora. Se estiver fechada, já mostra o aviso.
-    validarAcessoLoja();
 });
+
+// Modifique sua função de decidirFluxo para checar se está aberto
+function decidirFluxo(nome) {
+    if (!validarAcessoLoja()) return; // Se estiver fechado, para aqui e abre o modal (Imagem 2)
+
+    const p = produtosGeral.find(prod => prod.title === nome);
+    if (p.categoria === 'pizza' || p.categoria === 'porcao') {
+        abrirModalSelecao(nome);
+    } else {
+        adicionarAoCarrinho(p.title, p.price, "");
+    }
+}
+
+// Modifique sua função de abrir carrinho também
+function abrirCarrinho() {
+    if (!validarAcessoLoja()) return; 
+    document.getElementById("cart-modal").style.display = "flex";
+}
+
+// Atualize a função visual do status (aquela que fica no topo do site)
+function carregarStatusLoja() {
+    const el = document.getElementById("status-loja");
+    if (!el) return;
+    
+    const aberto = isLojaAberta();
+    el.innerText = aberto ? "ABERTO" : "FECHADO";
+    el.className = `status ${aberto ? 'aberto' : 'fechado'}`;
+}
+
 
 
 
