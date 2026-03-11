@@ -1033,39 +1033,42 @@ function isLojaAberta() {
     return (tempoAtual >= tempoInicio && tempoAtual <= tempoFim);
 }
 
-// 3. FUNÇÃO PARA BLOQUEAR AÇÃO
 function validarAcessoLoja() {
     if (!isLojaAberta()) {
+        // Se a função for chamada por um clique em botão, ela abre o modal
         document.getElementById("modal-fechado").style.display = "flex";
-        return false; // Bloqueado
+        return false; 
     }
-    return true; // Liberado
+    return true; 
 }
+
 
 
 // --- ATUALIZAÇÃO DAS SUAS FUNÇÕES EXISTENTES ---
 // --- INICIALIZAÇÃO ÚNICA E CORRETA ---
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. CARREGAMENTO INICIAL DE DADOS
+    // 1. CARREGAMENTO SILENCIOSO (Não abre janelas)
     carregarStatusLoja();
     carregarCardapioCompleto();
     carregarCarrinhoStorage();
     window.addEventListener("scroll", sincronizarScrollMenu);
 
-    // 2. PEDIR LOCALIZAÇÃO PRIMEIRO
-    // Usamos um timer curto para garantir que o navegador esteja pronto
+    // 2. PEDIR LOCALIZAÇÃO (Sem travas na frente)
     setTimeout(() => {
-        console.log("Solicitando localização...");
         solicitarLocalizacao();
-    }, 300);
+    }, 500);
 
-    // 3. VERIFICAR HORÁRIO (BLOQUEIO) COM ATRASO MAIOR
-    // Aguardamos 2 segundos para dar tempo do usuário ver e clicar no GPS
+    // 3. VERIFICAR HORÁRIO (Só depois de 3 segundos)
+    // Isso garante que o alerta de horário não "atropele" o GPS
     setTimeout(() => {
-        validarAcessoLoja();
-    }, 2000); 
+        const abertoPeloHorario = isLojaAberta();
+        if (!abertoPeloHorario) {
+            document.getElementById("modal-fechado").style.display = "flex";
+        }
+    }, 3000); 
 });
+
 
 
 // --- FUNÇÕES DE FLUXO COM TRAVA DE SEGURANÇA ---
