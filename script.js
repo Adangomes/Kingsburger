@@ -1032,7 +1032,95 @@ async function aplicarCupom() {
 }
 
 
-
+// =============================
+// CONTROLE DE HORÁRIO DA LOJA
+// =============================
+let statusLojaAtual = {
+    aberto: false,
+    horarioAbertura: "00:00",
+    horarioFechamento: "00:00",
+    diasAbertos: []
+};
+// Carrega dados do Firebase
+db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    statusLojaAtual = data;
+    atualizarStatusVisual();
+});
+// ----------------------------
+// VERIFICA SE A LOJA ESTÁ ABERTA
+// ----------------------------
+function lojaEstaAbertaAgora() {
+    if (!statusLojaAtual.aberto) return false;
+    const agora = new Date();
+    const diaSemana = agora.getDay();
+    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const [hA, mA] = statusLojaAtual.horarioAbertura.split(":").map(Number);
+    const [hF, mF] = statusLojaAtual.horarioFechamento.split(":").map(Number);
+    const aberturaMin = hA * 60 + mA;
+    const fechamentoMin = hF * 60 + mF;
+    const diaPermitido = statusLojaAtual.diasAbertos.includes(diaSemana);
+    const horarioPermitido = minutosAgora >= aberturaMin && minutosAgora <= fechamentoMin;
+    return diaPermitido && horarioPermitido;
+}
+// ----------------------------
+// MOSTRAR MODAL DE LOJA FECHADA
+// ----------------------------
+function mostrarModalFechado() {
+    const modal = document.getElementById("modal-fechado");
+    if (!modal) return;
+    const texto = modal.querySelector("p");
+    const abertura = statusLojaAtual.horarioAbertura;
+    const fechamento = statusLojaAtual.horarioFechamento;
+    texto.innerHTML = `
+    Nosso horário de funcionamento é:<br>
+    <strong>Hoje das ${abertura} às ${fechamento}</strong><br>
+    Por favor, tente mais tarde.
+    `;
+    modal.style.display = "flex";
+}
+// ----------------------------
+// VALIDAÇÃO GLOBAL
+// ----------------------------
+function validarLojaAntesAcao() {
+    if (!lojaEstaAbertaAgora()) {
+        mostrarModalFechado();
+        return false;
+    }
+    return true;
+}
+// ----------------------------
+// BLOQUEAR AÇÕES
+// ----------------------------
+// Intercepta adicionar produto
+const decidirFluxoOriginal = decidirFluxo;
+decidirFluxo = function(nome){
+    if(!validarLojaAntesAcao()) return;
+    decidirFluxoOriginal(nome);
+}
+// Intercepta abrir carrinho
+const abrirCarrinhoOriginal = abrirCarrinho;
+abrirCarrinho = function(){
+    if(!validarLojaAntesAcao()) return;
+    abrirCarrinhoOriginal();
+}
+// Intercepta finalizar pedido
+const abrirDeliveryOriginal = abrirDelivery;
+abrirDelivery = function(){
+    if(!validarLojaAntesAcao()) return;
+    abrirDeliveryOriginal();
+}
+// ----------------------------
+// STATUS VISUAL (TOPO DO SITE)
+// ----------------------------
+function atualizarStatusVisual(){
+    const el = document.getElementById("status-loja");
+    if(!el) return;
+    const aberta = lojaEstaAbertaAgora();
+    el.innerText = aberta ? "ABERTO" : "FECHADO";
+    el.className = aberta ? "status aberto" : "status fechado";
+}
 
 
 
