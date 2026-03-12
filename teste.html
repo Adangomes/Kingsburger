@@ -21,7 +21,6 @@
         label { font-size: 0.8rem; color: #888; margin-bottom: 2px; }
         .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         .btn-warning { font-weight: bold; }
-        .scale-150 { transform: scale(1.5); margin-right: 10px; }
 
         /* --- ESTILOS DO LOGIN E FACE ID --- */
         #lock-screen {
@@ -38,7 +37,6 @@
 
         #face-area { display: none; margin-top: 20px; position: relative; }
         
-        /* O Círculo do Face ID */
         .camera-circle {
             width: 250px; height: 250px;
             margin: 0 auto;
@@ -50,7 +48,6 @@
         }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* Animação de Scan */
         .scanner-line {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 4px;
@@ -59,13 +56,8 @@
             animation: scan 2s linear infinite;
             display: none;
         }
-        @keyframes scan {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
-        }
+        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
 
-        /* Aro de progresso */
         .loading-ring {
             position: absolute;
             top: -5px; left: -5px; width: 260px; height: 260px;
@@ -74,21 +66,14 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: none;
+            z-index: 10;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .status-msg { font-size: 0.9rem; margin-top: 15px; min-height: 24px; font-weight: bold; }
         .text-near { color: #ffc107; }
+        .text-danger { color: #ff4d4d !important; }
         .text-success { color: #28a745 !important; }
-
-        /* --- RESTANTE DOS SEUS ESTILOS --- */
-        .dias-semana { display: flex; gap: 5px; justify-content: space-between; margin: 10px 0; flex-wrap: wrap; }
-        .dia-btn { 
-            flex: 1; min-width: 35px; height: 35px; border-radius: 5px; border: 1px solid #444;
-            background: #2b2b2b; color: #888; display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; cursor: pointer; font-weight: bold; transition: 0.3s;
-        }
-        .dia-btn.active { background: #ffc107; color: #000; border-color: #ffc107; }
     </style>
 </head>
 <body>
@@ -105,11 +90,11 @@
 
             <div id="face-area">
                 <div class="camera-circle">
-                    <video id="video" autoplay muted></video>
+                    <video id="video" autoplay muted playsinline></video>
                     <div class="scanner-line" id="scan-line"></div>
                     <div class="loading-ring" id="ring"></div>
                 </div>
-                <div id="face-status" class="status-msg text-secondary">Iniciando câmera...</div>
+                <div id="face-status" class="status-msg text-secondary">Aguardando rosto...</div>
             </div>
             
             <div id="setup-msg" class="mt-3 small text-muted">Carregando IA...</div>
@@ -119,14 +104,14 @@
 <div class="container">
     <div class="header-painel">
         <h2>Painel Admin <span class="text-warning">Kings Burger</span></h2>
-        </div>
+    </div>
     <div id="listaProdutos">
-        <p class="text-center text-muted">Carregando cardápio...</p>
+        <p class="text-center text-muted">Aguardando autenticação...</p>
     </div>
 </div>
 
 <script>
-    // --- SEU FIREBASE (MANTIDO) ---
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
         authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -139,14 +124,14 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- LÓGICA FACE ID ---
+    // --- VARIÁVEIS FACE ID ---
     const video = document.getElementById('video');
     const faceStatus = document.getElementById('face-status');
     const scanLine = document.getElementById('scan-line');
     const ring = document.getElementById('ring');
     let faceMatcher = null;
 
-    // 1. Carregar Modelos e Fotos da Galeria
+    // 1. Inicializar Modelos e Carregar as Fotos de Referência
     async function initFaceID() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
         
@@ -157,102 +142,96 @@
                 faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
             ]);
             
-            // Coloque o nome das fotos que estão na sua pasta /imagens
+            // Busca Programador.jpeg e Admin.jpeg na pasta imagens
             const users = ['Programador', 'Admin']; 
             const descriptors = await Promise.all(users.map(async user => {
-                const img = await faceapi.fetchImage(`imagens/${user}.jpeg`);
-                const fullDesc = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                return new faceapi.LabeledFaceDescriptors(user, [fullDesc.descriptor]);
+                try {
+                    const img = await faceapi.fetchImage(`imagens/${user}.jpeg`);
+                    const fullDesc = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                    return new faceapi.LabeledFaceDescriptors(user, [fullDesc.descriptor]);
+                } catch (err) {
+                    console.error("Erro ao carregar foto de:", user);
+                    return null;
+                }
             }));
 
-            faceMatcher = new faceapi.FaceMatcher(descriptors, 0.6);
+            // Filtra nulos e cria o comparador (precisão de 60%)
+            faceMatcher = new faceapi.FaceMatcher(descriptors.filter(d => d), 0.6);
             document.getElementById('setup-msg').innerText = "Biometria Pronta ✅";
         } catch (e) {
-            document.getElementById('setup-msg').innerText = "Erro ao carregar fotos da pasta.";
+            document.getElementById('setup-msg').innerText = "Erro ao carregar modelos de IA.";
             console.error(e);
         }
     }
 
-    // 2. Iniciar Câmera
+    // 2. Ligar Câmera
     function startCamera() {
         navigator.mediaDevices.getUserMedia({ video: {} })
-            .then(stream => { video.srcObject = stream; startDetection(); })
-            .catch(err => faceStatus.innerText = "Erro ao acessar câmera");
+            .then(stream => { 
+                video.srcObject = stream; 
+                startDetection(); 
+            })
+            .catch(err => faceStatus.innerText = "Erro ao acessar câmera. Verifique o HTTPS.");
     }
 
-    // 3. Detecção e Feedback (Perto/Longe)
+    // 3. Loop de Detecção e Bloqueio
     async function startDetection() {
-    // 1. O intervalo menor (400ms) deixa a captura mais fluida
-    const interval = setInterval(async () => {
-        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                                       .withFaceLandmarks()
-                                       .withFaceDescriptor();
+        const interval = setInterval(async () => {
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                           .withFaceLandmarks()
+                                           .withFaceDescriptor();
 
-        if (detection) {
-            const { width } = detection.box;
-            
-            // Ativa os elementos visuais de "escaner"
-            scanLine.style.display = "block";
-            ring.style.display = "block";
-            ring.style.borderTopColor = "#ffc107"; // Cor padrão: Amarelo
+            if (detection) {
+                const { width } = detection.box;
+                scanLine.style.display = "block";
+                ring.style.display = "block";
+                ring.style.borderTopColor = "#ffc107"; // Amarelo (Processando)
 
-            // 2. Guia o usuário pela distância
-            if (width < 130) {
-                faceStatus.innerText = "➜ Aproxime seu rosto";
-                faceStatus.className = "status-msg text-near";
-            } 
-            else if (width > 220) {
-                faceStatus.innerText = "⬅ Afaste-se um pouco";
-                faceStatus.className = "status-msg text-near";
-            } 
-            else {
-                // 3. POSIÇÃO IDEAL: Faz a comparação com a foto .jpeg
-                faceStatus.innerText = "Validando Identidade...";
-                faceStatus.className = "status-msg text-warning";
-
-                const match = faceMatcher.findBestMatch(detection.descriptor);
-                
-                if (match.label !== 'unknown') {
-                    // SUCESSO: O rosto bateu com Programador.jpeg ou Admin.jpeg
-                    faceStatus.innerText = "✓ " + match.label + " Identificado!";
-                    faceStatus.className = "status-msg text-success";
-                    
-                    // Feedback Visual de Sucesso
-                    ring.style.borderTopColor = "#28a745"; // Círculo fica Verde
-                    scanLine.style.background = "#28a745";
-                    
-                    clearInterval(interval); // Para o scanner
-                    
-                    // Aguarda 1.2s para o usuário ver a confirmação e libera
-                    setTimeout(() => {
-                        liberarAcesso();
-                    }, 1200);
+                if (width < 130) {
+                    faceStatus.innerText = "➜ Aproxime seu rosto";
+                    faceStatus.className = "status-msg text-near";
+                } else if (width > 220) {
+                    faceStatus.innerText = "⬅ Afaste-se um pouco";
+                    faceStatus.className = "status-msg text-near";
                 } else {
-                    // ROSTO DESCONHECIDO
-                    faceStatus.innerText = "Usuário não autorizado";
-                    faceStatus.className = "text-danger";
-                    ring.style.borderTopColor = "#dc3545"; // Círculo fica Vermelho
+                    faceStatus.innerText = "Analisando Identidade...";
+                    faceStatus.className = "status-msg text-warning";
+
+                    const match = faceMatcher.findBestMatch(detection.descriptor);
+                    
+                    // Bloqueio: Se for 'unknown', ele não entra
+                    if (match.label !== 'unknown') {
+                        faceStatus.innerText = "✓ Acesso Liberado: " + match.label;
+                        faceStatus.className = "status-msg text-success";
+                        ring.style.borderTopColor = "#28a745"; // Verde (Sucesso)
+                        
+                        clearInterval(interval);
+                        setTimeout(liberarAcesso, 1200);
+                    } else {
+                        faceStatus.innerText = "Usuário não reconhecido!";
+                        faceStatus.className = "status-msg text-danger";
+                        ring.style.borderTopColor = "#dc3545"; // Vermelho (Erro)
+                    }
                 }
+            } else {
+                faceStatus.innerText = "Posicione o rosto no círculo";
+                faceStatus.className = "status-msg text-secondary";
+                scanLine.style.display = "none";
+                ring.style.display = "none";
             }
-        } else {
-            // NINGUÉM NA CÂMERA
-            faceStatus.innerText = "Posicione o rosto no círculo";
-            faceStatus.className = "text-secondary";
-            scanLine.style.display = "none";
-            ring.style.display = "none";
-        }
-    }, 400); 
-}
+        }, 400); // Rápido o suficiente para não parecer 'estranho'
+    }
+
     function liberarAcesso() {
         document.getElementById("lock-screen").style.opacity = "0";
         setTimeout(() => {
             document.getElementById("lock-screen").style.display = "none";
             if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
         }, 500);
-        carregarProdutos();
+        carregarProdutos(); // Carrega o painel original
     }
 
-    // --- FUNÇÃO DE SENHA (MODIFICADA) ---
+    // 4. Validação de Senha para abrir a Câmera
     const SENHA_MESTRA = "Kings@20BR26burger"; 
     function verificarSenha() {
         if (document.getElementById("admin-pass").value === SENHA_MESTRA) {
@@ -265,19 +244,35 @@
         }
     }
 
-    // Inicializar IA ao carregar
+    // Inicia a IA
     document.addEventListener("DOMContentLoaded", initFaceID);
 
-    // --- RESTANTE DAS SUAS FUNÇÕES (EDITAR, EXCLUIR, CUPONS...) ---
-    // (Mantenha o resto do seu código original aqui exatamente como estava)
+    // FUNÇÃO ORIGINAL DE CARREGAMENTO (Firebase)
     function carregarProdutos() {
         db.ref('cardapio/produtos').on('value', (snapshot) => {
             const data = snapshot.val();
-            produtos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-            renderizar();
+            const lista = document.getElementById("listaProdutos");
+            lista.innerHTML = "";
+            
+            if (!data) {
+                lista.innerHTML = "<p class='text-center'>Nenhum produto cadastrado.</p>";
+                return;
+            }
+
+            const produtosArray = Array.isArray(data) ? data : Object.values(data);
+            produtosArray.forEach(p => {
+                lista.innerHTML += `
+                    <div class="card-prod d-flex align-items-center gap-3">
+                        <img src="${p.imagem}" alt="${p.nome}">
+                        <div>
+                            <h5 class="mb-1">${p.nome}</h5>
+                            <p class="text-warning mb-0">R$ ${p.preco}</p>
+                        </div>
+                    </div>
+                `;
+            });
         });
     }
-    // ... adicione aqui o restante das funções que você já tinha ...
 </script>
 </body>
 </html>
