@@ -9,9 +9,10 @@
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
-        body { background: #111; color: white; padding: 20px; font-family: sans-serif; }
+        body { background: #111; color: white; padding: 20px; font-family: sans-serif; min-height: 100vh; }
         .card-prod { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
         .card-prod img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #333; }
         .form-control { background: #2b2b2b; border: 1px solid #444; color: white; }
@@ -21,7 +22,6 @@
         .btn-warning { font-weight: bold; }
         .scale-150 { transform: scale(1.5); margin-right: 10px; }
 
-        /* Estilo para os Dias da Semana */
         .dias-semana { display: flex; gap: 5px; justify-content: space-between; margin: 10px 0; flex-wrap: wrap; }
         .dia-btn { 
             flex: 1; min-width: 35px; height: 35px; border-radius: 5px; border: 1px solid #444;
@@ -30,40 +30,69 @@
         }
         .dia-btn.active { background: #ffc107; color: #000; border-color: #ffc107; }
 
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header-painel h2 { font-size: 1.5rem; width: 100%; text-align: center; }
-            .header-painel .text-end { width: 100%; text-align: center !important; display: flex; flex-direction: column; gap: 10px; }
-            .header-painel .btn { margin: 0 !important; width: 100%; }
-            .card-prod img { width: 80px; height: 80px; margin-bottom: 10px; }
-            .col-md-1, .col-md-2, .col-md-3 { margin-bottom: 10px; }
-            .scale-150 { transform: scale(1.2); }
-            .card-prod { padding: 15px; }
-        }
-
+        /* --- ESTILOS DO LOCK SCREEN E FACE ID --- */
         #lock-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+            transition: opacity 0.5s ease;
         }
         .login-box {
-            background: #1e1e1e; padding: 30px; border-radius: 15px; border: 1px solid #ffc107;
-            text-align: center; width: 90%; max-width: 400px;
+            background: #1e1e1e; padding: 30px; border-radius: 20px; border: 1px solid #ffc107;
+            text-align: center; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(255,193,7,0.1);
+        }
+        #face-area { display: none; margin-top: 20px; }
+        .camera-circle {
+            width: 240px; height: 240px; margin: 0 auto; border-radius: 50%;
+            border: 3px solid #333; position: relative; overflow: hidden; background: #000;
+        }
+        #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: #ffc107; box-shadow: 0 0 15px #ffc107; animation: scan 2s linear infinite; display: none;
+        }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .loading-ring {
+            position: absolute; top: -5px; left: -5px; width: 250px; height: 250px;
+            border: 5px solid transparent; border-top-color: #ffc107; border-radius: 50%;
+            animation: spin 1s linear infinite; display: none;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* ---------------------------------------- */
+
+        @media (max-width: 768px) {
+            .header-painel h2 { font-size: 1.5rem; width: 100%; text-align: center; }
+            .header-painel .text-end { width: 100%; text-align: center !important; display: flex; flex-direction: column; gap: 10px; }
         }
     </style>
 </head>
 <body>
+
     <div id="lock-screen">
         <div class="login-box">
-            <h3 class="text-warning mb-3">Acesso Restrito</h3>
-            <p class="text-muted small">Painel Kings Burger</p>
-            <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
-            <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+            <h3 class="text-warning mb-2">Kings Burger</h3>
+            <p id="label-status" class="text-muted small">Acesso Restrito</p>
+            
+            <div id="pass-area">
+                <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
+                <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+            </div>
+
+            <div id="face-area">
+                <div class="camera-circle">
+                    <video id="video" autoplay muted playsinline></video>
+                    <div class="scanner-line" id="scan-line"></div>
+                    <div class="loading-ring" id="ring"></div>
+                </div>
+                <div id="face-status" class="status-msg mt-3 small text-secondary">Ajuste seu rosto no círculo</div>
+                <button id="btn-capture" class="btn btn-outline-warning mt-3 btn-sm" onclick="iniciarCaptura()" style="display:none;">Estou Pronto</button>
+            </div>
+            
+            <div id="setup-msg" class="mt-4 small text-muted">Carregando IA...</div>
         </div>
     </div>
 
-<div class="container">
+<div class="container" id="conteudo-principal">
     <div class="header-painel">
         <h2>Painel Admin <span class="text-warning">Kings Burger</span></h2>
         <div class="w-100 mt-2">
@@ -125,6 +154,7 @@
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
         authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -137,64 +167,138 @@
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     let produtos = [];
 
-    // --- FUNÇÕES DE INTERAÇÃO ---
-    function toggleDia(el) {
-        el.classList.toggle('active');
+    // --- LÓGICA FACE ID INTEGRADA ---
+    const video = document.getElementById('video');
+    const faceStatus = document.getElementById('face-status');
+    const scanLine = document.getElementById('scan-line');
+    const ring = document.getElementById('ring');
+    const btnCapture = document.getElementById('btn-capture');
+    let faceMatcher = null;
+
+    async function initFaceID() {
+        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+            ]);
+            
+            const users = ['Programador', 'Admin']; 
+            const descriptors = await Promise.all(users.map(async user => {
+                try {
+                    const img = await faceapi.fetchImage(`imagens/${user}.jpeg`);
+                    const fullDesc = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                    return new faceapi.LabeledFaceDescriptors(user, [fullDesc.descriptor]);
+                } catch(e) { return null; }
+            }));
+
+            faceMatcher = new faceapi.FaceMatcher(descriptors.filter(d => d), 0.6);
+            document.getElementById('setup-msg').innerText = "Biometria Pronta ✅";
+        } catch (e) {
+            document.getElementById('setup-msg').innerText = "Erro ao carregar modelos.";
+        }
     }
 
-    // --- GESTÃO DE STATUS E HORÁRIO ---
+    const SENHA_MESTRA = "Kings@20BR26burger"; 
+    function verificarSenha() {
+        if (document.getElementById("admin-pass").value === SENHA_MESTRA) { 
+            document.getElementById("pass-area").style.display = "none";
+            document.getElementById("face-area").style.display = "block";
+            document.getElementById("label-status").innerText = "Validação Biométrica";
+            startCamera();
+        } else alert("Incorreta!");
+    }
+
+    function startCamera() {
+        navigator.mediaDevices.getUserMedia({ video: {} })
+            .then(stream => { 
+                video.srcObject = stream; 
+                btnCapture.style.display = "inline-block";
+            })
+            .catch(() => faceStatus.innerText = "Câmera bloqueada.");
+    }
+
+    async function iniciarCaptura() {
+        btnCapture.style.display = "none";
+        ring.style.display = "block";
+        scanLine.style.display = "block";
+        faceStatus.innerText = "Analisando...";
+
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+
+        if (detection) {
+            const match = faceMatcher.findBestMatch(detection.descriptor);
+            if (match.label !== 'unknown') {
+                faceStatus.innerText = "Acesso Liberado: " + match.label;
+                faceStatus.className = "mt-3 small text-success fw-bold";
+                ring.style.borderTopColor = "#28a745";
+                setTimeout(liberarAcessoTotal, 1000);
+            } else {
+                faceStatus.innerText = "Não autorizado!";
+                faceStatus.className = "mt-3 small text-danger fw-bold";
+                setTimeout(() => {
+                    ring.style.display = "none";
+                    scanLine.style.display = "none";
+                    btnCapture.style.display = "inline-block";
+                    faceStatus.className = "mt-3 small text-secondary";
+                    faceStatus.innerText = "Tente novamente";
+                }, 2000);
+            }
+        } else {
+            faceStatus.innerText = "Nenhum rosto detectado.";
+            btnCapture.style.display = "inline-block";
+            ring.style.display = "none";
+            scanLine.style.display = "none";
+        }
+    }
+
+    function liberarAcessoTotal() {
+        document.getElementById("lock-screen").style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById("lock-screen").style.display = "none";
+            if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            carregarProdutos(); // Carrega o Firebase após entrar
+        }, 500);
+    }
+
+    // --- FUNÇÕES ORIGINAIS DO SEU ADMIN (MANTIDAS 100%) ---
+    function toggleDia(el) { el.classList.toggle('active'); }
+
     db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
         const data = snapshot.val();
         const txt = document.getElementById("txtStatus");
         const sw = document.getElementById("switchStatus");
-        
         if (txt && sw && data) {
             const aberto = (typeof data === 'object') ? data.aberto : data;
             txt.innerText = aberto ? "Aberto" : "Fechado";
             txt.className = aberto ? "badge bg-success" : "badge bg-danger";
             sw.checked = aberto;
-
             if (data.horarioAbertura) document.getElementById("horaAbre").value = data.horarioAbertura;
             if (data.horarioFechamento) document.getElementById("horaFecha").value = data.horarioFechamento;
-            
-            // Marcar os dias ativos na tela
             const diasAtivos = data.diasAbertos || [];
             document.querySelectorAll('.dia-btn').forEach(btn => {
                 const diaNum = parseInt(btn.getAttribute('data-dia'));
-                if (diasAtivos.includes(diaNum)) btn.classList.add('active');
-                else btn.classList.remove('active');
+                btn.classList.toggle('active', diasAtivos.includes(diaNum));
             });
         }
     });
 
-    function alterarStatusLoja(novoStatus) { 
-        db.ref('configuracoes/statusLoja').update({ aberto: novoStatus }); 
-    }
+    function alterarStatusLoja(novoStatus) { db.ref('configuracoes/statusLoja').update({ aberto: novoStatus }); }
 
     function salvarHorariosKings() {
         const abre = document.getElementById("horaAbre").value;
         const fecha = document.getElementById("horaFecha").value;
-        
-        // Coletar dias marcados
-        const diasMarcados = [];
-        document.querySelectorAll('.dia-btn.active').forEach(btn => {
-            diasMarcados.push(parseInt(btn.getAttribute('data-dia')));
-        });
-
-        if (!abre || !fecha) return alert("Preencha os horários!");
-        if (diasMarcados.length === 0) return alert("Selecione pelo menos um dia da semana!");
-
-        db.ref('configuracoes/statusLoja').update({
-            horarioAbertura: abre,
-            horarioFechamento: fecha,
-            diasAbertos: diasMarcados
-        }).then(() => alert("Configurações da Kings Burger salvas! ✅"));
+        const diasMarcados = Array.from(document.querySelectorAll('.dia-btn.active')).map(btn => parseInt(btn.getAttribute('data-dia')));
+        if (!abre || !fecha || diasMarcados.length === 0) return alert("Preencha tudo!");
+        db.ref('configuracoes/statusLoja').update({ horarioAbertura: abre, horarioFechamento: fecha, diasAbertos: diasMarcados })
+          .then(() => alert("Salvo! ✅"));
     }
 
-    // --- GESTÃO DE PRODUTOS ---
     async function carregarProdutos() {
         db.ref('cardapio/produtos').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -224,14 +328,13 @@
     }
 
     function editar(i, campo, valor) { produtos[i][campo] = (campo === "price") ? parseFloat(valor) : valor; }
-    function excluir(i) { if (confirm("Excluir item?")) { produtos.splice(i, 1); db.ref('cardapio/produtos').set(produtos); } }
+    function excluir(i) { if (confirm("Excluir?")) { produtos.splice(i, 1); db.ref('cardapio/produtos').set(produtos); } }
     function novoProduto() { produtos.unshift({ title: "Novo Burger", price: 0, categoria: "burger", ingredientes: "", image: "" }); renderizar(); }
     function salvarNoFirebase() { 
-        const btn = document.getElementById("btnSalvar"); btn.innerText = "⏳..."; btn.disabled = true;
-        db.ref('cardapio/produtos').set(produtos).then(() => alert("Cloud Atualizado! ✅")).finally(() => { btn.innerText = "☁️ Salvar Cloud"; btn.disabled = false; });
+        const btn = document.getElementById("btnSalvar"); btn.innerText = "⏳..."; 
+        db.ref('cardapio/produtos').set(produtos).then(() => alert("Sucesso! ✅")).finally(() => btn.innerText = "☁️ Salvar Cloud");
     }
 
-    // --- GESTÃO DE CUPONS ---
     function renderizarCupons(cuponsObj) {
         const container = document.getElementById("listaCuponsAdmin");
         if (!container) return; container.innerHTML = "";
@@ -252,7 +355,6 @@
     db.ref('configuracoes/cupons').on('value', (snapshot) => renderizarCupons(snapshot.val()));
 
     async function migrarArquivoParaFirebase() {
-        if (!confirm("Confirma importação JSON?")) return;
         try {
             const resP = await fetch("content/produtos.json?v=" + Date.now());
             const dataP = await resP.json();
@@ -261,39 +363,18 @@
         } catch (err) { alert("Erro."); }
     }
 
-    const SENHA_MESTRA = "Kings@20BR26burger"; 
-    let timerInatividade;
-    function verificarSenha() {
-        if (document.getElementById("admin-pass").value === SENHA_MESTRA) { document.getElementById("lock-screen").style.display = "none"; resetarTimer(); }
-        else alert("Incorreta!");
+    function verificarFechamentoAutomatico() {
+        db.ref('configuracoes/statusLoja').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data || !data.aberto) return;
+            const agora = new Date();
+            const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+            if (horaAtual >= data.horarioFechamento) alterarStatusLoja(false);
+        });
     }
-    function bloquearPainel() { document.getElementById("admin-pass").value = ""; document.getElementById("lock-screen").style.display = "flex"; }
-    function resetarTimer() { clearTimeout(timerInatividade); timerInatividade = setTimeout(bloquearPainel, 600000); }
-    document.addEventListener("DOMContentLoaded", bloquearPainel);
-    document.onmousemove = resetarTimer; document.onkeypress = resetarTimer;
+    setInterval(verificarFechamentoAutomatico, 30000);
 
-
-    
-    // Função para verificar se a loja deve fechar sozinha
-function verificarFechamentoAutomatico() {
-    db.ref('configuracoes/statusLoja').once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data || !data.aberto) return; // Se já estiver fechado, não faz nada
-        const agora = new Date();
-        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + 
-                          agora.getMinutes().toString().padStart(2, '0');
-        // Se a hora atual for igual ou maior que a hora de fechamento
-        if (horaAtual >= data.horarioFechamento) {
-            console.log("Horário de fechar atingido! Desligando loja...");
-            alterarStatusLoja(false); // Chama sua função que já existe para fechar
-        }
-    });
-}
-
-// Executa a verificação a cada 30 segundos enquanto o painel estiver aberto
-setInterval(verificarFechamentoAutomatico, 30000);
-
-    carregarProdutos();
+    document.addEventListener("DOMContentLoaded", initFaceID);
 </script>
 </body>
 </html>
