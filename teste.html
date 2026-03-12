@@ -182,47 +182,67 @@
 
     // 3. Detecção e Feedback (Perto/Longe)
     async function startDetection() {
-        const interval = setInterval(async () => {
-            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                                           .withFaceLandmarks()
-                                           .withFaceDescriptor();
+    // 1. O intervalo menor (400ms) deixa a captura mais fluida
+    const interval = setInterval(async () => {
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
 
-            if (detection) {
-                const { width } = detection.box;
-                scanLine.style.display = "block"; // Mostra linha de scan
+        if (detection) {
+            const { width } = detection.box;
+            
+            // Ativa os elementos visuais de "escaner"
+            scanLine.style.display = "block";
+            ring.style.display = "block";
+            ring.style.borderTopColor = "#ffc107"; // Cor padrão: Amarelo
 
-                if (width < 130) {
-                    faceStatus.innerText = "➜ Aproxime seu rosto";
-                    faceStatus.className = "status-msg text-near";
-                    ring.style.display = "none";
-                } else if (width > 200) {
-                    faceStatus.innerText = "⬅ Afaste-se um pouco";
-                    faceStatus.className = "status-msg text-near";
-                    ring.style.display = "none";
+            // 2. Guia o usuário pela distância
+            if (width < 130) {
+                faceStatus.innerText = "➜ Aproxime seu rosto";
+                faceStatus.className = "status-msg text-near";
+            } 
+            else if (width > 220) {
+                faceStatus.innerText = "⬅ Afaste-se um pouco";
+                faceStatus.className = "status-msg text-near";
+            } 
+            else {
+                // 3. POSIÇÃO IDEAL: Faz a comparação com a foto .jpeg
+                faceStatus.innerText = "Validando Identidade...";
+                faceStatus.className = "status-msg text-warning";
+
+                const match = faceMatcher.findBestMatch(detection.descriptor);
+                
+                if (match.label !== 'unknown') {
+                    // SUCESSO: O rosto bateu com Programador.jpeg ou Admin.jpeg
+                    faceStatus.innerText = "✓ " + match.label + " Identificado!";
+                    faceStatus.className = "status-msg text-success";
+                    
+                    // Feedback Visual de Sucesso
+                    ring.style.borderTopColor = "#28a745"; // Círculo fica Verde
+                    scanLine.style.background = "#28a745";
+                    
+                    clearInterval(interval); // Para o scanner
+                    
+                    // Aguarda 1.2s para o usuário ver a confirmação e libera
+                    setTimeout(() => {
+                        liberarAcesso();
+                    }, 1200);
                 } else {
-                    // POSIÇÃO IDEAL: Analisando
-                    faceStatus.innerText = "Analisando Identidade...";
-                    faceStatus.className = "status-msg text-warning";
-                    ring.style.display = "block";
-
-                    const match = faceMatcher.findBestMatch(detection.descriptor);
-                    if (match.label !== 'unknown') {
-                        // SUCESSO
-                        faceStatus.innerText = "✅ Acesso Liberado: " + match.label;
-                        faceStatus.className = "status-msg text-success";
-                        clearInterval(interval);
-                        setTimeout(liberarAcesso, 1500);
-                    }
+                    // ROSTO DESCONHECIDO
+                    faceStatus.innerText = "Usuário não autorizado";
+                    faceStatus.className = "text-danger";
+                    ring.style.borderTopColor = "#dc3545"; // Círculo fica Vermelho
                 }
-            } else {
-                faceStatus.innerText = "Posicione o rosto no círculo";
-                faceStatus.className = "status-msg text-secondary";
-                scanLine.style.display = "none";
-                ring.style.display = "none";
             }
-        }, 600);
-    }
-
+        } else {
+            // NINGUÉM NA CÂMERA
+            faceStatus.innerText = "Posicione o rosto no círculo";
+            faceStatus.className = "text-secondary";
+            scanLine.style.display = "none";
+            ring.style.display = "none";
+        }
+    }, 400); 
+}
     function liberarAcesso() {
         document.getElementById("lock-screen").style.opacity = "0";
         setTimeout(() => {
