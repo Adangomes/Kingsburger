@@ -239,30 +239,93 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
 
 
+/* Container Principal */
 .roleta-container {
     position: relative;
-    width: 300px;
-    height: 300px;
-    margin: 0 auto;
+    width: 320px;
+    height: 320px;
+    margin: 20px auto;
+    background: radial-gradient(circle, #444, #111);
+    border-radius: 50%;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Moldura Metálica */
+.roleta-container::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 8px solid #d4af37; /* Cor Ouro */
+    border-radius: 50%;
+    z-index: 5;
+    pointer-events: none;
 }
 
 #canvas-roleta {
     border-radius: 50%;
-    border: 5px solid #333;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); /* Efeito de freio suave */
+    display: block;
+    transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+    background-color: #fff;
 }
 
+/* Pino Central Preto (Realista) */
+.roleta-center-pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: #000;
+    border: 3px solid #d4af37;
+    border-radius: 50%;
+    z-index: 15;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Ponteiro (Seta de Indicação) */
 .ponteiro {
     position: absolute;
-    top: -10px;
+    top: -15px;
     left: 50%;
     transform: translateX(-50%);
     width: 0; 
     height: 0; 
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
-    border-top: 30px solid #a81d1d; /* Cor do Kings Burger */
-    z-index: 10;
+    border-top: 35px solid #ff0000;
+    z-index: 20;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
 }
 
+/* Botões e Texto de Resultado */
+#resultado-roleta {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 15px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.btn-roleta {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn-roleta:hover {
+    background: #a81d1d;
+    transform: translateY(-2px);
+}
+
+.btn-roleta:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
