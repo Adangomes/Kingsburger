@@ -1,5 +1,3 @@
-
-
 // --- CONFIGURAÇÕES GLOBAIS ---
 const GEOAPIFY_KEY = "208f6874a48c45e68761f3d994db6775";
 const RESTAURANTE_COORD = [-26.49624, -49.07919]; 
@@ -404,32 +402,48 @@ function removerItem(idx) {
 // --- 4. RESUMO E ENTREGA (GEOAPIFY + LOADING) ---
 
 async function processarResumoGeo() {
+
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
+
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
+
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
 
-    // 2. Validação imediata
-    if (!nome || !rua || !num) {
-        return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
-    }
 
-    // 3. APARECE O LOADING AQUI (Antes de tudo)
+
+    if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
+
+    
+
+// 1. ATIVA O EFEITO (O Círculo Girando)
+
     const loader = document.getElementById("loading-geral");
+
     if (loader) {
-        loader.style.display = "flex";
+
+        loader.style.display = "flex"; 
+
     }
+
+
 
     try {
-        // 4. Configuração da busca (Foco em Guaramirim/Schroeder)
-        const localizacaoFoco = `${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}`; // longitude,latitude
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
-        
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&bias=proximity:${localizacaoFoco}&filter=countrycode:br&limit=1&apiKey=${GEOAPIFY_KEY}`);
+
+        // 2. CHAMADA DA API GEOAPIFY
+
+        const query = encodeURIComponent(`${rua}, ${num}, jarargua do sul, SC, Brasil`);
+
+        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
+
         const data = await resp.json();
 
-        // 5. Delay de 2 segundos (Sessão de processamento profissional)
+
+
+        // 3. FORÇAR UM DELAY DE 2 SEGUNDOS (Para o usuário ver que está processando)
+
         await new Promise(resolve => setTimeout(resolve, 2000));
+
+
 
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
@@ -440,31 +454,38 @@ async function processarResumoGeo() {
                 lon
             );
 
-            // Trava de segurança para distâncias impossíveis (erro de busca)
-            if (dist > 60) {
-                taxaEntregaCalculada = TAXA_BASE; 
-            } else {
-                let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
-                taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
-            }
+            // CÁLCULO ATUALIZADO: Soma a TAXA_BASE e arredonda
+            let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
+            taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
+
         } else {
-            // Se a API não achar nada, cai na taxa padrão
+            // Se não achar a rua, usa a taxa base como segurança
             taxaEntregaCalculada = TAXA_BASE;
         }
 
-        // 6. SUCESSO: Vai direto para o resumo final
+
+        // 4. MOSTRAR RESULTADO FINAL
+
         mostrarResumoFinal();
 
+
+
     } catch (e) {
+
         console.error("Erro ao calcular taxa:", e);
+
         taxaEntregaCalculada = TAXA_BASE;
+
         mostrarResumoFinal();
+
     } finally {
-        // 7. SEMPRE esconde o loader ao terminar
-        if (loader) {
-            loader.style.display = "none";
-        }
+
+        // 5. ESCONDER O LOADING
+
+        if(loader) loader.style.display = "none";
+
     }
+
 }
 
 
@@ -622,50 +643,55 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 
 function mostrarResumoFinal() {
+
     const resumoItens = document.getElementById("resumo-itens");
-    if (!resumoItens) return enviarWhatsApp();
+
+    if(!resumoItens) return enviarWhatsApp(); // Fallback se não houver tela de resumo
+
+
 
     resumoItens.innerHTML = "";
+
     let sub = 0;
 
-    // 1. Calcula o Subtotal dos itens
     carrinho.forEach(i => {
+
         sub += i.price;
-        resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
+
+        resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
+
     });
 
-    // 2. Lógica de Desconto da Roleta
-    let descontoRoleta = 0;
-    let brindeTexto = "";
 
-    if (premioGanho) {
-        if (premioGanho.tipo === 'fixo') {
-            descontoRoleta = premioGanho.valor;
-        } else if (premioGanho.tipo === 'frete') {
-            descontoRoleta = taxaEntregaCalculada; // Zera o valor do frete
-        } else if (premioGanho.tipo === 'brinde') {
-            brindeTexto = `<br><b style="color:#28a745">BRINDE: ${premioGanho.texto} 🍟</b>`;
-        }
-    }
 
-    // 3. Cálculo Final (Garante que não seja negativo)
-    const totalFinal = Math.max(0, (sub + taxaEntregaCalculada) - descontoRoleta);
+    const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
 
-    // 4. Exibe as taxas e descontos
     document.getElementById("resumo-taxa").innerHTML = `
+
         Subtotal: R$ ${sub.toFixed(2)}<br>
+
         Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-        ${descontoRoleta > 0 ? `<span style="color:#d9534f">Desconto Roleta: - R$ ${descontoRoleta.toFixed(2)}</span>` : ''}
-        ${brindeTexto}
+
+        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
+
     `;
 
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
 
-    // 5. Troca as telas do modal
-    document.getElementById("delivery-modal").style.display = "flex";
+    
+
+    // Troca as telas do modal
+
     document.getElementById("form-entrega").style.display = "none";
+
     document.getElementById("resumo-pedido").style.display = "block";
+
 }
+
+
+
+
+
 
 
 // --- OUTROS ---
@@ -1057,46 +1083,3 @@ function mostrarModalFechado() {
 
     modal.style.display = "flex";
 }
-// ----------------------------
-// VALIDAÇÃO GLOBAL
-// ----------------------------
-function validarLojaAntesAcao() {
-    if (!lojaEstaAbertaAgora()) {
-        mostrarModalFechado();
-        return false;
-    }
-    return true;
-}
-// ----------------------------
-// BLOQUEAR AÇÕES
-// ----------------------------
-// Intercepta adicionar produto
-const decidirFluxoOriginal = decidirFluxo;
-decidirFluxo = function(nome){
-    if(!validarLojaAntesAcao()) return;
-    decidirFluxoOriginal(nome);
-}
-// Intercepta abrir carrinho
-const abrirCarrinhoOriginal = abrirCarrinho;
-abrirCarrinho = function(){
-    if(!validarLojaAntesAcao()) return;
-    abrirCarrinhoOriginal();
-}
-// Intercepta finalizar pedido
-const abrirDeliveryOriginal = abrirDelivery;
-abrirDelivery = function(){
-    if(!validarLojaAntesAcao()) return;
-    abrirDeliveryOriginal();
-}
-// ----------------------------
-// STATUS VISUAL (TOPO DO SITE)
-// ----------------------------
-function atualizarStatusVisual(){
-    const el = document.getElementById("status-loja");
-    if(!el) return;
-    const aberta = lojaEstaAbertaAgora();
-    el.innerText = aberta ? "ABERTO" : "FECHADO";
-    el.className = aberta ? "status aberto" : "status fechado";
-}
-
-
