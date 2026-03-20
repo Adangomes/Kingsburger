@@ -1217,20 +1217,16 @@ function fecharRoletaEIrParaResumo() {
 
 function abrirRoleta() {
     const modal = document.getElementById("roleta-modal");
-
+    modal.style.display = "flex"; // Usa flex para centralizar
+    
+    // Reset de estado
     premioGanho = null;
-
-    document.getElementById('resultado-roleta').style.display = "none";
+    document.getElementById('resultado-roleta').innerHTML = "";
     document.getElementById('btn-continuar-resumo').style.display = "none";
     document.getElementById('btn-girar').style.display = "block";
+    document.getElementById('btn-girar').innerText = "GIRAR!";
+    document.getElementById('btn-girar').disabled = false;
 
-    modal.style.display = "flex";
-
-    desenharRoleta();
-}
-if (!localStorage.getItem("roletaJaUsada")) {
-    setTimeout(() => {
-        abrirRoleta();
-        localStorage.setItem("roletaJaUsada", "true");
-    }, 800);
+    // Desenha
+    setTimeout(desenharRoleta, 100); // Um pequeno delay ajuda o Canvas a pegar o tamanho certo no mobile
 }
