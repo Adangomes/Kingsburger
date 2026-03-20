@@ -404,48 +404,26 @@ function removerItem(idx) {
 // --- 4. RESUMO E ENTREGA (GEOAPIFY + LOADING) ---
 
 async function processarResumoGeo() {
-
     const nome = document.getElementById("nomeCliente")?.value || document.getElementById("input-nome")?.value;
-
     const rua = document.getElementById("rua")?.value || document.getElementById("input-rua")?.value;
-
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
-
-
+    const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
 
     if (!nome || !rua || !num) return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
 
-    
-
-// 1. ATIVA O EFEITO (O Círculo Girando)
-
     const loader = document.getElementById("loading-geral");
-
-    if (loader) {
-
-        loader.style.display = "flex"; 
-
-    }
-
-
+    if (loader) loader.style.display = "flex"; 
 
     try {
-
-        // 2. CHAMADA DA API GEOAPIFY
-
-        const query = encodeURIComponent(`${rua}, ${num}, jarargua do sul, SC, Brasil`);
-
-        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${GEOAPIFY_KEY}`);
-
+        // --- MELHORIA DE BUSCA PARA GUARAMIRIM/SCHROEDER ---
+        const localizacaoFoco = `${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}`; // longitude,latitude
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
+        
+        // Adicionamos filtros para focar na nossa região e evitar ruas em outros estados
+        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&bias=proximity:${localizacaoFoco}&filter=countrycode:br&limit=1&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
-
-
-        // 3. FORÇAR UM DELAY DE 2 SEGUNDOS (Para o usuário ver que está processando)
-
         await new Promise(resolve => setTimeout(resolve, 2000));
-
-
 
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
@@ -456,39 +434,30 @@ async function processarResumoGeo() {
                 lon
             );
 
-            // CÁLCULO ATUALIZADO: Soma a TAXA_BASE e arredonda
-            let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
-            taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
+            // Trava de segurança: Se a API achar algo a mais de 60km, é porque pegou a cidade errada.
+            // Nesse caso, usamos a TAXA_BASE ou uma taxa fixa para não cobrar 300 reais do cliente.
+            if (dist > 60) {
+                taxaEntregaCalculada = TAXA_BASE; 
+            } else {
+                let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
+                taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
+            }
 
         } else {
-            // Se não achar a rua, usa a taxa base como segurança
             taxaEntregaCalculada = TAXA_BASE;
         }
 
-
-        // 4. MOSTRAR RESULTADO FINAL
-
         mostrarResumoFinal();
-
-
 
     } catch (e) {
-
         console.error("Erro ao calcular taxa:", e);
-
         taxaEntregaCalculada = TAXA_BASE;
-
         mostrarResumoFinal();
-
     } finally {
-
-        // 5. ESCONDER O LOADING
-
-        if(loader) loader.style.display = "none";
-
+        if (loader) loader.style.display = "none";
     }
-
 }
+
 
 
 
