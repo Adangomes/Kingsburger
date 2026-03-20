@@ -1132,56 +1132,66 @@ function atualizarStatusVisual(){
 // 🎡 ROLETA PROFISSIONAL
 // =======================
 
-// PRÊMIOS
+// ===== ROLETA TOP =====
+
 const premiosRoleta = [
-    { nome: "KINGS5", tipo: "desconto", valor: 5 },
-    { nome: "KINGS10", tipo: "desconto", valor: 10 },
-    { nome: "10% OFF (>=60)", tipo: "percentual", valor: 10, min: 60 },
-    { nome: "Refri 200ml", tipo: "brinde", item: "Refri 200ml" },
-    { nome: "Batata Pequena", tipo: "brinde", item: "Batata Pequena" },
-    { nome: "Entrega Grátis", tipo: "entrega_gratis" },
-    { nome: "R$5 OFF Entrega", tipo: "entrega_desconto", valor: 5 },
-    { nome: "Não foi dessa vez", tipo: "perdeu" },
-    { nome: "Tente novamente", tipo: "perdeu" },
-    { nome: "Gire no próximo pedido", tipo: "bloqueado" }
+    "KINGS5",
+    "KINGS10",
+    "10% OFF",
+    "Refri",
+    "Batata",
+    "Entrega Grátis",
+    "R$5 Entrega",
+    "Tente Novamente",
+    "Não foi dessa vez",
+    "Gire no próximo"
 ];
 
+let giroLiberado = true;
 let premioAtual = null;
 
-// CRIA MODAL AUTOMÁTICO
+// CRIA MODAL
 document.body.insertAdjacentHTML("beforeend", `
-<div id="roletaModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;">
-    <div style="background:#111;padding:20px;border-radius:15px;text-align:center;color:#fff;">
+<div id="roletaModal">
+    <div class="roleta-container">
         <h2>🎡 Gire e Ganhe</h2>
-        <div id="roletaWheel" style="
-            width:220px;height:220px;
-            border-radius:50%;
-            border:8px solid #fff;
-            margin:20px auto;
-            background:conic-gradient(
-                #ff0000 0deg 36deg,
-                #00ff00 36deg 72deg,
-                #0000ff 72deg 108deg,
-                #ffff00 108deg 144deg,
-                #ff00ff 144deg 180deg,
-                #00ffff 180deg 216deg,
-                #ff8800 216deg 252deg,
-                #888888 252deg 288deg,
-                #00ff88 288deg 324deg,
-                #ffffff 324deg 360deg
-            );
-            transition: transform 4s ease-out;
-        "></div>
+        <div class="roleta-pointer"></div>
+        <div id="roletaWheel" class="roleta-wheel"></div>
 
-        <button onclick="girarRoleta()" style="padding:10px 20px;border:none;border-radius:8px;background:#00a650;color:#fff;font-weight:bold;">
-            GIRAR
-        </button>
-
-        <p id="resultadoRoleta" style="margin-top:15px;"></p>
-        <button onclick="fecharRoleta()" style="margin-top:10px;">Fechar</button>
+        <button class="btn-girar" onclick="girarRoleta()">GIRAR</button>
+        <p id="resultadoRoleta"></p>
+        <button onclick="fecharRoleta()">Fechar</button>
     </div>
 </div>
 `);
+
+// DESENHA ROLETA COM NOMES
+function desenharRoleta(){
+    const wheel = document.getElementById("roletaWheel");
+    const total = premiosRoleta.length;
+    const deg = 360 / total;
+
+    let gradient = "conic-gradient(";
+    
+    premiosRoleta.forEach((p, i)=>{
+        const start = i * deg;
+        const end = start + deg;
+        gradient += `hsl(${i * 36}, 80%, 50%) ${start}deg ${end}deg,`;
+
+        // TEXTO
+        const label = document.createElement("div");
+        label.className = "roleta-label";
+        label.innerText = p;
+
+        const angle = start + deg/2;
+        label.style.transform = `rotate(${angle}deg) translate(90px) rotate(90deg)`;
+
+        wheel.appendChild(label);
+    });
+
+    gradient = gradient.slice(0, -1) + ")";
+    wheel.style.background = gradient;
+}
 
 // ABRIR
 function abrirRoleta(){
@@ -1195,86 +1205,72 @@ function fecharRoleta(){
 
 // GIRAR
 function girarRoleta(){
+
+    if(!giroLiberado){
+        alert("Você já girou!");
+        return;
+    }
+
+    giroLiberado = false;
+
     const wheel = document.getElementById("roletaWheel");
-    const resultado = document.getElementById("resultadoRoleta");
+    const total = premiosRoleta.length;
+    const index = Math.floor(Math.random() * total);
 
-    const index = Math.floor(Math.random() * premiosRoleta.length);
-    const premio = premiosRoleta[index];
-    premioAtual = premio;
-
-    const deg = 3600 + (index * 36); // gira e para no prêmio
+    const deg = 3600 + (index * (360 / total));
 
     wheel.style.transform = `rotate(${deg}deg)`;
 
     setTimeout(()=>{
-        aplicarPremio(premio);
-        resultado.innerText = "🎁 " + premio.nome;
+        premioAtual = premiosRoleta[index];
+        aplicarPremioReal(premioAtual);
+
+        document.getElementById("resultadoRoleta").innerText = "🎁 " + premioAtual;
     }, 4000);
 }
 
-// APLICAR PRÊMIO
-function aplicarPremio(premio){
+// APLICAR PRÊMIO REAL
+function aplicarPremioReal(premio){
 
     let subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-    switch(premio.tipo){
+    if(premio === "KINGS5"){
+        descontoAplicado = 5;
+    }
 
-        case "desconto":
-            descontoAplicado = premio.valor;
-        break;
+    if(premio === "KINGS10"){
+        descontoAplicado = 10;
+    }
 
-        case "percentual":
-            if(subtotal >= premio.min){
-                descontoAplicado = subtotal * (premio.valor/100);
-            } else {
-                alert("Adicione mais itens para ativar o desconto!");
-            }
-        break;
+    if(premio === "10% OFF"){
+        if(subtotal >= 60){
+            descontoAplicado = subtotal * 0.10;
+        }
+    }
 
-        case "entrega_gratis":
-            taxaEntregaCalculada = 0;
-            premioAtual.entregaGratis = true;
-        break;
+    if(premio === "Entrega Grátis"){
+        taxaEntregaCalculada = 0;
+        window.entregaGratisAtiva = true;
+    }
 
-        case "entrega_desconto":
-            taxaEntregaCalculada -= premio.valor;
-            if(taxaEntregaCalculada < 0) taxaEntregaCalculada = 0;
-        break;
+    if(premio === "R$5 Entrega"){
+        taxaEntregaCalculada -= 5;
+        if(taxaEntregaCalculada < 0) taxaEntregaCalculada = 0;
+    }
 
-        case "brinde":
-            carrinho.push({
-                title: premio.item + " (GRÁTIS 🎁)",
-                price: 0
-            });
-        break;
+    if(premio === "Refri"){
+        carrinho.push({ title: "Refri 200ml 🎁", price: 0 });
+    }
 
-        case "perdeu":
-            return;
-
-        case "bloqueado":
-            return;
+    if(premio === "Batata"){
+        carrinho.push({ title: "Batata Pequena 🎁", price: 0 });
     }
 
     atualizarCarrinho();
 }
 
-// ===============================
-// 🔥 INTEGRAÇÃO COM RESUMO FINAL
-// ===============================
-
-// SOBRESCREVE RESUMO PRA MOSTRAR ENTREGA GRÁTIS
-const mostrarResumoOriginal = mostrarResumoFinal;
-
-mostrarResumoFinal = function(){
-
-    mostrarResumoOriginal();
-
-    if(premioAtual?.tipo === "entrega_gratis"){
-        document.getElementById("resumo-taxa").innerHTML += `
-            <br><span style="color:#00a650;">🎁 Entrega grátis aplicada</span>
-        `;
-    }
-};
+// INICIA
+setTimeout(desenharRoleta, 500);
 
 
 
