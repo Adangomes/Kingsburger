@@ -1097,6 +1097,168 @@ function atualizarStatusVisual(){
 }
 
 
+// ==========================================
+// SISTEMA DE ROLETA DA SORTE - KINGS BURGER
+// ==========================================
 
+const premios = [
+    { texto: "SEM SORTE", cor: "#333", valor: 0, tipo: 'fixo' },
+    { texto: "R$ 2,00 OFF", cor: "#a81d1d", valor: 2, tipo: 'fixo' },
+    { texto: "ENTREGA GRÁTIS", cor: "#007bff", valor: 0, tipo: 'frete' },
+    { texto: "5% OFF", cor: "#ffc107", valor: 5, tipo: 'porcento' },
+    { texto: "R$ 5,00 OFF", cor: "#28a745", valor: 5, tipo: 'fixo' },
+    { texto: "MAIS SORTE", cor: "#6c757d", valor: 0, tipo: 'fixo' }
+];
 
+let anguloAtual = 0;
+let premioGanho = null;
 
+// Desenha a roleta no Canvas
+function desenharRoleta() {
+    const canvas = document.getElementById('canvas-roleta');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const fatia = (2 * Math.PI) / premios.length;
+
+    premios.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.fillStyle = p.cor;
+        ctx.moveTo(150, 150);
+        ctx.arc(150, 150, 150, i * fatia, (i + 1) * fatia);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.rotate(i * fatia + fatia / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+        ctx.font = "bold 14px Arial";
+        ctx.fillText(p.texto, 140, 10);
+        ctx.restore();
+    });
+}
+
+// Inicia o giro da roleta
+function girarRoleta() {
+    if (premioGanho) return;
+
+    const btn = document.getElementById('btn-girar');
+    btn.disabled = true;
+    btn.innerText = "Girando...";
+
+    const girosExtras = 5 * 360; 
+    const indiceSorteado = Math.floor(Math.random() * premios.length);
+    const fatiaGraus = 360 / premios.length;
+    
+    const anguloSorteado = (premios.length - indiceSorteado) * fatiaGraus - (fatiaGraus / 2);
+    anguloAtual += girosExtras + anguloSorteado;
+
+    const canvas = document.getElementById('canvas-roleta');
+    canvas.style.transform = `rotate(${anguloAtual}deg)`;
+
+    setTimeout(() => {
+        premioGanho = premios[indiceSorteado];
+        exibirResultadoRoleta(premioGanho);
+    }, 4500);
+}
+
+function exibirResultadoRoleta(premio) {
+    const resDiv = document.getElementById('resultado-roleta');
+    resDiv.style.display = "block";
+    
+    if (premio.valor > 0 || premio.tipo === 'frete') {
+        resDiv.innerHTML = `PARABÉNS! 🥳<br>Você ganhou: ${premio.texto}`;
+        resDiv.style.color = "#28a745";
+    } else {
+        resDiv.innerHTML = "Não foi dessa vez! 😅";
+        resDiv.style.color = "#6c757d";
+    }
+
+    document.getElementById('btn-continuar-resumo').style.display = "block";
+    document.getElementById('btn-girar').style.display = "none";
+}
+
+// ==========================================
+// INTEGRAÇÃO: ENTREGA -> ROLETA -> RESUMO
+// ==========================================
+
+async function processarResumoGeo() {
+    const nome = document.getElementById("nomeCliente")?.value || "";
+    const rua = document.getElementById("rua")?.value || "";
+    const num = document.getElementById("numero")?.value || "";
+    const bairro = document.getElementById("bairro")?.value || "";
+
+    if (!nome || !rua || !num) return alert("Preencha Nome, Rua e Número!");
+
+    const loader = document.getElementById("loading-geral");
+    if (loader) loader.style.display = "flex"; 
+
+    try {
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
+        const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&filter=countrycode:br&limit=1&apiKey=${GEOAPIFY_KEY}`);
+        const data = await resp.json();
+
+        if (data.features && data.features.length > 0) {
+            const [lon, lat] = data.features[0].geometry.coordinates;
+            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+            
+            let taxaBruta = TAXA_BASE + (dist * VALOR_POR_KM);
+            taxaEntregaCalculada = dist > 60 ? TAXA_BASE : parseFloat(taxaBruta.toFixed(2));
+        } else {
+            taxaEntregaCalculada = TAXA_BASE;
+        }
+
+        // Após calcular a taxa, abre a Roleta antes do resumo
+        document.getElementById('delivery-modal').style.display = 'none';
+        document.getElementById('roleta-modal').style.display = 'flex';
+        desenharRoleta();
+
+    } catch (e) {
+        console.error("Erro GPS:", e);
+        taxaEntregaCalculada = TAXA_BASE;
+        document.getElementById('delivery-modal').style.display = 'none';
+        document.getElementById('roleta-modal').style.display = 'flex';
+    } finally {
+        if (loader) loader.style.display = "none";
+    }
+}
+
+function fecharRoletaEIrParaResumo() {
+    document.getElementById('roleta-modal').style.display = 'none';
+    mostrarResumoFinal(); 
+}
+
+function mostrarResumoFinal() {
+    const resumoItens = document.getElementById("resumo-itens");
+    if(!resumoItens) return;
+
+    resumoItens.innerHTML = "";
+    let sub = carrinho.reduce((acc, i) => acc + i.price, 0);
+    
+    carrinho.forEach(i => {
+        resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
+    });
+
+    // Lógica de Desconto da Roleta
+    let descRoleta = 0;
+    if (premioGanho) {
+        if (premioGanho.tipo === 'fixo') descRoleta = premioGanho.valor;
+        else if (premioGanho.tipo === 'porcento') descRoleta = sub * (premioGanho.valor / 100);
+        else if (premioGanho.tipo === 'frete') descRoleta = taxaEntregaCalculada;
+    }
+
+    const totalFinal = sub + taxaEntregaCalculada - descontoAplicado - descRoleta;
+    
+    document.getElementById("resumo-taxa").innerHTML = `
+        Subtotal: R$ ${sub.toFixed(2)}<br>
+        Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
+        ${descontoAplicado > 0 ? 'Cupom: - R$ ' + descontoAplicado.toFixed(2) + '<br>' : ''}
+        ${descRoleta > 0 ? 'Sorteio: - R$ ' + descRoleta.toFixed(2) : ''}
+    `;
+    
+    document.getElementById("resumo-total").innerText = `Total: R$ ${Math.max(0, totalFinal).toFixed(2)}`;
+    
+    document.getElementById("delivery-modal").style.display = "flex";
+    document.getElementById("form-entrega").style.display = "none";
+    document.getElementById("resumo-pedido").style.display = "block";
+}
