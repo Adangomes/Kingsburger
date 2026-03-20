@@ -1130,141 +1130,107 @@ function atualizarStatusVisual(){
 
 // ===== ROLETA TOP =====
 
+// ===== ROLETA KINGSBURG - LOGICA JS =====
+
 const premiosRoleta = [
-    "KINGS5",
-    "KINGS10",
-    "10% OFF",
-    "Refri",
-    "Batata",
-    "Entrega Grátis",
-    "R$5 Entrega",
-    "Tente Novamente",
-    "Não foi dessa vez",
-    "Gire no próximo"
+    { label: "<span>5% OFF <br>🎫</span>", id: "5% OFF", color: "#8BC34A" },
+    { label: "<span>KINGS10 <br>💵</span>", id: "KINGS10", color: "#FFEB3B" },
+    { label: "<span>Tente <br>🙁</span>", id: "Tente Novamente", color: "#F44336" },
+    { label: "<span>Entrega <br>🛵</span>", id: "Entrega Grátis", color: "#2196F3" },
+    { label: "<span>Refri <br>🥤</span>", id: "Refri", color: "#FF9800" },
+    { label: "<span>Quase! <br>😟</span>", id: "Gire no próximo", color: "#F44336" },
+    { label: "<span>KINGS5 <br>💰</span>", id: "KINGS5", color: "#8BC34A" },
+    { label: "<span>Puxa! <br>😞</span>", id: "Não foi dessa vez", color: "#F44336" }
 ];
 
 let giroLiberado = true;
-let premioAtual = null;
 
-// CRIA MODAL
+// Injeta o HTML do modal dinamicamente no body
 document.body.insertAdjacentHTML("beforeend", `
 <div id="roletaModal">
     <div class="roleta-container">
-        <h2>🎡 Gire e Ganhe</h2>
         <div class="roleta-pointer"></div>
         <div id="roletaWheel" class="roleta-wheel"></div>
-
-        <button class="btn-girar" onclick="girarRoleta()">GIRAR</button>
-        <p id="resultadoRoleta"></p>
-        <button onclick="fecharRoleta()">Fechar</button>
     </div>
+    <button class="btn-girar-main" onclick="girarRoleta()">GIRAR AGORA</button>
+    <p id="resultadoRoleta"></p>
+    <button style="background:none; border:none; color:#aaa; cursor:pointer; margin-top:15px; text-decoration:underline;" onclick="fecharRoleta()">Fechar</button>
 </div>
 `);
 
-// DESENHA ROLETA COM NOMES
+// Função que desenha as fatias e os textos
 function desenharRoleta(){
     const wheel = document.getElementById("roletaWheel");
+    if(!wheel || wheel.children.length > 0) return; // Evita desenhar duplicado
+    
     const total = premiosRoleta.length;
     const deg = 360 / total;
-
     let gradient = "conic-gradient(";
     
     premiosRoleta.forEach((p, i)=>{
         const start = i * deg;
         const end = start + deg;
-        gradient += `hsl(${i * 36}, 80%, 50%) ${start}deg ${end}deg,`;
+        gradient += `${p.color} ${start}deg ${end}deg,`;
 
-        // TEXTO
         const label = document.createElement("div");
         label.className = "roleta-label";
-        label.innerText = p;
-
-        const angle = start + deg/2;
-        label.style.transform = `rotate(${angle}deg) translate(90px) rotate(90deg)`;
-
+        label.innerHTML = p.label;
+        label.style.transform = `rotate(${start + deg/2}deg) translate(80px) rotate(90deg)`;
         wheel.appendChild(label);
     });
 
-    gradient = gradient.slice(0, -1) + ")";
-    wheel.style.background = gradient;
+    wheel.style.background = gradient.slice(0, -1) + ")";
 }
 
-// ABRIR
-function abrirRoleta(){
+// Abre o modal (Chamado pelo seu botão do HTML)
+function abrirRoleta() {
     document.getElementById("roletaModal").style.display = "flex";
+    desenharRoleta();
 }
 
-// FECHAR
-function fecharRoleta(){
+// Fecha o modal
+function fecharRoleta() {
     document.getElementById("roletaModal").style.display = "none";
 }
 
-// GIRAR
+// Lógica de girar
 function girarRoleta(){
-
-    if(!giroLiberado){
-        alert("Você já girou!");
+    if(!giroLiberado) {
+        alert("Você já usou seu giro de hoje!");
         return;
     }
 
-    giroLiberado = false;
-
     const wheel = document.getElementById("roletaWheel");
-    const total = premiosRoleta.length;
-    const index = Math.floor(Math.random() * total);
+    const index = Math.floor(Math.random() * premiosRoleta.length);
+    const voltas = 1800; // 5 voltas completas
+    const degFinal = voltas + (index * (360 / premiosRoleta.length));
 
-    const deg = 3600 + (index * (360 / total));
-
-    wheel.style.transform = `rotate(${deg}deg)`;
+    // Desativa giro
+    giroLiberado = false;
+    wheel.style.transform = `rotate(-${degFinal}deg)`;
 
     setTimeout(()=>{
-        premioAtual = premiosRoleta[index];
-        aplicarPremioReal(premioAtual);
-
-        document.getElementById("resultadoRoleta").innerText = "🎁 " + premioAtual;
-    }, 4000);
+        const premio = premiosRoleta[index];
+        aplicarPremioReal(premio.id);
+        document.getElementById("resultadoRoleta").innerText = "PARABÉNS! VOCÊ GANHOU: " + premio.id;
+    }, 4100);
 }
 
-// APLICAR PRÊMIO REAL
-function aplicarPremioReal(premio){
+// Integração com o seu sistema de carrinho
+function aplicarPremioReal(id){
+    if(typeof carrinho === 'undefined') return;
 
-    let subtotal = carrinho.reduce((acc, i) => acc + i.price, 0);
+    let subtotal = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
 
-    if(premio === "KINGS5"){
-        descontoAplicado = 5;
-    }
-
-    if(premio === "KINGS10"){
-        descontoAplicado = 10;
-    }
-
-    if(premio === "10% OFF"){
-        if(subtotal >= 60){
-            descontoAplicado = subtotal * 0.10;
-        }
-    }
-
-    if(premio === "Entrega Grátis"){
+    if(id === "KINGS5") descontoAplicado = 5;
+    if(id === "KINGS10") descontoAplicado = 10;
+    if(id === "5% OFF") descontoAplicado = subtotal * 0.05;
+    if(id === "Entrega Grátis") {
         taxaEntregaCalculada = 0;
         window.entregaGratisAtiva = true;
     }
+    if(id === "Refri") carrinho.push({ title: "Refri 150ml ", price: 0 });
 
-    if(premio === "R$5 Entrega"){
-        taxaEntregaCalculada -= 5;
-        if(taxaEntregaCalculada < 0) taxaEntregaCalculada = 0;
-    }
-
-    if(premio === "Refri"){
-        carrinho.push({ title: "Refri 200ml 🎁", price: 0 });
-    }
-
-    if(premio === "Batata"){
-        carrinho.push({ title: "Batata Pequena 🎁", price: 0 });
-    }
-
-    atualizarCarrinho();
+    if(typeof atualizarCarrinho === 'function') atualizarCarrinho();
 }
-
-// INICIA
-setTimeout(desenharRoleta, 500);
 
