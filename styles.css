@@ -239,25 +239,3 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
 
 
-/* Container Principal */
-/* Container Principal - Roleta Kings Burger */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85); /* Fundo escuro */
-    display: none; /* Começa escondido */
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 20px;
-}
-
-.modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    width: 100%;
-    max-width: 350px; /* Tamanho ideal para celular */
-    position: relative;
-    text-align: center;
-}
