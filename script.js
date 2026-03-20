@@ -1247,7 +1247,7 @@ function mostrarResumoFinal() {
     document.getElementById("form-entrega").style.display = "none";
     if (containerResumo) containerResumo.style.display = "block";
 }
-ffunction abrirRoleta() {
+function abrirRoleta() {
     const modal = document.getElementById("roleta-modal");
 
     premioGanho = null;
