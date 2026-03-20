@@ -1244,3 +1244,9 @@ function mostrarResumoFinal() {
     document.getElementById("form-entrega").style.display = "none";
     if (containerResumo) containerResumo.style.display = "block";
 }
+function abrirRoleta() {
+    const modal = document.getElementById("roleta-modal");
+    modal.style.display = "flex";
+
+    desenharRoleta(); // ESSENCIAL
+}
