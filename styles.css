@@ -240,82 +240,113 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
 /* ===== MODAL ROLETA ===== */
 /* ===== ROLETA ===== */
+/* ===== ESTILO ROLETA KINGSBURG ===== */
 #roletaModal {
     display: none;
     position: fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background: rgba(0,0,0,0.85);
-    z-index:9999;
-    justify-content:center;
-    align-items:center;
-    backdrop-filter: blur(6px);
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.85);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .roleta-container {
-    background: linear-gradient(145deg, #111, #1c1c1c);
-    border-radius:20px;
-    padding:25px;
-    width:90%;
-    max-width:340px;
-    text-align:center;
-    color:#fff;
-    box-shadow: 0 0 30px rgba(0,0,0,0.6);
-}
-
-.roleta-container h2 {
-    font-size:22px;
-    margin-bottom:10px;
-}
-
-.roleta-wheel {
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    position:relative;
-    margin:20px auto;
-    border:8px solid #fff;
-    box-shadow: 0 0 20px rgba(255,255,255,0.2);
-    transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    position: relative;
+    width: 330px;
+    height: 330px;
+    border-radius: 50%;
+    padding: 8px;
+    background: linear-gradient(135deg, #FFD700 0%, #D4A017 50%, #FFD700 100%);
+    box-shadow: 0 0 30px rgba(255,215,0,0.3);
 }
 
 .roleta-pointer {
-    width:0;
-    height:0;
-    border-left:12px solid transparent;
-    border-right:12px solid transparent;
-    border-bottom:20px solid #00ff88;
-    position:absolute;
-    top:-10px;
-    left:50%;
-    transform:translateX(-50%);
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 35px solid #D4A017;
+    z-index: 30;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+}
+
+.roleta-wheel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+    border: 3px solid #fff;
+}
+
+/* Pino central */
+.roleta-wheel::after {
+    content: '';
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: radial-gradient(circle, #fff 0%, #d4d4d4 100%);
+    border: 3px solid #D4A017;
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
 }
 
 .roleta-label {
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform-origin:0 0;
-    font-size:11px;
-    font-weight:bold;
-    color:#fff;
-    text-shadow: 0 0 5px rgba(0,0,0,0.7);
+    position: absolute;
+    width: 50%;
+    height: 40px;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0% 50%;
+    text-align: right;
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    padding-right: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    box-sizing: border-box;
 }
 
-.btn-girar {
-    background: linear-gradient(45deg, #00a650, #00ff88);
-    border:none;
-    padding:12px 25px;
-    border-radius:10px;
-    font-weight:bold;
-    color:#fff;
-    margin-top:10px;
-    box-shadow: 0 5px 15px rgba(0,255,136,0.4);
-    cursor:pointer;
+.roleta-label span {
+    transform: rotate(-90deg);
+    display: inline-block;
+    text-align: center;
+    line-height: 1.1;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.btn-girar-main {
+    margin-top: 20px;
+    padding: 15px 50px;
+    background: #D4A017;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 #resultadoRoleta {
-    margin-top:15px;
-    font-weight:bold;
-    font-size:16px;
+    color: #FFD700;
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    min-height: 24px;
 }
