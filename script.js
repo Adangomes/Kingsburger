@@ -1228,3 +1228,9 @@ function abrirRoleta() {
 
     desenharRoleta();
 }
+if (!localStorage.getItem("roletaJaUsada")) {
+    setTimeout(() => {
+        abrirRoleta();
+        localStorage.setItem("roletaJaUsada", "true");
+    }, 800);
+}
