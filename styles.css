@@ -327,3 +327,11 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     background-repeat: no-repeat;
     vertical-align: middle;
 }
+
+
+#canvas-roleta {
+    width: 300px;
+    height: 300px;
+    max-width: 90vw;
+    border-radius: 50%;
+}
