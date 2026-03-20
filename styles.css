@@ -239,6 +239,7 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
 
 /* ===== MODAL ROLETA ===== */
+/* ===== ROLETA ===== */
 #roletaModal {
     display: none;
     position: fixed;
@@ -251,7 +252,6 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     backdrop-filter: blur(6px);
 }
 
-/* CAIXA */
 .roleta-container {
     background: linear-gradient(145deg, #111, #1c1c1c);
     border-radius:20px;
@@ -263,13 +263,11 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
 
-/* TÍTULO */
 .roleta-container h2 {
     font-size:22px;
     margin-bottom:10px;
 }
 
-/* ROLETA */
 .roleta-wheel {
     width:260px;
     height:260px;
@@ -281,7 +279,6 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
 }
 
-/* SETA */
 .roleta-pointer {
     width:0;
     height:0;
@@ -294,7 +291,6 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     transform:translateX(-50%);
 }
 
-/* TEXTOS */
 .roleta-label {
     position:absolute;
     top:50%;
@@ -303,9 +299,9 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     font-size:11px;
     font-weight:bold;
     color:#fff;
+    text-shadow: 0 0 5px rgba(0,0,0,0.7);
 }
 
-/* BOTÃO */
 .btn-girar {
     background: linear-gradient(45deg, #00a650, #00ff88);
     border:none;
@@ -315,9 +311,9 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
     color:#fff;
     margin-top:10px;
     box-shadow: 0 5px 15px rgba(0,255,136,0.4);
+    cursor:pointer;
 }
 
-/* RESULTADO */
 #resultadoRoleta {
     margin-top:15px;
     font-weight:bold;
