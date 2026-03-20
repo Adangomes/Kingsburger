@@ -241,120 +241,23 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 
 /* Container Principal */
 /* Container Principal - Roleta Kings Burger */
-.roleta-container {
-    position: relative;
-    width: 90vw;              /* 🔥 responsivo */
-    max-width: 320px;         /* limite desktop */
-    aspect-ratio: 1 / 1;      /* mantém formato perfeito */
-    margin: 20px auto;
-    background: radial-gradient(circle, #444, #111);
-    border-radius: 50%;
-    padding: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-/* Moldura Ouro */
-.roleta-container::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: 8px solid #d4af37;
-    border-radius: 50%;
-    z-index: 5;
-    pointer-events: none;
-}
-
-/* 🎯 CANVAS (CORRIGIDO PRA MOBILE) */
-#canvas-roleta {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    display: block;
-    background-color: #fff;
-
-    /* 🔥 animação suave universal */
-    transition: transform 4.5s cubic-bezier(0.25, 1, 0.5, 1);
-
-    /* 🔥 resolve bug de travamento em celular */
-    will-change: transform;
-}
-
-/* Pino central */
-.roleta-center-pin {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 12%;
-    height: 12%;
-    min-width: 35px;
-    min-height: 35px;
-    background: #000;
-    border: 3px solid #d4af37;
-    border-radius: 50%;
-    z-index: 15;
-    box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
-}
-
-/* Ponteiro */
-.ponteiro {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-top: 28px solid #ff0000;
-    z-index: 20;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
-}
-
-/* Título */
-#roleta-modal h3 {
-    text-align: center;
-    font-size: clamp(16px, 4vw, 22px); /* 🔥 responsivo */
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-/* Resultado */
-#resultado-roleta {
-    font-size: clamp(14px, 4vw, 18px);
-    font-weight: bold;
-    margin: 15px 0;
-    text-align: center;
-}
-
-/* Botão mobile fix */
-#btn-girar {
-    touch-action: manipulation;
-}
-
-/* 🔥 MODAL FULL SCREEN (ESSENCIAL PRA CELULAR) */
-#roleta-modal {
+.modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 9999;
-    display: none;
-
+    background: rgba(0, 0, 0, 0.85); /* Fundo escuro */
+    display: none; /* Começa escondido */
     align-items: center;
     justify-content: center;
-
-    background: rgba(0,0,0,0.9);
-
-    /* 🔥 evita bug com scroll no celular */
-    overflow: hidden;
+    z-index: 9999;
+    padding: 20px;
 }
 
-/* Container interno */
-#roleta-modal .modal-content {
-    width: 95%;
-    max-width: 400px;
-    background: #fff;
-    border-radius: 12px;
-    padding: 15px;
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 350px; /* Tamanho ideal para celular */
+    position: relative;
     text-align: center;
 }
