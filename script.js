@@ -614,55 +614,50 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 
 
 function mostrarResumoFinal() {
-
     const resumoItens = document.getElementById("resumo-itens");
-
-    if(!resumoItens) return enviarWhatsApp(); // Fallback se não houver tela de resumo
-
-
+    if (!resumoItens) return enviarWhatsApp();
 
     resumoItens.innerHTML = "";
-
     let sub = 0;
 
+    // 1. Calcula o Subtotal dos itens
     carrinho.forEach(i => {
-
         sub += i.price;
-
-        resumoItens.innerHTML += `<div class="resumo-linha"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
-
+        resumoItens.innerHTML += `<div class="resumo-linha" style="display:flex; justify-content:space-between;"><span>${i.title}</span> <span>R$ ${i.price.toFixed(2)}</span></div>`;
     });
 
+    // 2. Lógica de Desconto da Roleta
+    let descontoRoleta = 0;
+    let brindeTexto = "";
 
+    if (premioGanho) {
+        if (premioGanho.tipo === 'fixo') {
+            descontoRoleta = premioGanho.valor;
+        } else if (premioGanho.tipo === 'frete') {
+            descontoRoleta = taxaEntregaCalculada; // Zera o valor do frete
+        } else if (premioGanho.tipo === 'brinde') {
+            brindeTexto = `<br><b style="color:#28a745">BRINDE: ${premioGanho.texto} 🍟</b>`;
+        }
+    }
 
-    const totalFinal = sub + taxaEntregaCalculada - descontoAplicado;
+    // 3. Cálculo Final (Garante que não seja negativo)
+    const totalFinal = Math.max(0, (sub + taxaEntregaCalculada) - descontoRoleta);
 
+    // 4. Exibe as taxas e descontos
     document.getElementById("resumo-taxa").innerHTML = `
-
         Subtotal: R$ ${sub.toFixed(2)}<br>
-
         Taxa de Entrega: R$ ${taxaEntregaCalculada.toFixed(2)}<br>
-
-        ${descontoAplicado > 0 ? 'Desconto: - R$ '+descontoAplicado.toFixed(2) : ''}
-
+        ${descontoRoleta > 0 ? `<span style="color:#d9534f">Desconto Roleta: - R$ ${descontoRoleta.toFixed(2)}</span>` : ''}
+        ${brindeTexto}
     `;
 
     document.getElementById("resumo-total").innerText = `Total: R$ ${totalFinal.toFixed(2)}`;
 
-    
-
-    // Troca as telas do modal
-
+    // 5. Troca as telas do modal
+    document.getElementById("delivery-modal").style.display = "flex";
     document.getElementById("form-entrega").style.display = "none";
-
     document.getElementById("resumo-pedido").style.display = "block";
-
 }
-
-
-
-
-
 
 
 // --- OUTROS ---
@@ -1219,34 +1214,7 @@ function fecharRoletaEIrParaResumo() {
     mostrarResumoFinal(); 
 }
 
-function mostrarResumoFinal() {
-    const resumoItens = document.getElementById("resumo-itens");
-    const containerResumo = document.getElementById("resumo-pedido");
-    
-    if(!resumoItens) return;
 
-    resumoItens.innerHTML = "";
-    // Certifique-se de que a variável carrinho e totalOriginal existam no seu escopo
-    // let sub = carrinho.reduce((acc, i) => acc + i.price, 0);
-    
-    // ... Lógica para preencher os itens no resumo
-    
-    // Lógica de Desconto da Roleta (Se você tem essa lógica no resumo)
-    // let descRoleta = 0;
-    // if (premioGanho) {
-    //     if (premioGanho.tipo === 'fixo') descRoleta = premioGanho.valor;
-    //     else if (premioGanho.tipo === 'frete') descRoleta = taxaEntregaCalculada; // Substitua pela sua variável de taxa
-    //     else if (premioGanho.tipo === 'brinde') {
-    //          // Adicione lógica para o brinde, se necessário (ex: adicionar item ao pedido)
-    //     }
-    // }
-
-    // ... Lógica para calcular o total e exibir os descontos
-    
-    document.getElementById("delivery-modal").style.display = "flex";
-    document.getElementById("form-entrega").style.display = "none";
-    if (containerResumo) containerResumo.style.display = "block";
-}
 function abrirRoleta() {
     const modal = document.getElementById("roleta-modal");
 
