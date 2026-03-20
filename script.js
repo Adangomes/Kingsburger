@@ -409,33 +409,38 @@ async function processarResumoGeo() {
     const num = document.getElementById("numero")?.value || document.getElementById("input-numero")?.value;
     const bairro = document.getElementById("bairro")?.value || document.getElementById("input-bairro")?.value || "";
 
-    // 1. Validação básica
+    // 2. Validação imediata
     if (!nome || !rua || !num) {
-        return alert("Por favor, preencha Nome, Rua e Número!");
+        return alert("Por favor, preencha Nome, Rua e Número para calcular a entrega!");
     }
 
-    // 2. Faz o Loader APARECER na hora
+    // 3. APARECE O LOADING AQUI (Antes de tudo)
     const loader = document.getElementById("loading-geral");
     if (loader) {
         loader.style.display = "flex";
     }
 
     try {
-        // 3. Busca a localização com foco na nossa região (Guaramirim/Jaraguá)
-        const localizacaoFoco = `${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}`; 
-        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, Guaramirim, SC, Brasil`);
+        // 4. Configuração da busca (Foco em Guaramirim/Schroeder)
+        const localizacaoFoco = `${RESTAURANTE_COORD[1]},${RESTAURANTE_COORD[0]}`; // longitude,latitude
+        const query = encodeURIComponent(`${rua}, ${num}, ${bairro}, SC, Brasil`);
         
         const resp = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${query}&bias=proximity:${localizacaoFoco}&filter=countrycode:br&limit=1&apiKey=${GEOAPIFY_KEY}`);
         const data = await resp.json();
 
-        // 4. Pausa de 2 segundos para o cliente ver o cálculo (sensação de sistema profissional)
+        // 5. Delay de 2 segundos (Sessão de processamento profissional)
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
-            const dist = calcularDistancia(RESTAURANTE_COORD[0], RESTAURANTE_COORD[1], lat, lon);
+            const dist = calcularDistancia(
+                RESTAURANTE_COORD[0],
+                RESTAURANTE_COORD[1],
+                lat,
+                lon
+            );
 
-            // Se a distância for absurda (>60km), usa taxa base para evitar erro de cobrança
+            // Trava de segurança para distâncias impossíveis (erro de busca)
             if (dist > 60) {
                 taxaEntregaCalculada = TAXA_BASE; 
             } else {
@@ -443,22 +448,24 @@ async function processarResumoGeo() {
                 taxaEntregaCalculada = parseFloat(taxaBruta.toFixed(2));
             }
         } else {
+            // Se a API não achar nada, cai na taxa padrão
             taxaEntregaCalculada = TAXA_BASE;
         }
 
-        // 5. PULA DIRETO PARA O RESUMO (Sem roleta)
+        // 6. SUCESSO: Vai direto para o resumo final
         mostrarResumoFinal();
 
     } catch (e) {
-        console.error("Erro ao calcular:", e);
+        console.error("Erro ao calcular taxa:", e);
         taxaEntregaCalculada = TAXA_BASE;
         mostrarResumoFinal();
     } finally {
-        // 6. ESCONDE O LOADER no final de tudo
-        if (loader) loader.style.display = "none";
+        // 7. SEMPRE esconde o loader ao terminar
+        if (loader) {
+            loader.style.display = "none";
+        }
     }
 }
-
 
 
 
