@@ -241,112 +241,101 @@ body { background: #f8f8f8; color: #222; overflow-x: hidden; }
 /* ===== MODAL ROLETA ===== */
 /* ===== ROLETA ===== */
 /* ===== ESTILO ROLETA KINGSBURG ===== */
+/* ===== BOTAO ABRIR ROLETA (NO CARRINHO) ===== */
+.btn-abrir-sorte {
+    width: 100%;
+    background-color: transparent;
+    color: #ff6600;
+    border: 2px solid #ff6600;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-abrir-sorte:active {
+    background-color: rgba(255, 102, 0, 0.1);
+    transform: scale(0.98);
+}
+
+/* ===== MODAL E ROLETA COM EFEITO DE LUZ ===== */
 #roletaModal {
     display: none;
     position: fixed;
     z-index: 10000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.85);
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.92);
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    backdrop-filter: blur(8px);
+}
+
+.roleta-glow {
+    position: relative;
+    padding: 15px;
+    border-radius: 50%;
+    /* Efeito de luz dourada ao fundo */
+    box-shadow: 0 0 60px rgba(255, 165, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .roleta-container {
     position: relative;
-    width: 330px;
-    height: 330px;
+    width: 310px;
+    height: 310px;
     border-radius: 50%;
-    padding: 8px;
-    background: linear-gradient(135deg, #FFD700 0%, #D4A017 50%, #FFD700 100%);
-    box-shadow: 0 0 30px rgba(255,215,0,0.3);
-}
-
-.roleta-pointer {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 35px solid #D4A017;
-    z-index: 30;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    border: 8px solid #D4A017;
+    background: #fff;
+    overflow: hidden;
 }
 
 .roleta-wheel {
-    position: relative;
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     border-radius: 50%;
-    overflow: hidden;
     transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
-    border: 3px solid #fff;
 }
 
-/* Pino central */
-.roleta-wheel::after {
-    content: '';
+/* Seta Indicadora Superior */
+.roleta-pointer {
     position: absolute;
-    width: 35px;
-    height: 35px;
-    background: radial-gradient(circle, #fff 0%, #d4d4d4 100%);
-    border: 3px solid #D4A017;
-    border-radius: 50%;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-}
-
-.roleta-label {
-    position: absolute;
-    width: 50%;
-    height: 40px;
-    top: 50%;
+    top: -5px;
     left: 50%;
-    transform-origin: 0% 50%;
-    text-align: right;
-    font-size: 10px;
-    font-weight: bold;
-    color: #fff;
-    padding-right: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    box-sizing: border-box;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid #fff;
+    z-index: 100;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
-.roleta-label span {
-    transform: rotate(-90deg);
-    display: inline-block;
-    text-align: center;
-    line-height: 1.1;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
-
-.btn-girar-main {
-    margin-top: 20px;
-    padding: 15px 50px;
-    background: #D4A017;
+.btn-girar-agora {
+    margin-top: 30px;
+    padding: 16px 50px;
+    background: linear-gradient(to bottom, #ff9933, #ff6600);
     color: #fff;
     border: none;
-    border-radius: 30px;
-    font-weight: bold;
+    border-radius: 50px;
+    font-weight: 900;
+    font-size: 18px;
+    box-shadow: 0 6px 15px rgba(255, 102, 0, 0.5);
     cursor: pointer;
-    font-size: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-#resultadoRoleta {
-    color: #FFD700;
-    margin-top: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    min-height: 24px;
+/* Estilo para valores riscados no resumo */
+.entrega-riscada {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+    margin-right: 5px;
 }
+.tag-gratis-destaque {
+    color: #ff6600;
+    font-weight: 800;
+}
+
