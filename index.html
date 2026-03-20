@@ -122,21 +122,7 @@
         </div>
     </div>
 </div>
-    <div id="roleta-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; flex-direction:column; z-index:1000;">
-    <h2 id="roleta-modal-title" style="color:white"></h2>
-    <canvas id="canvas-roleta"></canvas>
-    <div id="resultado-roleta" style="color:white; margin:20px; text-align:center;"></div>
-    <button id="btn-girar" onclick="girarRoleta()" style="padding:10px 20px; cursor:pointer;">GIRAR!</button>
-    <button id="btn-continuar-resumo" onclick="fecharRoletaEIrParaResumo()" style="display:none; padding:10px 20px;">VER RESUMO DO PEDIDO</button>
-</div>
-
-<div id="delivery-modal" style="display:none;">
-    <div id="form-entrega"> </div>
-    <div id="resumo-pedido" style="display:none;">
-        <h3>Resumo do Pedido</h3>
-        <div id="resumo-itens"></div>
-    </div>
-</div>
+    
 
 
 
@@ -163,6 +149,29 @@
 
 </div>
 
+<div id="roleta-modal" style="display:none;" class="modal-overlay">
+    <div class="modal-content">
+
+        <h2 id="roleta-modal-title" style="color:black"></h2>
+
+        <div class="roleta-container">
+            <div class="ponteiro"></div>
+            <canvas id="canvas-roleta"></canvas>
+            <div class="roleta-center-pin"></div>
+        </div>
+
+        <div id="resultado-roleta"></div>
+
+        <button id="btn-girar" onclick="girarRoleta()">GIRAR!</button>
+
+        <button id="btn-continuar-resumo"
+            onclick="fecharRoletaEIrParaResumo()"
+            style="display:none;">
+            VER RESUMO DO PEDIDO
+        </button>
+
+    </div>
+</div>
 
     
 
