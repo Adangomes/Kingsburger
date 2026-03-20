@@ -1128,10 +1128,6 @@ function atualizarStatusVisual(){
 }
 
 
-// =======================
-// 🎡 ROLETA PROFISSIONAL
-// =======================
-
 // ===== ROLETA TOP =====
 
 const premiosRoleta = [
@@ -1271,7 +1267,4 @@ function aplicarPremioReal(premio){
 
 // INICIA
 setTimeout(desenharRoleta, 500);
-
-
-
 
