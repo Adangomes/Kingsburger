@@ -1163,16 +1163,22 @@ function girarRoleta() {
     btn.disabled = true;
     btn.innerText = "SORTEANDO...";
 
-    const girosExtras = 360 * 6;
-    const indiceSorteado = Math.floor(Math.random() * premios.length);
-    const fatiaGraus = 360 / premios.length;
+    const girosExtras = 360 * 8;
 
-    const anguloFinal = anguloAtual + girosExtras + ((premios.length - indiceSorteado) * fatiaGraus);
+    // 🔥 LÓGICA "VICIADA": Sorteia apenas entre os índices 0 e 3
+    // 0 = SEM SORTE | 3 = FOI POR POUCO
+    const opcoesAzar = [0, 3];
+    const indiceSorteado = opcoesAzar[Math.floor(Math.random() * opcoesAzar.length)];
+
+    const fatiaGraus = 360 / premios.length;
+    const compensacaoPonteiro = 90; 
+    const anguloPremio = (indiceSorteado * fatiaGraus) + (fatiaGraus / 2);
+    
+    // Calcula o ângulo para parar exatamente no topo
+    const anguloFinal = anguloAtual + girosExtras + (360 - anguloPremio) + compensacaoPonteiro;
 
     const canvas = document.getElementById('canvas-roleta');
-
-    // 🔥 ANIMAÇÃO SUAVE UNIVERSAL
-    canvas.style.transition = "transform 4.5s cubic-bezier(0.25, 1, 0.5, 1)";
+    canvas.style.transition = "transform 5s cubic-bezier(0.15, 0, 0.15, 1)";
     canvas.style.transform = `rotate(${anguloFinal}deg)`;
 
     anguloAtual = anguloFinal;
@@ -1180,35 +1186,32 @@ function girarRoleta() {
     setTimeout(() => {
         premioGanho = premios[indiceSorteado];
         exibirResultadoRoleta(premioGanho);
-    }, 4500);
+    }, 5000);
 }
 
 function exibirResultadoRoleta(premio) {
     const resDiv = document.getElementById('resultado-roleta');
     resDiv.style.display = "block";
-    
-    if (premio.tipo === 'brinde' && premio.texto === 'BATATAS BRINDE') {
-         resDiv.innerHTML = `<span style="font-size:24px"></span><br>PARABÉNS! VOCÊ GANHOU BATATAS DE ACOMPANHAMENTO!`;
-         resDiv.style.color = "#28a745";
-    } else if (premio.valor > 0 || premio.tipo === 'frete') {
-        resDiv.innerHTML = `<span style="font-size:24px"></span><br>VOCÊ GANHOU: <br><span style="color:#28a745; font-size:20px">${premio.texto}</span>`;
-    } else {
-        resDiv.innerHTML = `<span style="font-size:24px"></span><br>Não foi dessa vez!<br>${premio.texto}`;
+    resDiv.style.color = "black"; // Reset cor padrão
+
+    if (premio.texto === "SEM SORTE" || premio.texto === "FOI POR POUCO") {
+        resDiv.innerHTML = `<span style="font-size:20px; color:#666;">❌ Não foi dessa vez!</span><br><b>${premio.texto}</b>`;
+    } 
+    else if (premio.tipo === 'brinde') {
+        resDiv.innerHTML = `<span style="font-size:22px; color:#28a745;">🎉 PARABÉNS!</span><br><b>VOCÊ GANHOU BATATAS DE ACOMPANHAMENTO!</b>`;
+        resDiv.style.color = "#28a745";
+    } 
+    else if (premio.tipo === 'frete') {
+        resDiv.innerHTML = `<span style="font-size:22px; color:#007bff;">🎉 AÍ SIM!</span><br><b>VOCÊ GANHOU ENTREGA GRÁTIS!</b>`;
+    } 
+    else {
+        // Para R$ 5,00 ou R$ 10,00
+        resDiv.innerHTML = `<span style="font-size:22px; color:#28a745;">🎉 PARABÉNS!</span><br><b>VOCÊ GANHOU ${premio.texto} DE DESCONTO!</b>`;
     }
 
     document.getElementById('btn-continuar-resumo').style.display = "block";
     document.getElementById('btn-girar').style.display = "none";
 }
-
-// INTEGRAÇÃO COM RESUMO FINAL (Verifica se você tem essa lógica)
-// async function processarResumoGeo() {
-//    ... (Mantém sua lógica de validação de campos e Geoapify aqui)
-//    No final do seu try/catch do Geoapify:
-//    document.getElementById('delivery-modal').style.display = 'none';
-//    document.getElementById('roleta-modal').style.display = 'flex';
-//    desenharRoleta();
-// }
-
 function fecharRoletaEIrParaResumo() {
     document.getElementById('roleta-modal').style.display = 'none';
     mostrarResumoFinal(); 
