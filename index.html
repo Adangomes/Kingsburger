@@ -122,6 +122,24 @@
         </div>
     </div>
 </div>
+    <div id="roleta-modal" class="modal-overlay" style="display:none; z-index: 10000;">
+    <div class="modal-box text-center">
+        <div class="modal-header-clean">
+            <h3>Tente a Sorte! 🎡</h3>
+        </div>
+        <p>Ganhe um desconto especial para este pedido!</p>
+        
+        <div class="roleta-container">
+            <canvas id="canvas-roleta" width="300" height="300"></canvas>
+            <div class="ponteiro"></div>
+        </div>
+        
+        <button id="btn-girar" class="btn-principal w-100 mt-3" onclick="girarRoleta()">GIRAR AGORA</button>
+        <div id="resultado-roleta" class="mt-3 fw-bold" style="display:none; color: #a81d1d; font-size: 1.2rem;"></div>
+        
+        <button id="btn-continuar-resumo" class="btn-secundario w-100 mt-2" style="display:none;" onclick="fecharRoletaEIrParaResumo()">Ver Resumo do Pedido</button>
+    </div>
+</div>
 
 
 
