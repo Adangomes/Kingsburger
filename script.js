@@ -1122,44 +1122,44 @@ function desenharRoleta() {
     
     if (modalTitle) modalTitle.innerText = "ROLETA DA KINGS BURGER";
     if (!canvas) return;
-    
+
+    // 🔥 AJUSTE MOBILE (ESSENCIAL)
+    const size = Math.min(window.innerWidth * 0.8, 300);
+    canvas.width = size;
+    canvas.height = size;
+
     const ctx = canvas.getContext('2d');
     const fatia = (2 * Math.PI) / premios.length;
-    const centro = 150;
+    const centro = size / 2;
 
-    ctx.clearRect(0, 0, 300, 300);
+    ctx.clearRect(0, 0, size, size);
 
     premios.forEach((p, i) => {
-        // Desenha a fatia
         ctx.beginPath();
         ctx.fillStyle = p.cor;
         ctx.moveTo(centro, centro);
         ctx.arc(centro, centro, centro, i * fatia, (i + 1) * fatia);
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
-        ctx.stroke();
 
-        // Texto da fatia (Ícone ou Texto)
         ctx.save();
         ctx.translate(centro, centro);
         ctx.rotate(i * fatia + fatia / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = "white";
-        ctx.font = "bold 13px Montserrat, Arial"; // Fonte mais moderna
-        
-        // Verifica se há ícone para exibir
+
+        // 🔥 TEXTO RESPONSIVO
+        ctx.font = `bold ${size * 0.05}px Arial`;
+
         if (p.icone) {
-             ctx.font = "bold 20px Arial"; // Fonte maior para o ícone
-             ctx.fillText(p.icone, 140, 8);
+            ctx.font = `bold ${size * 0.08}px Arial`;
+            ctx.fillText(p.icone, centro - 10, 5);
         } else {
-             ctx.fillText(p.texto, 140, 8);
+            ctx.fillText(p.texto, centro - 10, 5);
         }
-        
+
         ctx.restore();
     });
 }
-
 // Lógica de Giro
 function girarRoleta() {
     if (premioGanho) return;
@@ -1168,16 +1168,19 @@ function girarRoleta() {
     btn.disabled = true;
     btn.innerText = "SORTEANDO...";
 
-    const girosExtras = 8 * 360; 
+    const girosExtras = 360 * 6;
     const indiceSorteado = Math.floor(Math.random() * premios.length);
     const fatiaGraus = 360 / premios.length;
-    
-    // Alinhamento para a seta (topo)
-    const anguloSorteado = (premios.length - indiceSorteado) * fatiaGraus - (fatiaGraus / 2);
-    anguloAtual += girosExtras + anguloSorteado;
+
+    const anguloFinal = anguloAtual + girosExtras + ((premios.length - indiceSorteado) * fatiaGraus);
 
     const canvas = document.getElementById('canvas-roleta');
-    canvas.style.transform = `rotate(${anguloAtual}deg)`;
+
+    // 🔥 ANIMAÇÃO SUAVE UNIVERSAL
+    canvas.style.transition = "transform 4.5s cubic-bezier(0.25, 1, 0.5, 1)";
+    canvas.style.transform = `rotate(${anguloFinal}deg)`;
+
+    anguloAtual = anguloFinal;
 
     setTimeout(() => {
         premioGanho = premios[indiceSorteado];
@@ -1244,9 +1247,16 @@ function mostrarResumoFinal() {
     document.getElementById("form-entrega").style.display = "none";
     if (containerResumo) containerResumo.style.display = "block";
 }
-function abrirRoleta() {
+ffunction abrirRoleta() {
     const modal = document.getElementById("roleta-modal");
+
+    premioGanho = null;
+
+    document.getElementById('resultado-roleta').style.display = "none";
+    document.getElementById('btn-continuar-resumo').style.display = "none";
+    document.getElementById('btn-girar').style.display = "block";
+
     modal.style.display = "flex";
 
-    desenharRoleta(); // ESSENCIAL
+    desenharRoleta();
 }
