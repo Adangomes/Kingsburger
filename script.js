@@ -1132,105 +1132,123 @@ function atualizarStatusVisual(){
 
 // ===== ROLETA KINGSBURG - LOGICA JS =====
 
+// ===== LOGICA COMPLETA ROLETA DA SORTE =====
+
 const premiosRoleta = [
-    { label: "<span>5% OFF <br>🎫</span>", id: "5% OFF", color: "#8BC34A" },
-    { label: "<span>KINGS10 <br>💵</span>", id: "KINGS10", color: "#FFEB3B" },
-    { label: "<span>Tente <br>🙁</span>", id: "Tente Novamente", color: "#F44336" },
-    { label: "<span>Entrega <br>🛵</span>", id: "Entrega Grátis", color: "#2196F3" },
-    { label: "<span>Refri <br>🥤</span>", id: "Refri", color: "#FF9800" },
-    { label: "<span>Quase! <br>😟</span>", id: "Gire no próximo", color: "#F44336" },
-    { label: "<span>KINGS5 <br>💰</span>", id: "KINGS5", color: "#8BC34A" },
-    { label: "<span>Puxa! <br>😞</span>", id: "Não foi dessa vez", color: "#F44336" }
+    { label: "<span>5% OFF</span>", id: "5% OFF", color: "#e63946" },
+    { label: "<span>KINGS10</span>", id: "KINGS10", color: "#f1faee" },
+    { label: "<span>Puxa!</span>", id: "Não foi dessa vez", color: "#a8dadc" },
+    { label: "<span>Entrega<br>Grátis</span>", id: "Entrega Grátis", color: "#457b9d" },
+    { label: "<span>Refri</span>", id: "Refri", color: "#1d3557" },
+    { label: "<span>Quase!</span>", id: "Não foi dessa vez", color: "#e63946" },
+    { label: "<span>KINGS5</span>", id: "KINGS5", color: "#f1faee" },
+    { label: "<span>Puxa!</span>", id: "Não foi dessa vez", color: "#a8dadc" }
 ];
 
-let giroLiberado = true;
-
-// Injeta o HTML do modal dinamicamente no body
+// Injeta o HTML do modal dinamicamente
 document.body.insertAdjacentHTML("beforeend", `
 <div id="roletaModal">
-    <div class="roleta-container">
+    <h2 style="color:#fff; text-transform:uppercase; letter-spacing:2px; margin-bottom:25px;">Roleta da Sorte</h2>
+    <div class="roleta-glow">
         <div class="roleta-pointer"></div>
-        <div id="roletaWheel" class="roleta-wheel"></div>
+        <div class="roleta-container">
+            <div id="roletaWheel" class="roleta-wheel"></div>
+        </div>
     </div>
-    <button class="btn-girar-main" onclick="girarRoleta()">GIRAR AGORA</button>
-    <p id="resultadoRoleta"></p>
-    <button style="background:none; border:none; color:#aaa; cursor:pointer; margin-top:15px; text-decoration:underline;" onclick="fecharRoleta()">Fechar</button>
+    <div id="areaAcaoRoleta">
+        <button id="btnGirarGo" class="btn-girar-agora" onclick="iniciarGiro()">GIRE AGORA</button>
+    </div>
+    <div id="msgResultado" style="margin-top:20px; text-align:center;"></div>
 </div>
 `);
 
-// Função que desenha as fatias e os textos
-function desenharRoleta(){
+// Função para desenhar as fatias da roleta
+function renderizarFatias() {
     const wheel = document.getElementById("roletaWheel");
-    if(!wheel || wheel.children.length > 0) return; // Evita desenhar duplicado
-    
-    const total = premiosRoleta.length;
-    const deg = 360 / total;
-    let gradient = "conic-gradient(";
-    
-    premiosRoleta.forEach((p, i)=>{
+    if(!wheel || wheel.children.length > 0) return;
+
+    const deg = 360 / premiosRoleta.length;
+    let bg = "conic-gradient(";
+
+    premiosRoleta.forEach((p, i) => {
         const start = i * deg;
-        const end = start + deg;
-        gradient += `${p.color} ${start}deg ${end}deg,`;
+        bg += `${p.color} ${start}deg ${start + deg}deg,`;
 
-        const label = document.createElement("div");
-        label.className = "roleta-label";
-        label.innerHTML = p.label;
-        label.style.transform = `rotate(${start + deg/2}deg) translate(80px) rotate(90deg)`;
-        wheel.appendChild(label);
+        const div = document.createElement("div");
+        div.style.position = "absolute";
+        div.style.width = "50%";
+        div.style.top = "50%";
+        div.style.left = "50%";
+        div.style.transformOrigin = "0% 50%";
+        div.style.textAlign = "right";
+        div.style.paddingRight = "15px";
+        div.style.color = (p.color === "#f1faee" || p.color === "#a8dadc") ? "#333" : "#fff";
+        div.style.fontWeight = "bold";
+        div.style.fontSize = "12px";
+        div.style.transform = `rotate(${start + deg/2}deg)`;
+        div.innerHTML = p.label;
+        wheel.appendChild(div);
     });
-
-    wheel.style.background = gradient.slice(0, -1) + ")";
+    wheel.style.background = bg.slice(0, -1) + ")";
 }
 
-// Abre o modal (Chamado pelo seu botão do HTML)
+// Chamada pelo seu botão do HTML (Girar a Sorte)
 function abrirRoleta() {
+    // Primeiro, aplica a classe de CSS no seu botão original do HTML para ele ficar bonito
+    const btnOriginal = document.querySelector("button[onclick='abrirRoleta()']");
+    if(btnOriginal) btnOriginal.className = "btn-abrir-sorte";
+
     document.getElementById("roletaModal").style.display = "flex";
-    desenharRoleta();
+    renderizarFatias();
 }
 
-// Fecha o modal
-function fecharRoleta() {
-    document.getElementById("roletaModal").style.display = "none";
-}
-
-// Lógica de girar
-function girarRoleta(){
-    if(!giroLiberado) {
-        alert("Você já usou seu giro de hoje!");
-        return;
-    }
-
+function iniciarGiro() {
+    const btn = document.getElementById("btnGirarGo");
     const wheel = document.getElementById("roletaWheel");
-    const index = Math.floor(Math.random() * premiosRoleta.length);
-    const voltas = 1800; // 5 voltas completas
-    const degFinal = voltas + (index * (360 / premiosRoleta.length));
+    
+    // 1. Botão some ao girar
+    btn.style.visibility = "hidden"; 
 
-    // Desativa giro
-    giroLiberado = false;
-    wheel.style.transform = `rotate(-${degFinal}deg)`;
+    const sorteio = Math.floor(Math.random() * premiosRoleta.length);
+    const voltas = 1800 + (sorteio * (360 / premiosRoleta.length));
+    
+    wheel.style.transform = `rotate(-${voltas}deg)`;
 
-    setTimeout(()=>{
-        const premio = premiosRoleta[index];
-        aplicarPremioReal(premio.id);
-        document.getElementById("resultadoRoleta").innerText = "PARABÉNS! VOCÊ GANHOU: " + premio.id;
+    setTimeout(() => {
+        const ganhou = premiosRoleta[sorteio];
+        const msg = document.getElementById("msgResultado");
+        
+        msg.innerHTML = `<h3 style="color:#FFD700; font-size:24px;">🎁 ${ganhou.id}</h3>`;
+        
+        // Aplica a lógica de prêmio
+        if(ganhou.id === "Entrega Grátis") {
+            window.userGanhouFrete = true; 
+        }
+
+        // 2. Aparece botão de OK para fechar
+        document.getElementById("areaAcaoRoleta").innerHTML = `
+            <button class="btn-girar-agora" style="background:#4CAF50;" onclick="fecharEFinalizar()">OK, CONFIRMAR</button>
+        `;
     }, 4100);
 }
 
-// Integração com o seu sistema de carrinho
-function aplicarPremioReal(id){
-    if(typeof carrinho === 'undefined') return;
+function fecharEFinalizar() {
+    document.getElementById("roletaModal").style.display = "none";
+    
+    // 3. Remove o botão do carrinho para não girar de novo
+    const btnOriginal = document.querySelector(".btn-abrir-sorte");
+    if(btnOriginal) btnOriginal.remove();
 
-    let subtotal = carrinho.reduce((acc, i) => acc + (i.price || 0), 0);
-
-    if(id === "KINGS5") descontoAplicado = 5;
-    if(id === "KINGS10") descontoAplicado = 10;
-    if(id === "5% OFF") descontoAplicado = subtotal * 0.05;
-    if(id === "Entrega Grátis") {
-        taxaEntregaCalculada = 0;
-        window.entregaGratisAtiva = true;
-    }
-    if(id === "Refri") carrinho.push({ title: "Refri 150ml ", price: 0 });
-
-    if(typeof atualizarCarrinho === 'function') atualizarCarrinho();
+    // Se houver função de atualizar o carrinho, chama ela para refletir o frete grátis
+    if(typeof renderizarCarrinho === "function") renderizarCarrinho();
 }
+
+// Lógica de visualização do frete (Integre isso na sua função de valores)
+function ajustarVisualFrete(valorOriginal) {
+    if(window.userGanhouFrete) {
+        return `<span class="entrega-riscada">${valorOriginal}</span> <span class="tag-gratis-destaque">GRÁTIS</span>`;
+    }
+    return valorOriginal;
+}
+
 
