@@ -1054,217 +1054,240 @@ function mostrarModalFechado() {
 }
 
 
-
-// --- MÓDULO DA ROLETA PROFISSIONAL (ADICIONAR NO FIM DO SEU SCRIPT) ---
+/* --- ADICIONAR NO FIM DO SEU SCRIPT (ANTES DE FECHAR A TAG </body>) --- */
 (function() {
-    // 1. INJEÇÃO DE CSS5 DINÂMICO NO HEAD
+    // 1. INJEÇÃO DE CSS REALISTA NO HEAD
     const cssStyle = document.createElement('style');
     cssStyle.type = 'text/css';
     cssStyle.innerHTML = `
         /* MODAL OVERLAY REALISTA */
-        .roleta-modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+        .kings-roleta-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             display: none; align-items: center; justify-content: center;
             z-index: 10000; padding: 20px; box-shadow: inset 0 0 100px #000;
         }
         
         /* CONTAINER DE MADEIRA NOBRE */
-        .roleta-container {
-            position: relative; width: 90vw; max-width: 320px; aspect-ratio: 1 / 1;
+        .kings-roleta-container {
+            position: relative; width: 90vw; max-width: 450px; aspect-ratio: 1 / 1;
             margin: auto; border-radius: 50%;
-            border: 10px solid #d4af37; /* Moldura de Ouro */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.1);
-            background: #444; overflow: hidden;
+            border: 15px solid #d4af37; /* Moldura de Ouro */
+            box-shadow: 0 15px 50px rgba(0,0,0,0.9), inset 0 0 30px rgba(255,255,255,0.1);
+            background: #222; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* O CANVAS (SÓ PARA A ROTAÇÃO) */
-        #canvas-roleta {
+        /* O CANVAS (ONDE TODA A MAGIA ACONTECE) */
+        #canvas-roleta-kings {
             width: 100%; height: 100%; border-radius: 50%; display: block;
-            will-change: transform; transition: transform 6.5s cubic-bezier(0.1, 0, 0, 1);
+            will-change: transform; transition: transform 7.5s cubic-bezier(0.1, 0, 0, 1);
             background: #111; /* Cor de fundo escura */
         }
 
-        /* EFEITO ULTRA-REALISTA NO CENTRAL HUB */
-        .roleta-center-hub {
+        /* EFEITO ULTRA-REALISTA NO CENTRAL HUB (FIXO) */
+        .kings-roleta-center-hub {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 18%; height: 18%; min-width: 45px; min-height: 45px;
-            background: radial-gradient(circle, #f3f3f3, #ccc, #000); /* Hub Metal */
-            border: 5px solid #d4af37; /* Anel de Ouro */
+            width: 20%; height: 20%; min-width: 60px; min-height: 60px;
+            background: radial-gradient(circle, #f3f3f3 0%, #a0a0a0 60%, #404040 100%); /* Hub Metal */
+            border: 8px solid #d4af37; /* Anel de Ouro */
             border-radius: 50%; z-index: 15;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5), inset 0 0 10px #000;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), inset 0 0 15px #000;
         }
 
-        /* O PONTEIROvermelho */
-        .roleta-pointer {
-            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+        /* O PONTEIRO FIXO NO TOPO (Vermelho Kings Burger) */
+        .kings-roleta-pointer {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
             width: 0; height: 0;
-            border-left: 14px solid transparent; border-right: 14px solid transparent;
-            border-top: 32px solid #ff0000; /* Vermelho vibrante */
-            z-index: 20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));
+            border-left: 16px solid transparent; border-right: 16px solid transparent;
+            border-top: 35px solid #ff0000; /* Vermelho vibrante */
+            z-index: 20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8));
         }
 
-        /* BOTÕES DE AÇÃO - ESTILO PREMIUM SNOOP */
-        .btn-principal-roleta {
-            background: #ff6b00; color: #fff; border: none; padding: 15px; width: 100%;
-            border-radius: 12px; font-weight: 800; font-size: 16px; margin-top: 20px;
-            cursor: pointer; text-transform: uppercase;
+        /* BOTÕES DE AÇÃO - ESTILO PREMIUM KINGS BURGER */
+        .btn-principal-kings-roleta {
+            background: #ffc107; color: #000; border: none; padding: 18px; width: 100%;
+            border-radius: 12px; font-weight: 800; font-size: 16px; margin-top: 25px;
+            cursor: pointer; text-transform: uppercase; transition: transform 0.2s;
         }
+        .btn-principal-kings-roleta:hover { transform: scale(1.02); }
         
-        #btn-continuar-resumo-roleta {
-            display: none; background: #222; margin-top: 10px;
+        #btn-continuar-cardapio-kings-roleta {
+            display: none; background: #28a745; color: white; margin-top: 10px;
         }
 
         /* TEXTO DO RESULTADO - VISÍVEL E LIMPO */
-        #resultado-roleta-secao {
+        #resultado-kings-roleta-secao {
             font-family: 'Segoe UI', sans-serif; text-align: center;
             color: white; font-size: 18px; font-weight: bold; margin-top: 20px;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+            min-height: 50px; text-shadow: 0 2px 5px rgba(0,0,0,0.7);
         }
     `;
     document.head.appendChild(cssStyle);
 
-    // 2. CONFIGURAÇÕES DA ROLETA PREMIUM
-    const premiosPremium = [
-        { texto: "SEM SORTE", cor: "#1a1a1a", valor: 0, tipo: 'fixo' }, // Preto
-        { texto: "R$ 5,00 OFF", cor: "#a81d1d", valor: 5, tipo: 'fixo' }, // Vermelho Snoop
-        { texto: "R$ 10,00 OFF", cor: "#ffc107", valor: 10, tipo: 'fixo' }, // Ouro Snoop
-        { texto: "FOI POR POUCO", cor: "#333", valor: 0, tipo: 'fixo' }, // Cinza escuro
+    // 2. CONFIGURAÇÕES DA ROLETA PREMIUM (PRÊMIOS REAIS)
+    const premiosKingsPremium = [
+        { texto: "SEM SORTE", cor: "#121212", valor: 0, tipo: 'fixo' }, // Preto Metálico
+        { texto: "R$ 5,00 OFF", cor: "#a81d1d", valor: 5, tipo: 'fixo' }, // Vermelho Snoop (Pode manter ou trocar)
+        { texto: "R$ 10,00 OFF", cor: "#ffc107", valor: 10, tipo: 'fixo' }, // Ouro Kings Burger
+        { texto: "FOI POR POUCO", cor: "#333333", valor: 0, tipo: 'fixo' }, // Cinza escuro
         { texto: "BATATAS BRINDE", cor: "#28a745", valor: 0, tipo: 'brinde', icone: '🍟' },
         { texto: "ENTREGA GRÁTIS", cor: "#007bff", valor: 0, tipo: 'frete' }
     ];
 
-    let anguloAtualRoleta = 0;
-    let premioGanhoRoleta = null;
+    let anguloAtualKingsRoleta = 0;
+    let premioGanhoKingsRoleta = null;
 
-    // 3. DESENHA A ROLETA NO CANVAS COM OS TEXTOS PREMIUM
-    function desenharRoletaPremium() {
-        const canvas = document.getElementById('canvas-roleta');
+    // 3. DESENHA A ROLETA NO CANVAS COM TEXTURAS E SOMBRAMENTOS
+    function desenharKingsRoletaPremium() {
+        const canvas = document.getElementById('canvas-roleta-kings');
         if (!canvas) return;
 
-        const size = Math.min(window.innerWidth * 0.8, 300);
+        // Ajuste de tamanho responsivo
+        const size = Math.min(window.innerWidth * 0.8, 450);
         canvas.width = size;
         canvas.height = size;
 
         const ctx = canvas.getContext('2d');
-        const fatiaGraus = 360 / premiosPremium.length;
-        const fatiaRadianos = (2 * Math.PI) / premiosPremium.length;
+        const fatiaRadianos = (2 * Math.PI) / premiosKingsPremium.length;
         const centro = size / 2;
 
         ctx.clearRect(0, 0, size, size);
 
-        premiosPremium.forEach((p, i) => {
+        premiosKingsPremium.forEach((p, i) => {
+            // Desenha a Fatia (Veludo)
             ctx.beginPath();
-            ctx.fillStyle = p.cor;
+            
+            // Gradiente para simular textura de veludo e volume
+            const veludoGradient = ctx.createLinearGradient(centro, centro -centro, centro, centro + centro);
+            veludoGradient.addColorStop(0, p.cor);
+            veludoGradient.addColorStop(0.5, darkenColor(p.cor, 15)); // Mais escuro no centro
+            veludoGradient.addColorStop(1, p.cor);
+            ctx.fillStyle = veludoGradient;
+
             ctx.moveTo(centro, centro);
-            ctx.arc(centro, centro, centro, i * fatiaRadianos, (i + 1) * fatiaRadianos);
+            ctx.arc(centro, centro, centro - 5, i * fatiaRadianos, (i + 1) * fatiaRadianos);
             ctx.fill();
 
-            // Texto Premium
+            // Desenha o Texto Premium
             ctx.save();
             ctx.translate(centro, centro);
             ctx.rotate(i * fatiaRadianos + fatiaRadianos / 2);
             ctx.textAlign = "right";
-            ctx.fillStyle = "white";
+            ctx.fillStyle = "white"; // Texto branco para contrastar com o veludo
+
+            // Fonte premium e responsiva
             ctx.font = `bold ${size * 0.05}px Arial`;
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 5;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
 
             if (p.icone) {
                 ctx.font = `bold ${size * 0.08}px Arial`;
-                ctx.fillText(p.icone, centro - 15, 5);
+                ctx.fillText(p.icone, centro - 20, size * 0.015);
             } else {
-                ctx.fillText(p.texto, centro - 15, 5);
+                ctx.fillText(p.texto, centro - 20, size * 0.015);
             }
             ctx.restore();
         });
     }
 
-    // 4. LÓGICA DE GIRO TOTALMENTE VICIADA (0 OU 3)
-    window.girarRoletaPremium = function() {
-        if (premioGanhoRoleta) return;
+    // 4. LÓGICA DE GIRO TOTALMENTE INTERATIVA (Não viciada)
+    window.girarKingsRoletaPremium = function() {
+        if (premioGanhoKingsRoleta) return;
 
-        const btn = document.getElementById('btn-girar-roleta');
+        const btn = document.getElementById('btn-girar-kings-roleta');
         btn.disabled = true;
         btn.innerText = "SORTEANDO...";
 
-        // --- LÓGICA VICIADA: Escolhe apenas índices 0 (Sem Sorte) ou 3 (Foi por Pouco) ---
-        const opcoesAzar = [0, 3];
-        const indiceSorteado = opcoesAzar[Math.floor(Math.random() * opcoesAzar.length)];
+        // --- LÓGICA INTERATIVA: Escolha totalmente aleatória de 0 a 5 ---
+        const indiceSorteado = Math.floor(Math.random() * premiosKingsPremium.length);
 
         // Cálculos do ângulo para cair perfeitamente no ponteiro vermelho (Norte)
-        const girosExtras = 360 * 8; // Rotação Premium Longa (8 giros)
-        const fatiaGraus = 360 / premiosPremium.length;
+        const girosExtras = 360 * 10; // Rotação Premium Longa (10 giros)
+        const fatiaGraus = 360 / premiosKingsPremium.length;
         const compensacaoPonteiroNorte = 90; 
         const anguloPremio = (indiceSorteado * fatiaGraus) + (fatiaGraus / 2);
-        const anguloFinalRoleta = anguloAtualRoleta + girosExtras + (360 - anguloPremio) + compensacaoPonteiroNorte;
-
-        const canvas = document.getElementById('canvas-roleta');
         
-        // Aplica a animação via CSS5
+        // Ângulo final que faz a imagem girar e parar no lugar certo
+        const anguloFinalRoleta = anguloAtualKingsRoleta + girosExtras + (360 - anguloPremio) + compensacaoPonteiroNorte;
+
+        // Pega a DIV da imagem e aplica a rotação (usando CSS transition)
+        const canvas = document.getElementById('canvas-roleta-kings');
         canvas.style.transform = `rotate(${anguloFinalRoleta}deg)`;
 
         // Armazena o ângulo para o próximo giro
-        anguloAtualRoleta = anguloFinalRoleta;
+        anguloAtualKingsRoleta = anguloFinalRoleta;
 
         setTimeout(() => {
-            premioGanhoRoleta = premiosPremium[indiceSorteado];
-            exibirResultadoRoletaPremium(premioGanhoRoleta);
-        }, 7000); // 7s de suspense
+            premioGanhoKingsRoleta = premiosKingsPremium[indiceSorteado];
+            exibirResultadoKingsRoletaPremium(premioGanhoKingsRoleta);
+        }, 7500); // 7.5s de suspense (duração da transition)
     };
 
     // 5. EXIBE O RESULTADO NO MODAL
-    function exibirResultadoRoletaPremium(premio) {
-        const resSecao = document.getElementById('resultado-roleta-secao');
+    function exibirResultadoKingsRoletaPremium(premio) {
+        const resSecao = document.getElementById('resultado-kings-roleta-secao');
         resSecao.innerHTML = ""; // Limpa
 
         if (premio.texto === "SEM SORTE" || premio.texto === "FOI POR POUCO") {
-            resSecao.innerHTML = `<span style="font-size:18px; color:#f0f0f0;">❌ Não foi dessa vez!</span><br><b style="font-size:16px;">${premio.texto}</b>`;
-        } else {
-            // Caso você queira voltar a roleta ao normal mais tarde, mantive a lógica de prêmios aqui.
-            resSecao.innerHTML = `<span style="font-size:20px; color:#28a745;">🎉 PARABÉNS!</span><br><b style="font-size:18px;">VOCÊ GANHOU ${premio.texto}!</b>`;
+            resSecao.innerHTML = `<span style="font-size:18px; color:#aaa;">❌ Não foi dessa vez para a Kings Burger!</span><br><b style="font-size:16px; color:#aaa;">${premio.texto}</b>`;
+        } else if (premio.tipo === 'brinde' && premio.texto === 'BATATAS BRINDE') {
+             resSecao.innerHTML = `<span style="font-size:20px; color:#28a745;">🎉 PARABÉNS!</span><br><b>VOCÊ GANHOU BATATAS DE ACOMPANHAMENTO! 🍟</b>`;
+        } else if (premio.valor > 0 || premio.tipo === 'frete') {
+             resSecao.innerHTML = `<span style="font-size:20px; color:#28a745;">🎉 AÍ SIM!</span><br><b>VOCÊ GANHOU ${premio.texto}!</b>`;
         }
 
-        document.getElementById('btn-continuar-resumo-roleta').style.display = "block";
-        document.getElementById('btn-girar-roleta').style.display = "none";
+        document.getElementById('btn-continuar-cardapio-kings-roleta').style.display = "block";
+        document.getElementById('btn-girar-kings-roleta').style.display = "none";
     }
 
-    // 6. INTEGRAÇÃO NO FLUXO PRINCIPAL (ABRE A ROLETA)
-    window.abrirRoletaNoFluxo = function() {
-        const modal = document.getElementById('roleta-modal-overlay');
+    // 6. INTEGRAÇÃO NO FLUXO PRINCIPAL (ABRE NO LOAD)
+    window.abrirKingsRoletaPremium = function() {
+        const modal = document.getElementById('kings-roleta-modal-overlay');
         modal.style.display = "flex";
 
         // Reset de estado
-        premioGanhoRoleta = null;
-        document.getElementById('resultado-roleta-secao').innerHTML = "";
-        document.getElementById('btn-continuar-resumo-roleta').style.display = "none";
-        document.getElementById('btn-girar-roleta').style.display = "block";
-        document.getElementById('btn-girar-roleta').innerText = "GIRAR A ROLETA SNOOP!";
-        document.getElementById('btn-girar-roleta').disabled = false;
+        premioGanhoKingsRoleta = null;
+        document.getElementById('resultado-kings-roleta-secao').innerHTML = "";
+        document.getElementById('btn-continuar-cardapio-kings-roleta').style.display = "none";
+        document.getElementById('btn-girar-kings-roleta').style.display = "block";
+        document.getElementById('btn-girar-kings-roleta').innerText = "GIRAR A ROLETA KINGS BURGER!";
+        document.getElementById('btn-girar-kings-roleta').disabled = false;
 
-        desenharRoletaPremium();
+        desenharKingsRoletaPremium();
     };
 
-    // 7. FECHA A ROLETA E VAI PARA O RESUMO FINAL
-    window.fecharRoletaPremiumNoFluxo = function() {
-        document.getElementById('roleta-modal-overlay').style.display = 'none';
+    // 7. FECHA A ROLETA E VAI PARA O CARDÁPIO
+    window.fecharKingsRoletaPremium = function() {
+        document.getElementById('kings-roleta-modal-overlay').style.display = 'none';
         
-        // Salva o prêmio globalmente para o resumo final (embora hoje seja sempreazar)
-        window.premioGanhoGlobal = premioGanhoRoleta;
+        // Salva o prêmio globalmente para o resumo final (embora hoje seja aleatório)
+        window.premioGanhoKingsGlobal = premioGanhoKingsRoleta;
         
-        // Chama o seu resumo final original
-        if (typeof mostrarResumoFinal === 'function') {
-            mostrarResumoFinal();
+        // Se você já tem a lógica de carregar o cardápio, chame-a aqui.
+        if (typeof carregarCardapioCompleto === 'function') {
+            carregarCardapioCompleto();
         }
     };
 
+    // Função auxiliar para escurecer cores (simular veludo)
+    function darkenColor(hex, percent) {
+        var num = parseInt(hex.slice(1), 16),
+            amt = Math.round(2.55 * percent),
+            R = (num >> 16) - amt,
+            G = (num >> 8 & 0x00FF) - amt,
+            B = (num & 0x0000FF) - amt;
+        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
+
 })();
 
-
-// FAZ A ROLETA ABRIR ASSIM QUE A PÁGINA CARREGAR
+// GATILHO DE ABERTURA NO LOAD (Após 1 segundo)
 window.addEventListener('DOMContentLoaded', () => {
-    // Pequeno delay de 1s para o cliente ver o fundo da loja antes da roleta subir
     setTimeout(() => {
-        if (typeof abrirRoletaNoFluxo === 'function') {
-            abrirRoletaNoFluxo();
+        if (typeof abrirKingsRoletaPremium === 'function') {
+            abrirKingsRoletaPremium();
         }
     }, 1000);
 });
