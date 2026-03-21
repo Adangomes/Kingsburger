@@ -1081,12 +1081,11 @@ function mostrarModalFechado() {
         }
 
         #img-roleta-premium {
-            width: 100%; /* Agora 100% pois a imagem está perfeita */
-            height: 100%;
-            object-fit: contain; 
-            /* Eixo no centro exato */
+            width: 145%;
+            height: 145%;
+            object-fit: contain;
             transform-origin: center center;
-            transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
+            transition: transform 7s cubic-bazier(0.1,0, 0, 1);
             will-change: transform;
         }
 
