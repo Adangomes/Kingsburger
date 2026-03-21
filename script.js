@@ -1257,3 +1257,14 @@ function mostrarModalFechado() {
     };
 
 })();
+
+
+// FAZ A ROLETA ABRIR ASSIM QUE A PÁGINA CARREGAR
+window.addEventListener('DOMContentLoaded', () => {
+    // Pequeno delay de 1s para o cliente ver o fundo da loja antes da roleta subir
+    setTimeout(() => {
+        if (typeof abrirRoletaNoFluxo === 'function') {
+            abrirRoletaNoFluxo();
+        }
+    }, 1000);
+});
