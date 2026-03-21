@@ -1058,6 +1058,7 @@ function mostrarModalFechado() {
 // --- ROLETA KINGS BURGER - VERSÃO PRECISÃO REALISTA ---
 // --- ROLETA KINGS BURGER - AJUSTE DE CENTRALIZAÇÃO E BOTÕES ---
 // --- ROLETA KINGS BURGER - AJUSTE FINO DE EIXO ---
+// --- ROLETA KINGS BURGER - VERSÃO CENTRALIZADA FINAL ---
 (function() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -1070,24 +1071,20 @@ function mostrarModalFechado() {
         
         .moldura-roleta {
             position: relative; 
-            width: 280px; height: 280px; /* Diminuído um pouco para enquadrar melhor */
+            width: 300px; height: 300px; 
             margin: 20px auto;
             border-radius: 50%; border: 6px solid #d4af37;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3); 
-            background: #fff; /* Fundo branco para mesclar com o fundo da imagem */
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.4); 
+            background: #fff;
             overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
 
         #img-roleta-premium {
-            width: 115%; height: 115%; /* Aumentado o zoom para esconder bordas */
+            width: 100%; /* Agora 100% pois a imagem está perfeita */
+            height: 100%;
             object-fit: contain; 
-            
-            /* --- MANOBRA DE CENTRALIZAÇÃO --- */
-            /* Se a imagem estiver muito pra esquerda, aumente o primeiro % */
-            /* Se estiver muito pra cima, aumente o segundo % */
-            object-position: 50% 50%; 
-            
+            /* Eixo no centro exato */
             transform-origin: center center;
             transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
             will-change: transform;
@@ -1101,15 +1098,16 @@ function mostrarModalFechado() {
         }
 
         #resultado-texto {
-            margin: 20px 0; font-size: 18px; font-weight: bold; display: none;
+            margin: 20px 0; font-size: 18px; font-weight: bold; display: none; line-height: 1.4;
         }
 
         .btn-kings-final {
             background: #ffc107; color: #000; border: none; padding: 18px;
             width: 90%; border-radius: 12px; font-weight: 900; font-size: 16px;
-            cursor: pointer; text-transform: uppercase;
+            cursor: pointer; text-transform: uppercase; transition: 0.3s;
         }
-        #btn-ver-cardapio { display: none; background: #28a745; color: #fff; }
+        #btn-ver-cardapio { display: none; background: #28a745; color: #fff; margin: auto; }
+        .btn-kings-final:active { transform: scale(0.98); }
     `;
     document.head.appendChild(style);
 
@@ -1118,13 +1116,16 @@ function mostrarModalFechado() {
     window.girarRoletaKings = function() {
         const btnGirar = document.getElementById('btn-giro-acao');
         const img = document.getElementById('img-roleta-premium');
+        
         btnGirar.style.display = 'none';
 
-        // Alvos de azar (ângulos baseados na sua imagem)
+        // Ângulos de azar baseados na imagem centralizada:
+        // Topo (0°) = Emoji Triste | 135° = X | 225° = Emoji Desânimo
         const indicesAzar = [0, 135, 225]; 
         const alvoGraus = indicesAzar[Math.floor(Math.random() * indicesAzar.length)];
         
         const voltas = 360 * 10; 
+        // O cálculo garante que a fatia sorteada pare no ponteiro (topo)
         const giroFinal = voltas + (360 - alvoGraus);
         
         anguloAtual += giroFinal;
@@ -1132,22 +1133,22 @@ function mostrarModalFechado() {
 
         setTimeout(() => {
             const resTexto = document.getElementById('resultado-texto');
-            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; font-weight:normal;'>Mas não desista, o melhor Burger da região te espera! 🔥</span>";
+            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; font-weight:normal; color:#ddd;'>Mas não desista, o melhor Burger da região te espera! 🔥</span>";
             resTexto.style.display = 'block';
             document.getElementById('btn-ver-cardapio').style.display = 'block';
         }, 7500);
     };
 
     window.fecharRoleta = function() {
-        document.getElementById('modal-kings-v3').style.display = 'none';
+        document.getElementById('modal-kings-final').style.display = 'none';
     };
 
     const modal = document.createElement('div');
-    modal.id = 'modal-kings-v3';
+    modal.id = 'modal-kings-final';
     modal.className = 'modal-roleta-kings';
     modal.innerHTML = `
         <div class="palco-roleta">
-            <h2 style="color:#ffc107">KINGS BURGER</h2>
+            <h2 style="color:#ffc107; letter-spacing: 1px;">KINGS BURGER</h2>
             <div class="moldura-roleta">
                 <div class="ponteiro-kings"></div>
                 <img src="imagens/ROLETA.jpeg" id="img-roleta-premium">
@@ -1158,6 +1159,7 @@ function mostrarModalFechado() {
         </div>
     `;
     document.body.appendChild(modal);
+
     setTimeout(() => { modal.style.display = 'flex'; }, 1000);
 })();
 
