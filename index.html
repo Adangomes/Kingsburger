@@ -9,26 +9,26 @@
     
 </head>
 <body>
-    <div id="roleta-modal-overlay" class="roleta-modal-overlay">
-    <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
+    <div id="kings-roleta-modal-overlay" class="kings-roleta-overlay">
+    <div style="width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center;">
         
-        <h2 style="color: #ff6b00; font-weight: 900; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
-            ROLETA KINGS BURGER
+        <h2 style="color: #ffc107; font-weight: 900; margin-bottom: 15px; text-align: center; text-transform: uppercase;">
+                ROLETA KINGS BURGER
         </h2>
 
-        <div class="roleta-container">
-            <div class="roleta-pointer"></div>
-            <canvas id="canvas-roleta"></canvas>
-            <div class="roleta-center-hub"></div>
+        <div class="kings-roleta-container">
+            <div class="kings-roleta-pointer"></div>
+            <canvas id="canvas-roleta-kings"></canvas>
+            <div class="kings-roleta-center-hub"></div>
         </div>
 
-        <div id="resultado-roleta-secao"></div>
+        <div id="resultado-kings-roleta-secao"></div>
 
-        <button id="btn-girar-roleta" class="btn-principal-roleta" onclick="girarRoletaPremium()">
+        <button id="btn-girar-kings-roleta" class="btn-principal-kings-roleta" onclick="girarKingsRoletaPremium()">
             GIRAR
         </button>
 
-        <button id="btn-continuar-resumo-roleta" class="btn-principal-roleta" onclick="fecharRoletaPremiumNoFluxo()" style="background: #28a745; display: none;">
+        <button id="btn-continuar-cardapio-kings-roleta" class="btn-principal-kings-roleta" onclick="fecharKingsRoletaPremium()" style="display: none;">
             VER CARDÁPIO
         </button>
     </div>
