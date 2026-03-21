@@ -9,6 +9,30 @@
     
 </head>
 <body>
+    <div id="roleta-modal-overlay" class="roleta-modal-overlay">
+    <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
+        
+        <h2 style="color: #ff6b00; font-weight: 900; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
+            ROLETA KINGS BURGER
+        </h2>
+
+        <div class="roleta-container">
+            <div class="roleta-pointer"></div>
+            <canvas id="canvas-roleta"></canvas>
+            <div class="roleta-center-hub"></div>
+        </div>
+
+        <div id="resultado-roleta-secao"></div>
+
+        <button id="btn-girar-roleta" class="btn-principal-roleta" onclick="girarRoletaPremium()">
+            GIRAR
+        </button>
+
+        <button id="btn-continuar-resumo-roleta" class="btn-principal-roleta" onclick="fecharRoletaPremiumNoFluxo()" style="background: #28a745; display: none;">
+            VER CARDÁPIO
+        </button>
+    </div>
+</div>
     
 <div id="loading-geral" class="loading-overlay" style="display:none;">
     <div class="spinner-border text-warning" role="status"></div>
