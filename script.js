@@ -1059,6 +1059,7 @@ function mostrarModalFechado() {
 // --- ROLETA KINGS BURGER - AJUSTE DE CENTRALIZAÇÃO E BOTÕES ---
 // --- ROLETA KINGS BURGER - AJUSTE FINO DE EIXO ---
 // --- ROLETA KINGS BURGER - VERSÃO CENTRALIZADA FINAL ---
+// --- ROLETA KINGS BURGER - VERSÃO FINAL CORRIGIDA ---
 (function() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -1081,11 +1082,12 @@ function mostrarModalFechado() {
         }
 
         #img-roleta-premium {
-            width: 140%;
+            /* Ajustado para 140% conforme seu teste */
+            width: 140%; 
             height: 140%;
-            object-fit: contain;
+            object-fit: contain; 
             transform-origin: center center;
-            transition: transform 7s cubic-bazier(0.1,0, 0, 1);
+            transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
             will-change: transform;
         }
 
@@ -1104,27 +1106,28 @@ function mostrarModalFechado() {
             background: #ffc107; color: #000; border: none; padding: 18px;
             width: 90%; border-radius: 12px; font-weight: 900; font-size: 16px;
             cursor: pointer; text-transform: uppercase; transition: 0.3s;
+            display: inline-block;
         }
         #btn-ver-cardapio { display: none; background: #28a745; color: #fff; margin: auto; }
-        .btn-kings-final:active { transform: scale(0.98); }
     `;
     document.head.appendChild(style);
 
     let anguloAtual = 0;
 
+    // Função de giro garantida no escopo global
     window.girarRoletaKings = function() {
         const btnGirar = document.getElementById('btn-giro-acao');
         const img = document.getElementById('img-roleta-premium');
         
+        if (!img || btnGirar.style.display === 'none') return;
+
         btnGirar.style.display = 'none';
 
-        // Ângulos de azar baseados na imagem centralizada:
-        // Topo (0°) = Emoji Triste | 135° = X | 225° = Emoji Desânimo
+        // Sorteio de índices de azar (Emoji Triste, X, Desânimo)
         const indicesAzar = [0, 135, 225]; 
         const alvoGraus = indicesAzar[Math.floor(Math.random() * indicesAzar.length)];
         
         const voltas = 360 * 10; 
-        // O cálculo garante que a fatia sorteada pare no ponteiro (topo)
         const giroFinal = voltas + (360 - alvoGraus);
         
         anguloAtual += giroFinal;
@@ -1138,10 +1141,11 @@ function mostrarModalFechado() {
         }, 7500);
     };
 
-    window.fecharRoleta = function() {
+    window.fecharRoletaKings = function() {
         document.getElementById('modal-kings-final').style.display = 'none';
     };
 
+    // Criando o modal
     const modal = document.createElement('div');
     modal.id = 'modal-kings-final';
     modal.className = 'modal-roleta-kings';
@@ -1153,13 +1157,16 @@ function mostrarModalFechado() {
                 <img src="imagens/ROLETA.jpeg" id="img-roleta-premium">
             </div>
             <div id="resultado-texto"></div>
-            <button class="btn-kings-final" id="btn-giro-acao" onclick="girarRoletaKings()">TENTAR A SORTE!</button>
-            <button class="btn-kings-final" id="btn-ver-cardapio" onclick="fecharRoleta()">VER CARDÁPIO</button>
+            <button class="btn-kings-final" id="btn-giro-acao" onclick="window.girarRoletaKings()">TENTAR A SORTE!</button>
+            <button class="btn-kings-final" id="btn-ver-cardapio" onclick="window.fecharRoletaKings()">VER CARDÁPIO</button>
         </div>
     `;
     document.body.appendChild(modal);
 
-    setTimeout(() => { modal.style.display = 'flex'; }, 1000);
+    // Abre o modal após 1 segundo
+    setTimeout(() => { 
+        document.getElementById('modal-kings-final').style.display = 'flex'; 
+    }, 1000);
 })();
 
 
