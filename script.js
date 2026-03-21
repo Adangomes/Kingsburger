@@ -1056,93 +1056,112 @@ function mostrarModalFechado() {
 
 // --- MÓDULO ROLETA ULTRA-REALISTA KINGS BURGER ---
 // --- ROLETA KINGS BURGER - VERSÃO PRECISÃO REALISTA ---
+// --- ROLETA KINGS BURGER - AJUSTE DE CENTRALIZAÇÃO E BOTÕES ---
 (function() {
     const style = document.createElement('style');
     style.innerHTML = `
         .modal-roleta-kings {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             display: none; align-items: center; justify-content: center;
-            z-index: 10000; font-family: sans-serif;
+            z-index: 10000; font-family: 'Segoe UI', sans-serif;
         }
-        .palco-roleta { width: 100%; max-width: 400px; text-align: center; color: white; }
+        .palco-roleta { width: 100%; max-width: 400px; text-align: center; color: white; padding: 20px; }
+        
+        /* MOLDURA COM LUZES */
         .moldura-roleta {
             position: relative; width: 320px; height: 320px; margin: 20px auto;
-            border-radius: 50%; border: 8px solid #d4af37;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8); overflow: hidden;
+            border-radius: 50%; border: 6px solid #d4af37;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2); 
+            background: #000; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
         }
+
+        /* AJUSTE DA IMAGEM PARA RODAR NO EIXO CERTO */
         #img-roleta-premium {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%; height: 100%; 
+            object-fit: cover; /* Faz a imagem ocupar o círculo todo */
+            transform-origin: center center; /* Garante o giro no meio */
             transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
-            will-change: transform;
         }
-        /* Ponteiro Vermelho no Topo */
+
         .ponteiro-kings {
-            position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 15px solid transparent; 
-            border-right: 15px solid transparent; border-top: 35px solid #ff0000;
-            z-index: 100; filter: drop-shadow(0 2px 5px #000);
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 18px solid transparent; 
+            border-right: 18px solid transparent; border-top: 40px solid #ff0000;
+            z-index: 100; drop-shadow(0 4px 5px #000);
         }
-        .btn-giro-kings {
+
+        /* TEXTO DE RESULTADO */
+        #resultado-texto {
+            margin: 20px 0; font-size: 18px; font-weight: bold; min-height: 50px;
+            display: none; line-height: 1.4;
+        }
+
+        /* BOTÕES */
+        .btn-kings-final {
             background: #ffc107; color: #000; border: none; padding: 18px;
-            width: 80%; border-radius: 12px; font-weight: bold; font-size: 16px;
-            cursor: pointer; text-transform: uppercase;
+            width: 90%; border-radius: 12px; font-weight: 900; font-size: 16px;
+            cursor: pointer; text-transform: uppercase; transition: 0.3s;
         }
+        #btn-ver-cardapio { display: none; background: #28a745; color: #fff; }
     `;
     document.head.appendChild(style);
-
-    // Mapeamento das 8 fatias da sua imagem (começando do topo, sentido horário)
-    // Se o topo da sua imagem for o emoji triste:
-    const fatias = [
-        { nome: "TRISTE", azar: true },    // 0° (Topo)
-        { nome: "ENTREGA", azar: false },  // 45°
-        { nome: "DINHEIRO", azar: false }, // 90°
-        { nome: "XIS", azar: true },       // 135°
-        { nome: "BEBIDA", azar: false },   // 180°
-        { nome: "DESANIMO", azar: true },  // 225°
-        { nome: "DINHEIRO", azar: false }, // 270°
-        { nome: "ENTREGA", azar: false }   // 315°
-    ];
 
     let anguloAtual = 0;
 
     window.girarRoletaKings = function() {
-        const btn = document.getElementById('btn-giro');
+        const btnGirar = document.getElementById('btn-giro-acao');
         const img = document.getElementById('img-roleta-premium');
-        btn.disabled = true;
+        
+        btnGirar.style.display = 'none'; // Some o botão ao clicar
 
-        // --- LÓGICA DE ALVO VISUAL ---
-        // Índices de azar na imagem: 0 (Triste), 3 (X), 5 (Desânimo)
+        // Azar visual na sua imagem: 0° (Triste), 135° (X), 225° (Desânimo)
         const indicesAzar = [0, 135, 225]; 
         const alvoGraus = indicesAzar[Math.floor(Math.random() * indicesAzar.length)];
         
-        const voltas = 360 * 8; // 8 voltas para dar emoção
-        // O cálculo (voltas + (360 - alvoGraus)) faz a fatia certa parar no ponteiro
+        const voltas = 360 * 10; // 10 voltas para o cliente suar frio
         const giroFinal = voltas + (360 - alvoGraus);
         
         anguloAtual += giroFinal;
         img.style.transform = `rotate(${anguloAtual}deg)`;
 
         setTimeout(() => {
-            alert("Não foi dessa vez! Mas não desista, o melhor Burger da região te espera. 🔥");
-            document.getElementById('modal-final').style.display = 'none';
+            // Mostra a mensagem e o botão de Ver Cardápio
+            const resTexto = document.getElementById('resultado-texto');
+            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; color:#ccc;'>Mas não desista, o melhor Burger da região te espera. 🔥</span>";
+            resTexto.style.display = 'block';
+            document.getElementById('btn-ver-cardapio').style.display = 'block';
         }, 7500);
     };
 
+    window.fecharERevisitarCardapio = function() {
+        document.getElementById('modal-kings-v2').style.display = 'none';
+    };
+
     const modal = document.createElement('div');
-    modal.id = 'modal-final';
+    modal.id = 'modal-kings-v2';
     modal.className = 'modal-roleta-kings';
     modal.innerHTML = `
         <div class="palco-roleta">
-            <h2 style="color:#ffc107">KINGS BURGER</h2>
+            <h2 style="color:#ffc107; letter-spacing: 2px;">KINGS BURGER</h2>
             <div class="moldura-roleta">
                 <div class="ponteiro-kings"></div>
                 <img src="imagens/ROLETA.jpeg" id="img-roleta-premium">
             </div>
-            <button class="btn-giro-kings" id="btn-giro" onclick="girarRoletaKings()">TENTAR A SORTE!</button>
+            
+            <div id="resultado-texto"></div>
+
+            <button class="btn-kings-final" id="btn-giro-acao" onclick="girarRoletaKings()">
+                TENTAR A SORTE!
+            </button>
+            
+            <button class="btn-kings-final" id="btn-ver-cardapio" onclick="fecharERevisitarCardapio()">
+                VER CARDÁPIO
+            </button>
         </div>
     `;
     document.body.appendChild(modal);
 
-    // Abre 1 segundo após carregar
     setTimeout(() => { modal.style.display = 'flex'; }, 1000);
 })();
+
