@@ -1081,8 +1081,8 @@ function mostrarModalFechado() {
         }
 
         #img-roleta-premium {
-            width: 145%;
-            height: 145%;
+            width: 140%;
+            height: 140%;
             object-fit: contain;
             transform-origin: center center;
             transition: transform 7s cubic-bazier(0.1,0, 0, 1);
