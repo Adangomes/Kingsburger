@@ -1135,7 +1135,7 @@ function mostrarModalFechado() {
 
         setTimeout(() => {
             const resTexto = document.getElementById('resultado-texto');
-            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; font-weight:normal; color:#ddd;'>Mas não desista, o melhor Burger da região te espera! 🔥</span>";
+            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; font-weight:normal; color:#ddd;'>Mas não desista, o melhor Burger da região te espera!</span>";
             resTexto.style.display = 'block';
             document.getElementById('btn-ver-cardapio').style.display = 'block';
         }, 7500);
