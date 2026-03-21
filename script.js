@@ -1127,10 +1127,10 @@ function mostrarModalFechado() {
     // 2. CONFIGURAÇÕES DA ROLETA PREMIUM (PRÊMIOS REAIS)
     const premiosKingsPremium = [
         { texto: "SEM SORTE", cor: "#121212", valor: 0, tipo: 'fixo' }, // Preto Metálico
-        { texto: "R$ 5,00 OFF", cor: "#a81d1d", valor: 5, tipo: 'fixo' }, // Vermelho Snoop (Pode manter ou trocar)
-        { texto: "R$ 10,00 OFF", cor: "#ffc107", valor: 10, tipo: 'fixo' }, // Ouro Kings Burger
+        { texto: "R$5,00 DE DESCONTO", cor: "#a81d1d", valor: 5, tipo: 'fixo' }, // Vermelho Snoop (Pode manter ou trocar)
+        { texto: "R$10,00 DE DESCONTO", cor: "#ffc107", valor: 10, tipo: 'fixo' }, // Ouro Kings Burger
         { texto: "FOI POR POUCO", cor: "#333333", valor: 0, tipo: 'fixo' }, // Cinza escuro
-        { texto: "BATATAS BRINDE", cor: "#28a745", valor: 0, tipo: 'brinde', icone: '🍟' },
+        { texto: "BATATAS BRINDE", cor: "#28a745", valor: 0, tipo: 'brinde', icone: '' },
         { texto: "ENTREGA GRÁTIS", cor: "#007bff", valor: 0, tipo: 'frete' }
     ];
 
