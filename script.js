@@ -1057,6 +1057,7 @@ function mostrarModalFechado() {
 // --- MÓDULO ROLETA ULTRA-REALISTA KINGS BURGER ---
 // --- ROLETA KINGS BURGER - VERSÃO PRECISÃO REALISTA ---
 // --- ROLETA KINGS BURGER - AJUSTE DE CENTRALIZAÇÃO E BOTÕES ---
+// --- ROLETA KINGS BURGER - AJUSTE FINO DE EIXO ---
 (function() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -1067,41 +1068,46 @@ function mostrarModalFechado() {
         }
         .palco-roleta { width: 100%; max-width: 400px; text-align: center; color: white; padding: 20px; }
         
-        /* MOLDURA COM LUZES */
         .moldura-roleta {
-            position: relative; width: 320px; height: 320px; margin: 20px auto;
+            position: relative; 
+            width: 280px; height: 280px; /* Diminuído um pouco para enquadrar melhor */
+            margin: 20px auto;
             border-radius: 50%; border: 6px solid #d4af37;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2); 
-            background: #000; overflow: hidden;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3); 
+            background: #fff; /* Fundo branco para mesclar com o fundo da imagem */
+            overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* AJUSTE DA IMAGEM PARA RODAR NO EIXO CERTO */
         #img-roleta-premium {
-            width: 100%; height: 100%; 
-            object-fit: cover; /* Faz a imagem ocupar o círculo todo */
-            transform-origin: center center; /* Garante o giro no meio */
+            width: 115%; height: 115%; /* Aumentado o zoom para esconder bordas */
+            object-fit: contain; 
+            
+            /* --- MANOBRA DE CENTRALIZAÇÃO --- */
+            /* Se a imagem estiver muito pra esquerda, aumente o primeiro % */
+            /* Se estiver muito pra cima, aumente o segundo % */
+            object-position: 50% 50%; 
+            
+            transform-origin: center center;
             transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
+            will-change: transform;
         }
 
         .ponteiro-kings {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; border-left: 18px solid transparent; 
-            border-right: 18px solid transparent; border-top: 40px solid #ff0000;
-            z-index: 100; drop-shadow(0 4px 5px #000);
+            position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 15px solid transparent; 
+            border-right: 15px solid transparent; border-top: 35px solid #ff0000;
+            z-index: 100; filter: drop-shadow(0 2px 5px #000);
         }
 
-        /* TEXTO DE RESULTADO */
         #resultado-texto {
-            margin: 20px 0; font-size: 18px; font-weight: bold; min-height: 50px;
-            display: none; line-height: 1.4;
+            margin: 20px 0; font-size: 18px; font-weight: bold; display: none;
         }
 
-        /* BOTÕES */
         .btn-kings-final {
             background: #ffc107; color: #000; border: none; padding: 18px;
             width: 90%; border-radius: 12px; font-weight: 900; font-size: 16px;
-            cursor: pointer; text-transform: uppercase; transition: 0.3s;
+            cursor: pointer; text-transform: uppercase;
         }
         #btn-ver-cardapio { display: none; background: #28a745; color: #fff; }
     `;
@@ -1112,56 +1118,47 @@ function mostrarModalFechado() {
     window.girarRoletaKings = function() {
         const btnGirar = document.getElementById('btn-giro-acao');
         const img = document.getElementById('img-roleta-premium');
-        
-        btnGirar.style.display = 'none'; // Some o botão ao clicar
+        btnGirar.style.display = 'none';
 
-        // Azar visual na sua imagem: 0° (Triste), 135° (X), 225° (Desânimo)
+        // Alvos de azar (ângulos baseados na sua imagem)
         const indicesAzar = [0, 135, 225]; 
         const alvoGraus = indicesAzar[Math.floor(Math.random() * indicesAzar.length)];
         
-        const voltas = 360 * 10; // 10 voltas para o cliente suar frio
+        const voltas = 360 * 10; 
         const giroFinal = voltas + (360 - alvoGraus);
         
         anguloAtual += giroFinal;
         img.style.transform = `rotate(${anguloAtual}deg)`;
 
         setTimeout(() => {
-            // Mostra a mensagem e o botão de Ver Cardápio
             const resTexto = document.getElementById('resultado-texto');
-            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; color:#ccc;'>Mas não desista, o melhor Burger da região te espera. 🔥</span>";
+            resTexto.innerHTML = "Não foi dessa vez! ❌<br><span style='font-size:14px; font-weight:normal;'>Mas não desista, o melhor Burger da região te espera! 🔥</span>";
             resTexto.style.display = 'block';
             document.getElementById('btn-ver-cardapio').style.display = 'block';
         }, 7500);
     };
 
-    window.fecharERevisitarCardapio = function() {
-        document.getElementById('modal-kings-v2').style.display = 'none';
+    window.fecharRoleta = function() {
+        document.getElementById('modal-kings-v3').style.display = 'none';
     };
 
     const modal = document.createElement('div');
-    modal.id = 'modal-kings-v2';
+    modal.id = 'modal-kings-v3';
     modal.className = 'modal-roleta-kings';
     modal.innerHTML = `
         <div class="palco-roleta">
-            <h2 style="color:#ffc107; letter-spacing: 2px;">KINGS BURGER</h2>
+            <h2 style="color:#ffc107">KINGS BURGER</h2>
             <div class="moldura-roleta">
                 <div class="ponteiro-kings"></div>
                 <img src="imagens/ROLETA.jpeg" id="img-roleta-premium">
             </div>
-            
             <div id="resultado-texto"></div>
-
-            <button class="btn-kings-final" id="btn-giro-acao" onclick="girarRoletaKings()">
-                TENTAR A SORTE!
-            </button>
-            
-            <button class="btn-kings-final" id="btn-ver-cardapio" onclick="fecharERevisitarCardapio()">
-                VER CARDÁPIO
-            </button>
+            <button class="btn-kings-final" id="btn-giro-acao" onclick="girarRoletaKings()">TENTAR A SORTE!</button>
+            <button class="btn-kings-final" id="btn-ver-cardapio" onclick="fecharRoleta()">VER CARDÁPIO</button>
         </div>
     `;
     document.body.appendChild(modal);
-
     setTimeout(() => { modal.style.display = 'flex'; }, 1000);
 })();
+
 
