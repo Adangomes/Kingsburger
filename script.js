@@ -1052,3 +1052,208 @@ function mostrarModalFechado() {
 
     modal.style.display = "flex";
 }
+
+
+
+// --- MÓDULO DA ROLETA PROFISSIONAL (ADICIONAR NO FIM DO SEU SCRIPT) ---
+(function() {
+    // 1. INJEÇÃO DE CSS5 DINÂMICO NO HEAD
+    const cssStyle = document.createElement('style');
+    cssStyle.type = 'text/css';
+    cssStyle.innerHTML = `
+        /* MODAL OVERLAY REALISTA */
+        .roleta-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            display: none; align-items: center; justify-content: center;
+            z-index: 10000; padding: 20px; box-shadow: inset 0 0 100px #000;
+        }
+        
+        /* CONTAINER DE MADEIRA NOBRE */
+        .roleta-container {
+            position: relative; width: 90vw; max-width: 320px; aspect-ratio: 1 / 1;
+            margin: auto; border-radius: 50%;
+            border: 10px solid #d4af37; /* Moldura de Ouro */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.1);
+            background: #444; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* O CANVAS (SÓ PARA A ROTAÇÃO) */
+        #canvas-roleta {
+            width: 100%; height: 100%; border-radius: 50%; display: block;
+            will-change: transform; transition: transform 6.5s cubic-bezier(0.1, 0, 0, 1);
+            background: #111; /* Cor de fundo escura */
+        }
+
+        /* EFEITO ULTRA-REALISTA NO CENTRAL HUB */
+        .roleta-center-hub {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 18%; height: 18%; min-width: 45px; min-height: 45px;
+            background: radial-gradient(circle, #f3f3f3, #ccc, #000); /* Hub Metal */
+            border: 5px solid #d4af37; /* Anel de Ouro */
+            border-radius: 50%; z-index: 15;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5), inset 0 0 10px #000;
+        }
+
+        /* O PONTEIROvermelho */
+        .roleta-pointer {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 14px solid transparent; border-right: 14px solid transparent;
+            border-top: 32px solid #ff0000; /* Vermelho vibrante */
+            z-index: 20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));
+        }
+
+        /* BOTÕES DE AÇÃO - ESTILO PREMIUM SNOOP */
+        .btn-principal-roleta {
+            background: #ff6b00; color: #fff; border: none; padding: 15px; width: 100%;
+            border-radius: 12px; font-weight: 800; font-size: 16px; margin-top: 20px;
+            cursor: pointer; text-transform: uppercase;
+        }
+        
+        #btn-continuar-resumo-roleta {
+            display: none; background: #222; margin-top: 10px;
+        }
+
+        /* TEXTO DO RESULTADO - VISÍVEL E LIMPO */
+        #resultado-roleta-secao {
+            font-family: 'Segoe UI', sans-serif; text-align: center;
+            color: white; font-size: 18px; font-weight: bold; margin-top: 20px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+        }
+    `;
+    document.head.appendChild(cssStyle);
+
+    // 2. CONFIGURAÇÕES DA ROLETA PREMIUM
+    const premiosPremium = [
+        { texto: "SEM SORTE", cor: "#1a1a1a", valor: 0, tipo: 'fixo' }, // Preto
+        { texto: "R$ 5,00 OFF", cor: "#a81d1d", valor: 5, tipo: 'fixo' }, // Vermelho Snoop
+        { texto: "R$ 10,00 OFF", cor: "#ffc107", valor: 10, tipo: 'fixo' }, // Ouro Snoop
+        { texto: "FOI POR POUCO", cor: "#333", valor: 0, tipo: 'fixo' }, // Cinza escuro
+        { texto: "BATATAS BRINDE", cor: "#28a745", valor: 0, tipo: 'brinde', icone: '🍟' },
+        { texto: "ENTREGA GRÁTIS", cor: "#007bff", valor: 0, tipo: 'frete' }
+    ];
+
+    let anguloAtualRoleta = 0;
+    let premioGanhoRoleta = null;
+
+    // 3. DESENHA A ROLETA NO CANVAS COM OS TEXTOS PREMIUM
+    function desenharRoletaPremium() {
+        const canvas = document.getElementById('canvas-roleta');
+        if (!canvas) return;
+
+        const size = Math.min(window.innerWidth * 0.8, 300);
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext('2d');
+        const fatiaGraus = 360 / premiosPremium.length;
+        const fatiaRadianos = (2 * Math.PI) / premiosPremium.length;
+        const centro = size / 2;
+
+        ctx.clearRect(0, 0, size, size);
+
+        premiosPremium.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.fillStyle = p.cor;
+            ctx.moveTo(centro, centro);
+            ctx.arc(centro, centro, centro, i * fatiaRadianos, (i + 1) * fatiaRadianos);
+            ctx.fill();
+
+            // Texto Premium
+            ctx.save();
+            ctx.translate(centro, centro);
+            ctx.rotate(i * fatiaRadianos + fatiaRadianos / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "white";
+            ctx.font = `bold ${size * 0.05}px Arial`;
+
+            if (p.icone) {
+                ctx.font = `bold ${size * 0.08}px Arial`;
+                ctx.fillText(p.icone, centro - 15, 5);
+            } else {
+                ctx.fillText(p.texto, centro - 15, 5);
+            }
+            ctx.restore();
+        });
+    }
+
+    // 4. LÓGICA DE GIRO TOTALMENTE VICIADA (0 OU 3)
+    window.girarRoletaPremium = function() {
+        if (premioGanhoRoleta) return;
+
+        const btn = document.getElementById('btn-girar-roleta');
+        btn.disabled = true;
+        btn.innerText = "SORTEANDO...";
+
+        // --- LÓGICA VICIADA: Escolhe apenas índices 0 (Sem Sorte) ou 3 (Foi por Pouco) ---
+        const opcoesAzar = [0, 3];
+        const indiceSorteado = opcoesAzar[Math.floor(Math.random() * opcoesAzar.length)];
+
+        // Cálculos do ângulo para cair perfeitamente no ponteiro vermelho (Norte)
+        const girosExtras = 360 * 8; // Rotação Premium Longa (8 giros)
+        const fatiaGraus = 360 / premiosPremium.length;
+        const compensacaoPonteiroNorte = 90; 
+        const anguloPremio = (indiceSorteado * fatiaGraus) + (fatiaGraus / 2);
+        const anguloFinalRoleta = anguloAtualRoleta + girosExtras + (360 - anguloPremio) + compensacaoPonteiroNorte;
+
+        const canvas = document.getElementById('canvas-roleta');
+        
+        // Aplica a animação via CSS5
+        canvas.style.transform = `rotate(${anguloFinalRoleta}deg)`;
+
+        // Armazena o ângulo para o próximo giro
+        anguloAtualRoleta = anguloFinalRoleta;
+
+        setTimeout(() => {
+            premioGanhoRoleta = premiosPremium[indiceSorteado];
+            exibirResultadoRoletaPremium(premioGanhoRoleta);
+        }, 7000); // 7s de suspense
+    };
+
+    // 5. EXIBE O RESULTADO NO MODAL
+    function exibirResultadoRoletaPremium(premio) {
+        const resSecao = document.getElementById('resultado-roleta-secao');
+        resSecao.innerHTML = ""; // Limpa
+
+        if (premio.texto === "SEM SORTE" || premio.texto === "FOI POR POUCO") {
+            resSecao.innerHTML = `<span style="font-size:18px; color:#f0f0f0;">❌ Não foi dessa vez!</span><br><b style="font-size:16px;">${premio.texto}</b>`;
+        } else {
+            // Caso você queira voltar a roleta ao normal mais tarde, mantive a lógica de prêmios aqui.
+            resSecao.innerHTML = `<span style="font-size:20px; color:#28a745;">🎉 PARABÉNS!</span><br><b style="font-size:18px;">VOCÊ GANHOU ${premio.texto}!</b>`;
+        }
+
+        document.getElementById('btn-continuar-resumo-roleta').style.display = "block";
+        document.getElementById('btn-girar-roleta').style.display = "none";
+    }
+
+    // 6. INTEGRAÇÃO NO FLUXO PRINCIPAL (ABRE A ROLETA)
+    window.abrirRoletaNoFluxo = function() {
+        const modal = document.getElementById('roleta-modal-overlay');
+        modal.style.display = "flex";
+
+        // Reset de estado
+        premioGanhoRoleta = null;
+        document.getElementById('resultado-roleta-secao').innerHTML = "";
+        document.getElementById('btn-continuar-resumo-roleta').style.display = "none";
+        document.getElementById('btn-girar-roleta').style.display = "block";
+        document.getElementById('btn-girar-roleta').innerText = "GIRAR A ROLETA SNOOP!";
+        document.getElementById('btn-girar-roleta').disabled = false;
+
+        desenharRoletaPremium();
+    };
+
+    // 7. FECHA A ROLETA E VAI PARA O RESUMO FINAL
+    window.fecharRoletaPremiumNoFluxo = function() {
+        document.getElementById('roleta-modal-overlay').style.display = 'none';
+        
+        // Salva o prêmio globalmente para o resumo final (embora hoje seja sempreazar)
+        window.premioGanhoGlobal = premioGanhoRoleta;
+        
+        // Chama o seu resumo final original
+        if (typeof mostrarResumoFinal === 'function') {
+            mostrarResumoFinal();
+        }
+    };
+
+})();
