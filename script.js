@@ -837,51 +837,31 @@ const db = inicializarFirebase();
 function salvarPedidoFirebase(dados) {
 
     if (!db) {
-
         console.error("Firebase não carregado!");
-
-        return Promise.resolve(); // Deixa seguir para o Zap mesmo com erro
-
+        return Promise.resolve();
     }
 
-    
+    const ID_LOJA = "kings_burger"; 
 
-    const novoPedidoRef = db.ref('pedidos').push();
+    const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
 
     return novoPedidoRef.set({
-
         cliente: dados.nome,
-
         endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
-
         referencia: document.getElementById("referencia")?.value || "Não informada",
-
         pagamento: dados.pag,
-
         itens: carrinho.map(item => ({
-
             produto: item.title,
-
             qtd: 1,
-
             precoUn: item.price
-
         })),
-
         subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
-
         taxaEntrega: taxaEntregaCalculada,
-
         desconto: descontoAplicado,
-
         total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
-
         horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-
         obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma"
-
     });
-
 }
 // FUNÇÃO PARA MIGRAR OS DADOS DO ARQUIVO PARA O FIREBASE
 async function migrarArquivoParaFirebase() {
@@ -1052,14 +1032,5 @@ function mostrarModalFechado() {
 
     modal.style.display = "flex";
 }
-
-
-// --- MÓDULO ROLETA ULTRA-REALISTA KINGS BURGER ---
-// --- ROLETA KINGS BURGER - VERSÃO PRECISÃO REALISTA ---
-// --- ROLETA KINGS BURGER - AJUSTE DE CENTRALIZAÇÃO E BOTÕES ---
-// --- ROLETA KINGS BURGER - AJUSTE FINO DE EIXO ---
-// --- ROLETA KINGS BURGER - VERSÃO CENTRALIZADA FINAL ---
-// --- ROLETA KINGS BURGER - VERSÃO FINAL CORRIGIDA ---
-
 
 
