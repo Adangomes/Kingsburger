@@ -1055,209 +1055,94 @@ function mostrarModalFechado() {
 
 
 // --- MÓDULO ROLETA ULTRA-REALISTA KINGS BURGER ---
+// --- ROLETA KINGS BURGER - VERSÃO PRECISÃO REALISTA ---
 (function() {
-    // 1. INJEÇÃO DE CSS5 DINÂMICO NO HEAD (Estilo Premium)
-    const cssStyle = document.createElement('style');
-    cssStyle.type = 'text/css';
-    cssStyle.innerHTML = `
-        /* MODAL OVERLAY REALISTA */
+    const style = document.createElement('style');
+    style.innerHTML = `
         .modal-roleta-kings {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             display: none; align-items: center; justify-content: center;
-            z-index: 10000; padding: 20px;
-            box-shadow: inset 0 0 100px #000;
+            z-index: 10000; font-family: sans-serif;
         }
-        
-        /* PALCO CENTRAL DA ROLETA */
-        .roleta-kings-palco {
-            width: 100%; max-width: 360px; text-align: center;
-            font-family: 'Segoe UI', sans-serif;
+        .palco-roleta { width: 100%; max-width: 400px; text-align: center; color: white; }
+        .moldura-roleta {
+            position: relative; width: 320px; height: 320px; margin: 20px auto;
+            border-radius: 50%; border: 8px solid #d4af37;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8); overflow: hidden;
         }
-
-        .roleta-kings-titulo {
-            color: #ffc107; /* Ouro Kings Burger */
-            font-weight: 900; text-transform: uppercase;
-            margin-bottom: 30px; text-shadow: 0 2px 10px rgba(255,193,7,0.3);
-        }
-
-        /* CONTAINER DA IMAGEM E ACESSÓRIOS */
-        .roleta-kings-container {
-            position: relative; width: 90vw; max-width: 320px; aspect-ratio: 1 / 1;
-            margin: auto; border-radius: 50%;
-            overflow: hidden; /* Corta a imagem em círculo perfeito */
-            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
-        }
-
-        /* A IMAGEM ULTRA-REALISTA QUE VOCÊ POSTOU (SALVE COMO roleta-realista.png) */
-        .roleta-kings-imagem {
-            width: 100%; height: 100%;
-            background-image: url('roleta-realista.png'); /* PULO DO GATO AQUI */
-            background-size: cover; background-position: center;
-            border-radius: 50%;
-            will-change: transform;
-            /* Animação suave e longa (7s) */
+        #img-roleta-premium {
+            width: 100%; height: 100%; object-fit: cover;
             transition: transform 7s cubic-bezier(0.1, 0, 0, 1);
+            will-change: transform;
         }
-
-        /* ACESSÓRIOS FIXOS SOBRE A IMAGEM (Z-INDEX SUPERIOR) */
-        .roleta-kings-center-hub {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 15%; height: 15%; background: radial-gradient(circle, #fff, #ccc, #444);
-            border-radius: 50%; border: 4px solid #d4af37; z-index: 10;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-
-        .roleta-kings-pointer {
+        /* Ponteiro Vermelho no Topo */
+        .ponteiro-kings {
             position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0;
-            border-left: 15px solid transparent; border-right: 15px solid transparent;
-            border-top: 35px solid #ff0000; /* Vermelho fixo no topo */
-            z-index: 20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+            width: 0; height: 0; border-left: 15px solid transparent; 
+            border-right: 15px solid transparent; border-top: 35px solid #ff0000;
+            z-index: 100; filter: drop-shadow(0 2px 5px #000);
         }
-
-        /* BOTÕES PREMIUM KINGS BURGER */
-        .btn-roleta-kings {
-            background: #ffc107; color: #000; border: none; padding: 16px; width: 100%;
-            border-radius: 12px; font-weight: 800; font-size: 16px; margin-top: 30px;
-            cursor: pointer; text-transform: uppercase; transition: transform 0.2s;
-        }
-        .btn-roleta-kings:hover { transform: scale(1.02); }
-        
-        #btn-continuar-kings { display: none; background: #28a745; color: white; margin-top: 10px; }
-
-        /* TEXTO DO RESULTADO - VISÍVEL E LIMPO */
-        #resultado-roleta-kings {
-            color: white; font-size: 18px; font-weight: bold; margin-top: 25px;
-            min-height: 50px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        .btn-giro-kings {
+            background: #ffc107; color: #000; border: none; padding: 18px;
+            width: 80%; border-radius: 12px; font-weight: bold; font-size: 16px;
+            cursor: pointer; text-transform: uppercase;
         }
     `;
-    document.head.appendChild(cssStyle);
+    document.head.appendChild(style);
 
-    // 2. CONFIGURAÇÕES DOS PRÊMIOS (DE ACORDO COM AS CORES DA IMAGEM)
-    // O Geoapify não desenha os textos, mas esta ordem deve bater com a visual
-    const premiosKings = [
-        { texto: "SEM SORTE ❌", valor: 0 },
-        { texto: "R$ 5,00 OFF", valor: 5 },
-        { texto: "R$ 10,00 OFF", valor: 10 },
-        { texto: "FOI POR POUCO! Quase...", valor: 0 },
-        { texto: "BATATAS BRINDE 🍟", valor: 0 },
-        { texto: "ENTREGA GRÁTIS", valor: 0 }
+    // Mapeamento das 8 fatias da sua imagem (começando do topo, sentido horário)
+    // Se o topo da sua imagem for o emoji triste:
+    const fatias = [
+        { nome: "TRISTE", azar: true },    // 0° (Topo)
+        { nome: "ENTREGA", azar: false },  // 45°
+        { nome: "DINHEIRO", azar: false }, // 90°
+        { nome: "XIS", azar: true },       // 135°
+        { nome: "BEBIDA", azar: false },   // 180°
+        { nome: "DESANIMO", azar: true },  // 225°
+        { nome: "DINHEIRO", azar: false }, // 270°
+        { nome: "ENTREGA", azar: false }   // 315°
     ];
 
-    let anguloAtualRoleta = 0;
-    let premioGanhoRoleta = null;
+    let anguloAtual = 0;
 
-    // 3. LÓGICA DE GIRO TOTALMENTE VICIADA (0 OU 3)
-    window.girarRoletaKingsBurgerRealista = function() {
-        if (premioGanhoRoleta) return;
-
-        const btn = document.getElementById('btn-girar-kings');
+    window.girarRoletaKings = function() {
+        const btn = document.getElementById('btn-giro');
+        const img = document.getElementById('img-roleta-premium');
         btn.disabled = true;
-        btn.innerText = "SORTEANDO...";
 
-        // --- LÓGICA VICIADA: Sorteia apenas os índices de azar (0 ou 3) ---
-        // 0 = Sem Sorte | 3 = Foi por Pouco
-        const opcoesAzar = [0, 3];
-        const indiceSorteado = opcoesAzar[Math.floor(Math.random() * opcoesAzar.length)];
-
-        // Cálculos de ângulo baseados no número de fatias (6)
-        const girosExtras = 360 * 9; // 9 voltas completas para suspense
-        const fatiaGraus = 360 / premiosKings.length;
-        const compensacaoPonteiroNorte = 90; // Ponteiro está no topo (90°)
-        const anguloPremio = (indiceSorteado * fatiaGraus) + (fatiaGraus / 2);
+        // --- LÓGICA DE ALVO VISUAL ---
+        // Índices de azar na imagem: 0 (Triste), 3 (X), 5 (Desânimo)
+        const indicesAzar = [0, 135, 225]; 
+        const alvoGraus = indicesAzar[Math.floor(Math.random() * indicesAzar.length)];
         
-        // Ângulo final que faz a imagem girar e parar no lugar certo
-        const anguloFinalRoleta = anguloAtualRoleta + girosExtras + (360 - anguloPremio) + compensacaoPonteiroNorte;
-
-        // Pega a DIV da imagem e aplica a rotação via CSS
-        const imagemKings = document.getElementById('roleta-imagem-giratoria-kings');
-        imagemKings.style.transform = `rotate(${anguloFinalRoleta}deg)`;
-
-        // Armazena o ângulo para o próximo giro
-        anguloAtualRoleta = anguloFinalRoleta;
+        const voltas = 360 * 8; // 8 voltas para dar emoção
+        // O cálculo (voltas + (360 - alvoGraus)) faz a fatia certa parar no ponteiro
+        const giroFinal = voltas + (360 - alvoGraus);
+        
+        anguloAtual += giroFinal;
+        img.style.transform = `rotate(${anguloAtual}deg)`;
 
         setTimeout(() => {
-            premioGanhoRoleta = premiosKings[indiceSorteado];
-            exibirResultadoKingsBurger(premioGanhoRoleta);
-        }, 7000); // Aguarda a animação de 7s terminar
+            alert("Não foi dessa vez! Mas não desista, o melhor Burger da região te espera. 🔥");
+            document.getElementById('modal-final').style.display = 'none';
+        }, 7500);
     };
 
-    // 4. EXIBE O RESULTADO NO MODAL
-    function exibirResultadoKingsBurger(premio) {
-        const resSecao = document.getElementById('resultado-roleta-kings');
-        
-        if (premio.valor === 0) {
-            resSecao.innerHTML = `<span style="font-size:16px; color:#aaa;">Não foi dessa vez para a Kings Burger!</span><br><b>${premio.texto}</b>`;
-        } else {
-            // Caso você queira voltar a roleta ao normal mais tarde, mantive a lógica de prêmios aqui.
-            resSecao.innerHTML = `<span style="font-size:20px; color:#28a745;">🎉 PARABÉNS REAIS!</span><br><b>VOCÊ GANHOU ${premio.texto}!</b>`;
-        }
+    const modal = document.createElement('div');
+    modal.id = 'modal-final';
+    modal.className = 'modal-roleta-kings';
+    modal.innerHTML = `
+        <div class="palco-roleta">
+            <h2 style="color:#ffc107">KINGS BURGER</h2>
+            <div class="moldura-roleta">
+                <div class="ponteiro-kings"></div>
+                <img src="imagens/ROLETA.jpeg" id="img-roleta-premium">
+            </div>
+            <button class="btn-giro-kings" id="btn-giro" onclick="girarRoletaKings()">TENTAR A SORTE!</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
 
-        document.getElementById('btn-continuar-kings').style.display = "block";
-        document.getElementById('btn-girar-kings').style.display = "none";
-    }
-
-    // 5. INTEGRAÇÃO NO FLUXO PRINCIPAL (ABRE NO LOAD)
-    window.abrirRoletaKingsBurgerAoCarregar = function() {
-        // Pega o modal existente (ou cria um se não houver)
-        let modal = document.getElementById('roleta-modal-kings-real');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'roleta-modal-kings-real';
-            modal.className = 'modal-roleta-kings';
-            modal.innerHTML = `
-                <div class="roleta-kings-palco">
-                    <h2 class="roleta-kings-titulo">Kings Burger - Tente a Sorte!</h2>
-                    <div class="roleta-kings-container">
-                        <div id="roleta-imagem-giratoria-kings" class="roleta-kings-imagem"></div>
-                        <div class="roleta-kings-center-hub"></div>
-                        <div class="roleta-kings-pointer"></div>
-                    </div>
-                    <div id="resultado-roleta-kings"></div>
-                    <button id="btn-girar-kings" class="btn-roleta-kings" onclick="girarRoletaKingsBurgerRealista()">
-                        GIRAR A ROLETA KINGS BURGER!
-                    </button>
-                    <button id="btn-continuar-kings" class="btn-roleta-kings" onclick="fecharRoletaKingsBurger()" style="display:none; background: #28a745; color: white;">
-                        VER CARDÁPIO
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-        
-        modal.style.display = "flex";
-
-        // Reset de estado
-        premioGanhoRoleta = null;
-        document.getElementById('resultado-roleta-kings').innerHTML = "";
-        document.getElementById('btn-continuar-kings').style.display = "none";
-        document.getElementById('btn-girar-kings').style.display = "block";
-        document.getElementById('btn-girar-kings').innerText = "GIRAR A ROLETA KINGS BURGER!";
-        document.getElementById('btn-girar-kings').disabled = false;
-    };
-
-    // 6. FECHA A ROLETA E SALVA O AZAR PARA O RESUMO (Copia do seu original)
-    window.fecharRoletaKingsBurger = function() {
-        document.getElementById('roleta-modal-kings-real').style.display = 'none';
-        
-        // Salva o azar para o resumo final (window.premioGanhoGlobal do script de resumo)
-        if (premioGanhoRoleta) {
-            window.premioGanhoGlobal = {
-                texto: premioGanhoRoleta.texto,
-                valor: premioGanhoRoleta.valor,
-                tipo: (premioGanhoRoleta.valor > 0) ? 'fixo' : 'nenhum'
-            };
-        }
-    };
-
+    // Abre 1 segundo após carregar
+    setTimeout(() => { modal.style.display = 'flex'; }, 1000);
 })();
-
-// GATILHO DE ABERTURA NO LOAD (MANTIDO DO SNOOP)
-window.addEventListener('DOMContentLoaded', () => {
-    // Pequeno delay de 1s para o cliente ver o fundo da loja antes da roleta subir
-    setTimeout(() => {
-        if (typeof abrirRoletaKingsBurgerAoCarregar === 'function') {
-            abrirRoletaKingsBurgerAoCarregar();
-        }
-    }, 1000);
-});
