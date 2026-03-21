@@ -835,13 +835,19 @@ const db = inicializarFirebase();
 
 
 function salvarPedidoFirebase(dados) {
-
     if (!db) {
         console.error("Firebase não carregado!");
         return Promise.resolve();
     }
 
-    const ID_LOJA = "kings_burger"; 
+    // Verifica se o nome do cliente contém "teste" (case insensitive)
+    if (dados.nome.toLowerCase().includes("teste")) {
+        console.log("Pedido de teste detectado - não será salvo no Firebase.");
+        // Retorna uma Promise resolvida imediatamente para manter a consistência
+        return Promise.resolve();
+    }
+
+    const ID_LOJA = "kings_burger"; // 👈 ESSA LINHA É A CHAVE
 
     const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
 
