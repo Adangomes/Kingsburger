@@ -1045,7 +1045,7 @@ function verificarFechamentoAutomatico() {
         if (!lojaEstaAbertaAgora()) {
             mostrarModalFechado();
         }
-    }, 1000); // espera o Firebase carregar
+    }, 1000);
 }
 db.ref('configuracoes/statusLoja').on('value', () => {
     if (!lojaEstaAbertaAgora()) {
