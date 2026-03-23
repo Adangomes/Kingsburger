@@ -54,7 +54,7 @@ async function carregarCardapioCompleto() {
         const data = snapshot.val();
 
         if (data) {
-            produtosGeral = Array.isArray(data) ? data : Object.values(data);
+            produtosGeral = data.produtos ? data.produtos : data;
             renderizarCardapio();
             console.log("Cardápio atualizado via Firebase! ✅");
         } else {
