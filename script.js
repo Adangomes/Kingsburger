@@ -157,18 +157,18 @@ function renderizarCardapio() {
 
 function decidirFluxo(nome) {
 
+    if (!lojaEstaAbertaAgora()) {
+        mostrarModalFechado();
+        return; // 👈 ISSO BLOQUEIA O CLIQUE
+    }
+
     const p = produtosGeral.find(prod => prod.title === nome);
 
     if (p.categoria === 'pizza' || p.categoria === 'porcao') {
-
         abrirModalSelecao(nome);
-
     } else {
-
         adicionarAoCarrinho(p.title, p.price, "");
-
     }
-
 }
 
 
@@ -720,14 +720,18 @@ function carregarStatusLoja() {
 
 function abrirDelivery() {
 
+    if (!lojaEstaAbertaAgora()) {
+        mostrarModalFechado();
+        return; // 👈 BLOQUEIA FINALIZAR
+    }
+
     if (carrinho.length === 0) return alert("Carrinho vazio!");
 
     fecharCarrinho();
 
     document.getElementById("delivery-modal").style.display = "flex";
 
-    document.body.style.overflow = "hidden"; // Fix bug teclado
-
+    document.body.style.overflow = "hidden";
 }
 
 
@@ -842,15 +846,22 @@ function salvarPedidoFirebase(dados) {
         return Promise.resolve();
     }
 
-    // Verifica se o nome do cliente contém "teste" (case insensitive)
+    // Verifica se o nome do cliente contém "teste"
     if (dados.nome.toLowerCase().includes("teste")) {
         console.log("Pedido de teste detectado - não será salvo no Firebase.");
-        // Retorna uma Promise resolvida imediatamente para manter a consistência
         return Promise.resolve();
     }
 
-    const ID_LOJA = "kings_burger"; // 👈 ESSA LINHA É A CHAVE
+    const ID_LOJA = "kings_burger"; 
+    const subtotalPedido = carrinho.reduce((acc, i) => acc + i.price, 0);
 
+    // --- AQUI ESTÁ O PULO DO GATO: REGISTRO BLINDADO ---
+    // Isso aqui salva o valor numa pasta separada que você só zera no seu Admin
+    db.ref(`faturamento_acumulado/${ID_LOJA}/vendas`).transaction((valorAtual) => {
+        return (valorAtual || 0) + subtotalPedido;
+    });
+
+    // --- SALVA O PEDIDO DETALHADO (O QUE PODE SUMIR EM 24H) ---
     const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
 
     return novoPedidoRef.set({
@@ -863,10 +874,10 @@ function salvarPedidoFirebase(dados) {
             qtd: 1,
             precoUn: item.price
         })),
-        subtotal: carrinho.reduce((acc, i) => acc + i.price, 0),
+        subtotal: subtotalPedido,
         taxaEntrega: taxaEntregaCalculada,
         desconto: descontoAplicado,
-        total: (carrinho.reduce((acc, i) => acc + i.price, 0) + taxaEntregaCalculada - descontoAplicado),
+        total: (subtotalPedido + taxaEntregaCalculada - descontoAplicado),
         horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
         obs_cozinha: document.getElementById("obs-pedido")?.value || "Nenhuma"
     });
