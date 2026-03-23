@@ -38,6 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("scroll", sincronizarScrollMenu);
 
+    verificarFechamentoAutomatico(); // 👈 ADICIONA AQUI
+
 });
 
 
@@ -1038,5 +1040,20 @@ function mostrarModalFechado() {
 
     modal.style.display = "flex";
 }
+function verificarFechamentoAutomatico() {
+    setTimeout(() => {
+        if (!lojaEstaAbertaAgora()) {
+            mostrarModalFechado();
+        }
+    }, 1000); // espera o Firebase carregar
+}
+db.ref('configuracoes/statusLoja').on('value', () => {
+    if (!lojaEstaAbertaAgora()) {
+        mostrarModalFechado();
+    } else {
+        const modal = document.getElementById("modal-fechado");
+        if (modal) modal.style.display = "none";
+    }
+});
 
 
