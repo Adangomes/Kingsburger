@@ -50,11 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function carregarCardapioCompleto() {
     if (!db) return console.error("Firebase não inicializado!");
 
-    // O .on('value') faz o site atualizar SOZINHO se você mudar algo no Admin
-    db.ref('cardapio/produtos').on('value', (snapshot) => {
+    db.ref('cardapio').on('value', (snapshot) => {
         const data = snapshot.val();
+
         if (data) {
-            // Garante que 'produtosGeral' seja sempre uma lista (array)
             produtosGeral = Array.isArray(data) ? data : Object.values(data);
             renderizarCardapio();
             console.log("Cardápio atualizado via Firebase! ✅");
@@ -63,7 +62,6 @@ async function carregarCardapioCompleto() {
         }
     });
 }
-
 
 function renderizarCardapio() {
 
