@@ -555,45 +555,42 @@ function enviarWhatsApp() {
 
     // 4. ENVIO COM SEGURANÇA (FIREBASE + WHATSAPP)
 
-    if (typeof salvarPedidoFirebase === 'function') {
-
-        // Se o Firebase falhar ou demorar mais de 4s, ele envia o Zap do mesmo jeito
-
-        const segurancaTimeout = setTimeout(() => {
-
-            finalizarEVoltarInicio();
-
-        }, 4000);
-
-
-
-        salvarPedidoFirebase({ nome, rua, num, bairro, pag })
-
-            .then(() => {
-
-                clearTimeout(segurancaTimeout);
-
-                finalizarEVoltarInicio();
-
-            })
-
-            .catch(err => {
-
-                console.error("Erro Firebase:", err);
-
-                clearTimeout(segurancaTimeout);
-
-                finalizarEVoltarInicio();
-
-            });
-
-    } else {
-
-        finalizarEVoltarInicio();
-
+    // 2. NOVA FUNÇÃO DE SALVAMENTO (KINGS BURGER - REGISTRO BLINDADO)
+function salvarPedidoFirebase(dados) {
+    // Verifica se o Firebase e o usuário autenticado existem
+    const user = firebase.auth().currentUser;
+    
+    if (!db || !user) {
+        console.warn("Aguardando autenticação para salvar faturamento Kings...");
+        return Promise.resolve(); 
     }
 
+    // Evita que seus testes sujem o faturamento real
+    if (dados.nome.toLowerCase().includes("teste")) return Promise.resolve();
+
+    const ID_LOJA = "kings_burger"; 
+
+    // REGISTRO ACUMULADO (Sua comissão de 10% protegida pelo Auth)
+    db.ref(`faturamento_acumulado/${ID_LOJA}/vendas`).transaction((val) => (val || 0) + dados.subtotal);
+
+    // REGISTRO DETALHADO (Para consulta da loja)
+    const novoPedidoRef = db.ref(`pedidos/${ID_LOJA}`).push();
+    return novoPedidoRef.set({
+        cliente: dados.nome,
+        endereco: `${dados.rua}, ${dados.num} - ${dados.bairro}`,
+        pagamento: dados.pag,
+        itens: carrinho.map(i => ({ produto: i.title, qtd: 1, precoUn: i.price })),
+        subtotal: dados.subtotal,
+        taxaEntrega: taxaEntregaCalculada,
+        desconto: descontoAplicado,
+        total: dados.totalGeral,
+        horario: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+        obs: dados.obs || "Sem observações",
+        uid: user.uid, // ID único do cliente
+        data: new Date().toISOString()
+    });
 }
+
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
 
