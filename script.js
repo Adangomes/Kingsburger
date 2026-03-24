@@ -48,17 +48,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- NOVA VERSÃO: CARREGA DO FIREBASE EM TEMPO REAL ---
 async function carregarCardapioCompleto() {
-    if (!db) return console.error("Firebase não inicializado!");
+    if (!db) return;
 
-    db.ref('cardapio').on('value', (snapshot) => {
+    db.ref('cardapio').once('value').then(async (snapshot) => {
         const data = snapshot.val();
 
         if (data) {
             produtosGeral = data.produtos ? data.produtos : data;
             renderizarCardapio();
-            console.log("Cardápio atualizado via Firebase! ✅");
         } else {
-            console.warn("Nenhum dado encontrado no Firebase.");
+            console.warn("Firebase vazio, carregando JSON local...");
+
+            const res = await fetch("content/produtos.json");
+            const json = await res.json();
+            produtosGeral = json.produtos;
+
+            renderizarCardapio();
         }
     });
 }
