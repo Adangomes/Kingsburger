@@ -67,87 +67,46 @@ async function carregarCardapioCompleto() {
 function renderizarCardapio() {
 
     const corpo = document.getElementById("cardapio-corpo");
-
     const nav = document.getElementById("categorias-scroll");
 
     corpo.innerHTML = "";
-
     nav.innerHTML = "";
-
-
 
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
 
-
-
     categorias.forEach((cat, idx) => {
-
         const btn = document.createElement("button");
-
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
-
         btn.innerText = cat.toUpperCase();
-
         btn.onclick = () => scrollToCategoria(cat);
-
         btn.setAttribute("data-categoria", cat);
-
         nav.appendChild(btn);
 
-
-
         const section = document.createElement("section");
-
         section.className = "secao-categoria";
-
         section.id = `secao-${cat}`;
-
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
 
-
-
         produtosGeral.filter(p => p.categoria === cat).forEach(p => {
-
-            if (p.categoria === 'porcao' && !p.title.includes("600g") && !p.title.includes("1kg")) return;
-
-            if (p.categoria === 'pizza' && !p.title.includes("PIZZA ")) return;
-
-
-
+            // REMOVIDO O FILTRO QUE SUMIA PRODUTOS
             const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
 
-
-
             section.innerHTML += `
-
                 <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
-
                     <div class="info-produto">
-
                         <h3>${p.title}</h3>
-
                         <p>${p.ingredientes || ""}</p>
-
                         <span class="preco-unico">${precoExibido}</span>
-
                     </div>
-
                     <div class="foto-produto-lista">
-
                         <img src="${p.image}" onerror="this.src='imagens/placeholder.png'">
-
                         <button class="btn-add-lista">+</button>
-
                     </div>
-
                 </div>`;
-
         });
 
         corpo.appendChild(section);
-
     });
-
 }
 
 
