@@ -165,18 +165,29 @@
         appId: "1:884850608032:web:79db6983346c3c20edc6c5"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let produtos = [];
+    // --- INICIALIZAÇÃO FIREBASE ---
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-    // --- LÓGICA FACE ID INTEGRADA ---
-    const video = document.getElementById('video');
-    const faceStatus = document.getElementById('face-status');
-    const scanLine = document.getElementById('scan-line');
-    const ring = document.getElementById('ring');
-    const btnCapture = document.getElementById('btn-capture');
-    let faceMatcher = null;
+const db = firebase.database();
 
+// 🔥 AUTENTICAÇÃO FIREBASE (necessário por causa das regras)
+firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log("Firebase autenticado ✅");
+  })
+  .catch((error) => {
+    console.error("Erro na autenticação:", error);
+  });
+
+let produtos = [];
+
+// --- LÓGICA FACE ID INTEGRADA ---
+const video = document.getElementById('video');
+const faceStatus = document.getElementById('face-status');
+const scanLine = document.getElementById('scan-line');
+const ring = document.getElementById('ring');
+const btnCapture = document.getElementById('btn-capture');
+let faceMatcher = null;
     async function initFaceID() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
         try {
