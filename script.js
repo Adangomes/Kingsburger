@@ -29,17 +29,20 @@ let tamanhoSelecionadoGlobal = "";
 
 
 document.addEventListener("DOMContentLoaded", () => {
-
+    // 1️⃣ Carrega o status da loja (aberto/fechado, horários)
     carregarStatusLoja();
 
+    // 2️⃣ Carrega o cardápio completo do Firebase e já renderiza na tela
     carregarCardapioCompleto();
 
+    // 3️⃣ Recupera o carrinho salvo no localStorage
     carregarCarrinhoStorage();
 
+    // 4️⃣ Sincroniza o menu de categorias conforme o scroll
     window.addEventListener("scroll", sincronizarScrollMenu);
 
-    verificarFechamentoAutomatico(); // 👈 ADICIONA AQUI
-
+    // 5️⃣ Verifica se a loja está fechada automaticamente e mostra modal
+    verificarFechamentoAutomatico();
 });
 
 
