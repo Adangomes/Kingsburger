@@ -62,19 +62,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // =====================
 // FUNÇÕES DE CARDÁPIO
-// =====================
 async function carregarCardapioCompleto() {
-    if (!db) return;
+    if (!db) {
+        console.error("Banco de dados não inicializado. Verifique as chaves do Firebase.");
+        return;
+    }
     try {
+        console.log("Tentando conectar ao Firebase...");
         const snapshot = await db.ref('cardapio_kings').once('value');
-        const data = snapshot.val() || {};
+        const data = snapshot.val();
+        
+        if (!data) {
+            console.warn("Cuidado: O nó 'cardapio_kings' retornou vazio!");
+            return;
+        }
+
+        // Se os produtos estiverem dentro de uma propriedade chamada 'produtos'
         produtosGeral = data.produtos || [];
-        console.log("Produtos carregados do Firebase:", produtosGeral);
+        
+        if (produtosGeral.length === 0) {
+            console.warn("A conexão funcionou, mas a lista de produtos está vazia.");
+        }
+
+        console.log("Sucesso! Itens carregados:", produtosGeral);
         renderizarCardapio();
     } catch (err) {
-        console.error("Erro ao carregar cardápio:", err);
+        console.error("Erro crítico na conexão:", err);
     }
 }
+
 
 function renderizarCardapio() {
     const corpo = document.getElementById("cardapio-corpo");
