@@ -50,22 +50,18 @@ document.addEventListener("DOMContentLoaded", () => {
 async function carregarCardapioCompleto() {
     if (!db) return;
 
-    db.ref('cardapio').once('value').then(async (snapshot) => {
-        const data = snapshot.val();
+    const snapshot1 = await db.ref('cardapio').once('value');
+    const snapshot2 = await db.ref('cardapio_kings').once('value');
 
-        if (data) {
-            produtosGeral = data.produtos ? data.produtos : data;
-            renderizarCardapio();
-        } else {
-            console.warn("Firebase vazio, carregando JSON local...");
+    let data1 = snapshot1.val() || {};
+    let data2 = snapshot2.val() || {};
 
-            const res = await fetch("content/produtos.json");
-            const json = await res.json();
-            produtosGeral = json.produtos;
+    produtosGeral = [
+        ...(data1.produtos || []),
+        ...(data2.produtos || [])
+    ];
 
-            renderizarCardapio();
-        }
-    });
+    renderizarCardapio();
 }
 
 function renderizarCardapio() {
