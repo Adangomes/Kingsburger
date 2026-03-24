@@ -65,19 +65,32 @@ document.addEventListener("DOMContentLoaded", () => {
 async function carregarCardapioCompleto() {
     if (!db) return;
     try {
-        const snapshot = await db.ref('cardapio_kings').once('value');
-        const data = snapshot.val();
-        
-        // Se 'data' já for a lista de produtos, usamos ela. 
-        // Se for um objeto com a chave 'produtos', usamos a chave.
+        console.log("Buscando produtos...");
+        // Tentamos buscar no nó 'produtos', que aparece no seu print
+        const snapshot = await db.ref('produtos').once('value');
+        let data = snapshot.val();
+
+        // Se não encontrar em 'produtos', tenta no 'cardapio_kings'
+        if (!data) {
+            const snapKings = await db.ref('cardapio_kings').once('value');
+            data = snapKings.val();
+        }
+
+        // Ajuste: Se 'data' for um objeto que contém uma lista de produtos, ou a própria lista
         produtosGeral = data.produtos ? data.produtos : (data || []);
         
-        console.log("Produtos processados:", produtosGeral);
+        // Converte objeto em array se necessário (caso o Firebase use IDs como chaves)
+        if (!Array.isArray(produtosGeral)) {
+            produtosGeral = Object.values(produtosGeral);
+        }
+
+        console.log("Produtos carregados com sucesso:", produtosGeral);
         renderizarCardapio();
     } catch (err) {
-        console.error("Erro ao carregar:", err);
+        console.error("Erro ao carregar cardápio:", err);
     }
 }
+
 
 
         // Se os produtos estiverem dentro de uma propriedade chamada 'produtos'
