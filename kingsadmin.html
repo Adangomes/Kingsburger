@@ -50,14 +50,21 @@ background:#000;display:flex;align-items:center;justify-content:center;z-index:9
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+        authDomain: "myproject26-10f0e.firebaseapp.com",
+        databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+        projectId: "myproject26-10f0e",
+        storageBucket: "myproject26-10f0e.firebasestorage.app",
+        messagingSenderId: "884850608032",
+        appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+    };
 
-// 🔥 CONFIG
-const firebaseConfig = {
-apiKey: "SUA KEY",
-authDomain: "SEU DOMINIO",
-databaseURL: "SUA URL",
-projectId: "ID"
-};
+    // --- INICIALIZAÇÃO FIREBASE ---
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
 
 // 🔥 INIT
 firebase.initializeApp(firebaseConfig);
