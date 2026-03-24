@@ -62,34 +62,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // =====================
 // FUNÇÕES DE CARDÁPIO
+// =====================
+// FUNÇÕES DE CARDÁPIO
+// =====================
 async function carregarCardapioCompleto() {
     if (!db) return;
     try {
-        console.log("Buscando produtos...");
-        // Tentamos buscar no nó 'produtos', que aparece no seu print
-        const snapshot = await db.ref('produtos').once('value');
-        let data = snapshot.val();
-
-        // Se não encontrar em 'produtos', tenta no 'cardapio_kings'
-        if (!data) {
-            const snapKings = await db.ref('cardapio_kings').once('value');
-            data = snapKings.val();
-        }
-
-        // Ajuste: Se 'data' for um objeto que contém uma lista de produtos, ou a própria lista
-        produtosGeral = data.produtos ? data.produtos : (data || []);
+        console.log("Conectando ao Firebase no caminho: cardapio/produtos...");
         
-        // Converte objeto em array se necessário (caso o Firebase use IDs como chaves)
-        if (!Array.isArray(produtosGeral)) {
-            produtosGeral = Object.values(produtosGeral);
+        // CORREÇÃO AQUI: Mudamos de 'cardapio_kings' para 'cardapio/produtos'
+        const snapshot = await db.ref('cardapio/produtos').once('value');
+        const data = snapshot.val();
+        
+        if (!data) {
+            console.warn("Nenhum dado encontrado em cardapio/produtos");
+            return;
         }
 
-        console.log("Produtos carregados com sucesso:", produtosGeral);
+        // Se 'data' for um objeto ou array, garantimos que produtosGeral receba os dados
+        produtosGeral = Array.isArray(data) ? data : Object.values(data);
+
+        console.log("Produtos carregados:", produtosGeral);
         renderizarCardapio();
     } catch (err) {
         console.error("Erro ao carregar cardápio:", err);
     }
 }
+
+// --- ATUALIZA STATUS EM TEMPO REAL ---
+// Ajustado para 'status_kings' conforme seu print
+function carregarStatusLoja() {
+    db.ref('status_kings').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            statusLojaAtual = data;
+            console.log("Status da loja atualizado:", statusLojaAtual);
+        }
+    });
+}
+
 
 
 
