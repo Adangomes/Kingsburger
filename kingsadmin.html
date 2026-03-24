@@ -3,158 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin Cloud - Kings Burger</title>
+    <title>Painel Admin Real - Kings Burger</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
-        body { background: #111; color: white; padding: 20px; font-family: sans-serif; min-height: 100vh; }
-        .card-prod { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
-        .card-prod img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #333; }
-        .form-control { background: #2b2b2b; border: 1px solid #444; color: white; }
+        body { background: #0d0d0d; color: white; padding: 20px; font-family: 'Segoe UI', sans-serif; }
+        .card-prod { background: #1a1a1a; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; transition: 0.3s; }
+        .card-prod.inativo { opacity: 0.4; border-color: #555; filter: grayscale(1); }
+        .card-prod img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; }
+        .form-control { background: #252525; border: 1px solid #444; color: white; }
         .form-control:focus { background: #333; color: white; border-color: #ffc107; box-shadow: none; }
-        label { font-size: 0.8rem; color: #888; margin-bottom: 2px; }
-        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .btn-warning { font-weight: bold; }
-        .scale-150 { transform: scale(1.5); margin-right: 10px; }
-
-        .dias-semana { display: flex; gap: 5px; justify-content: space-between; margin: 10px 0; flex-wrap: wrap; }
-        .dia-btn { 
-            flex: 1; min-width: 35px; height: 35px; border-radius: 5px; border: 1px solid #444;
-            background: #2b2b2b; color: #888; display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; cursor: pointer; font-weight: bold; transition: 0.3s;
-        }
-        .dia-btn.active { background: #ffc107; color: #000; border-color: #ffc107; }
-
-        /* --- ESTILOS DO LOCK SCREEN E FACE ID --- */
+        
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
-            transition: opacity 0.5s ease;
+            background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
         }
-        .login-box {
-            background: #1e1e1e; padding: 30px; border-radius: 20px; border: 1px solid #ffc107;
-            text-align: center; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(255,193,7,0.1);
-        }
-        #face-area { display: none; margin-top: 20px; }
-        .camera-circle {
-            width: 240px; height: 240px; margin: 0 auto; border-radius: 50%;
-            border: 3px solid #333; position: relative; overflow: hidden; background: #000;
-        }
+        .login-box { background: #1a1a1a; padding: 40px; border-radius: 25px; border: 1px solid #ffc107; text-align: center; width: 350px; }
+        .camera-circle { width: 220px; height: 220px; margin: 0 auto; border-radius: 50%; border: 3px solid #ffc107; overflow: hidden; position: relative; }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .scanner-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: #ffc107; box-shadow: 0 0 15px #ffc107; animation: scan 2s linear infinite; display: none;
-        }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
-        .loading-ring {
-            position: absolute; top: -5px; left: -5px; width: 250px; height: 250px;
-            border: 5px solid transparent; border-top-color: #ffc107; border-radius: 50%;
-            animation: spin 1s linear infinite; display: none;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        /* ---------------------------------------- */
-
-        @media (max-width: 768px) {
-            .header-painel h2 { font-size: 1.5rem; width: 100%; text-align: center; }
-            .header-painel .text-end { width: 100%; text-align: center !important; display: flex; flex-direction: column; gap: 10px; }
-        }
     </style>
 </head>
 <body>
 
     <div id="lock-screen">
         <div class="login-box">
-            <h3 class="text-warning mb-2">Kings Burger</h3>
-            <p id="label-status" class="text-muted small">Acesso Restrito</p>
-            
+            <h3 class="text-warning mb-4">Kings Admin</h3>
             <div id="pass-area">
-                <input type="password" id="admin-pass" class="form-control mb-3 text-center" placeholder="Senha de Acesso">
-                <button class="btn btn-warning w-100" onclick="verificarSenha()">Entrar</button>
+                <input type="password" id="local-pass" class="form-control mb-3 text-center" placeholder="Senha do Painel">
+                <button class="btn btn-warning w-100" onclick="verificarAcessoLocal()">Acessar</button>
             </div>
-
-            <div id="face-area">
-                <div class="camera-circle">
-                    <video id="video" autoplay muted playsinline></video>
-                    <div class="scanner-line" id="scan-line"></div>
-                    <div class="loading-ring" id="ring"></div>
-                </div>
-                <div id="face-status" class="status-msg mt-3 small text-secondary">Ajuste seu rosto no círculo</div>
-                <button id="btn-capture" class="btn btn-outline-warning mt-3 btn-sm" onclick="iniciarCaptura()" style="display:none;">Estou Pronto</button>
-            </div>
-            
-            <div id="setup-msg" class="mt-4 small text-muted">Carregando IA...</div>
-        </div>
-    </div>
-
-<div class="container" id="conteudo-principal">
-    <div class="header-painel">
-        <h2>Painel Admin <span class="text-warning">Kings Burger</span></h2>
-        <div class="w-100 mt-2">
-            <div class="card-prod border-warning">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="mb-0">Loja: <span id="txtStatus" class="badge bg-secondary">Carregando...</span></h4>
-                    <div class="form-check form-switch scale-150">
-                        <input class="form-check-input" type="checkbox" id="switchStatus" onchange="alterarStatusLoja(this.checked)">
-                    </div>
-                </div>
-
-                <label class="d-block mb-1">Dias de Funcionamento:</label>
-                <div class="dias-semana" id="gradeDias">
-                    <div class="dia-btn" data-dia="0" onclick="toggleDia(this)">D</div>
-                    <div class="dia-btn" data-dia="1" onclick="toggleDia(this)">S</div>
-                    <div class="dia-btn" data-dia="2" onclick="toggleDia(this)">T</div>
-                    <div class="dia-btn" data-dia="3" onclick="toggleDia(this)">Q</div>
-                    <div class="dia-btn" data-dia="4" onclick="toggleDia(this)">Q</div>
-                    <div class="dia-btn" data-dia="5" onclick="toggleDia(this)">S</div>
-                    <div class="dia-btn" data-dia="6" onclick="toggleDia(this)">S</div>
-                </div>
-
-                <div class="row g-2 align-items-end mt-2">
-                    <div class="col-5">
-                        <label class="d-block">Abertura</label>
-                        <input type="time" id="horaAbre" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-5">
-                        <label class="d-block">Fechamento</label>
-                        <input type="time" id="horaFecha" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-2">
-                        <button class="btn btn-warning btn-sm w-100" onclick="salvarHorariosKings()">OK</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-end mb-4">
-                <button class="btn btn-outline-info btn-sm me-2" onclick="migrarArquivoParaFirebase()">📥 Importar JSON</button>
-                <button class="btn btn-success btn-sm me-2" onclick="novoProduto()">+ Novo Item</button>
-                <button class="btn btn-warning btn-sm" id="btnSalvar" onclick="salvarNoFirebase()">☁️ Salvar Cloud</button>
+            <div id="face-area" style="display:none;">
+                <div class="camera-circle"><video id="video" autoplay muted playsinline></video></div>
+                <p id="face-status" class="mt-3 small text-muted">Aguardando Biometria...</p>
+                <button class="btn btn-outline-warning btn-sm" onclick="iniciarCaptura()">Validar Rosto</button>
             </div>
         </div>
     </div>
 
-    <div class="card-prod mb-4" style="border: 1px dashed #0dcaf0; background: #1a1a1a;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0 text-info">🎟️ Gerenciar Cupons</h4>
-            <button class="btn btn-outline-info btn-sm" onclick="novoCupom()">+ Novo Cupom</button>
+    <div class="container" id="main-content" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Admin <span class="text-warning">Real-Time</span></h2>
+            <div>
+                <span id="user-tag" class="badge bg-dark me-2"></span>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()">Sair</button>
+            </div>
         </div>
-        <div id="listaCuponsAdmin">
-            <p class="text-center text-muted small">Buscando cupons...</p>
-        </div>
-    </div>
 
-    <div id="listaProdutos">
-        <p class="text-center text-muted">Carregando cardápio...</p>
+        <div class="card-prod border-warning mb-4">
+            <div class="d-flex justify-content-between">
+                <h5 class="mb-0">Status da Loja: <span id="loja-label">...</span></h5>
+                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="loja-switch" onchange="toggleLoja(this.checked)"></div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-4">
+            <button class="btn btn-success w-100" onclick="novoProduto()">+ Criar Produto</button>
+            <button class="btn btn-warning w-100" id="btnSave" onclick="salvarCloud()">☁️ Salvar na Nuvem</button>
+        </div>
+
+        <div id="lista"></div>
     </div>
-</div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- CREDENCIAIS REAIS DO FIREBASE ---
+    const ADMIN_EMAIL = "adangones55@gmail.com";
+    const ADMIN_PASS = "Ada44ada"; // <--- COLOQUE A SENHA QUE VOCÊ CRIOU NO FIREBASE AQUI
+
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
         authDomain: "myproject26-10f0e.firebaseapp.com",
@@ -165,227 +84,109 @@
         appId: "1:884850608032:web:79db6983346c3c20edc6c5"
     };
 
-    // --- INICIALIZAÇÃO FIREBASE ---
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let produtos = [];
+    let faceMatcher = null;
 
-const db = firebase.database();
+    // --- SEGURANÇA ---
+    function verificarAcessoLocal() {
+        if(document.getElementById('local-pass').value === "Kings@20BR26burger") {
+            document.getElementById('pass-area').style.display = 'none';
+            document.getElementById('face-area').style.display = 'block';
+            iniciarCamera();
+        } else alert("Senha incorreta");
+    }
 
-// 🔥 AUTENTICAÇÃO FIREBASE (necessário por causa das regras)
-firebase.auth().signInAnonymously()
-  .then(() => {
-    console.log("Firebase autenticado ✅");
-  })
-  .catch((error) => {
-    console.error("Erro na autenticação:", error);
-  });
+    async function iniciarCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+        document.getElementById('video').srcObject = stream;
+        initFaceID();
+    }
 
-let produtos = [];
-
-// --- LÓGICA FACE ID INTEGRADA ---
-const video = document.getElementById('video');
-const faceStatus = document.getElementById('face-status');
-const scanLine = document.getElementById('scan-line');
-const ring = document.getElementById('ring');
-const btnCapture = document.getElementById('btn-capture');
-let faceMatcher = null;
     async function initFaceID() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
-        try {
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-            ]);
-            
-            const users = ['Programador', 'Admin']; 
-            const descriptors = await Promise.all(users.map(async user => {
-                try {
-                    const img = await faceapi.fetchImage(`imagens/${user}.jpeg`);
-                    const fullDesc = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                    return new faceapi.LabeledFaceDescriptors(user, [fullDesc.descriptor]);
-                } catch(e) { return null; }
-            }));
-
-            faceMatcher = new faceapi.FaceMatcher(descriptors.filter(d => d), 0.6);
-            document.getElementById('setup-msg').innerText = "Biometria Pronta ✅";
-        } catch (e) {
-            document.getElementById('setup-msg').innerText = "Erro ao carregar modelos.";
-        }
-    }
-
-    const SENHA_MESTRA = "Kings@20BR26burger"; 
-    function verificarSenha() {
-        if (document.getElementById("admin-pass").value === SENHA_MESTRA) { 
-            document.getElementById("pass-area").style.display = "none";
-            document.getElementById("face-area").style.display = "block";
-            document.getElementById("label-status").innerText = "Validação Biométrica";
-            startCamera();
-        } else alert("Incorreta!");
-    }
-
-    function startCamera() {
-        navigator.mediaDevices.getUserMedia({ video: {} })
-            .then(stream => { 
-                video.srcObject = stream; 
-                btnCapture.style.display = "inline-block";
-            })
-            .catch(() => faceStatus.innerText = "Câmera bloqueada.");
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        const img = await faceapi.fetchImage('imagens/Programador.jpeg');
+        const desc = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+        faceMatcher = new faceapi.FaceMatcher(desc);
+        document.getElementById('face-status').innerText = "IA Pronta ✅";
     }
 
     async function iniciarCaptura() {
-        btnCapture.style.display = "none";
-        ring.style.display = "block";
-        scanLine.style.display = "block";
-        faceStatus.innerText = "Analisando...";
-
-        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                                       .withFaceLandmarks()
-                                       .withFaceDescriptor();
-
-        if (detection) {
-            const match = faceMatcher.findBestMatch(detection.descriptor);
-            if (match.label !== 'unknown') {
-                faceStatus.innerText = "Acesso Liberado: " + match.label;
-                faceStatus.className = "mt-3 small text-success fw-bold";
-                ring.style.borderTopColor = "#28a745";
-                setTimeout(liberarAcessoTotal, 1000);
-            } else {
-                faceStatus.innerText = "Não autorizado!";
-                faceStatus.className = "mt-3 small text-danger fw-bold";
-                setTimeout(() => {
-                    ring.style.display = "none";
-                    scanLine.style.display = "none";
-                    btnCapture.style.display = "inline-block";
-                    faceStatus.className = "mt-3 small text-secondary";
-                    faceStatus.innerText = "Tente novamente";
-                }, 2000);
-            }
-        } else {
-            faceStatus.innerText = "Nenhum rosto detectado.";
-            btnCapture.style.display = "inline-block";
-            ring.style.display = "none";
-            scanLine.style.display = "none";
-        }
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+        if(detection && faceMatcher.findBestMatch(detection.descriptor).label !== 'unknown') {
+            logarNoFirebase();
+        } else alert("Não reconhecido!");
     }
 
-    function liberarAcessoTotal() {
-        document.getElementById("lock-screen").style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById("lock-screen").style.display = "none";
-            if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            carregarProdutos(); // Carrega o Firebase após entrar
-        }, 500);
+    async function logarNoFirebase() {
+        try {
+            await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL, ADMIN_PASS);
+            entrarNoPainel();
+        } catch(e) { alert("Erro no Firebase: " + e.message); }
     }
 
-    // --- FUNÇÕES ORIGINAIS DO SEU ADMIN (MANTIDAS 100%) ---
-    function toggleDia(el) { el.classList.toggle('active'); }
-
-    db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const txt = document.getElementById("txtStatus");
-        const sw = document.getElementById("switchStatus");
-        if (txt && sw && data) {
-            const aberto = (typeof data === 'object') ? data.aberto : data;
-            txt.innerText = aberto ? "Aberto" : "Fechado";
-            txt.className = aberto ? "badge bg-success" : "badge bg-danger";
-            sw.checked = aberto;
-            if (data.horarioAbertura) document.getElementById("horaAbre").value = data.horarioAbertura;
-            if (data.horarioFechamento) document.getElementById("horaFecha").value = data.horarioFechamento;
-            const diasAtivos = data.diasAbertos || [];
-            document.querySelectorAll('.dia-btn').forEach(btn => {
-                const diaNum = parseInt(btn.getAttribute('data-dia'));
-                btn.classList.toggle('active', diasAtivos.includes(diaNum));
-            });
-        }
-    });
-
-    function alterarStatusLoja(novoStatus) { db.ref('configuracoes/statusLoja').update({ aberto: novoStatus }); }
-
-    function salvarHorariosKings() {
-        const abre = document.getElementById("horaAbre").value;
-        const fecha = document.getElementById("horaFecha").value;
-        const diasMarcados = Array.from(document.querySelectorAll('.dia-btn.active')).map(btn => parseInt(btn.getAttribute('data-dia')));
-        if (!abre || !fecha || diasMarcados.length === 0) return alert("Preencha tudo!");
-        db.ref('configuracoes/statusLoja').update({ horarioAbertura: abre, horarioFechamento: fecha, diasAbertos: diasMarcados })
-          .then(() => alert("Salvo! ✅"));
+    function entrarNoPainel() {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.getElementById('user-tag').innerText = firebase.auth().currentUser.email;
+        carregarDados();
     }
 
-    async function carregarProdutos() {
-        db.ref('cardapio/produtos').on('value', (snapshot) => {
-            const data = snapshot.val();
-            produtos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-            renderizar();
+    // --- FUNÇÕES DE DADOS ---
+    function carregarDados() {
+        db.ref('cardapio/produtos').on('value', snap => { produtos = snap.val() || []; render(); });
+        db.ref('configuracoes/statusLoja/aberto').on('value', snap => {
+            const ab = snap.val();
+            document.getElementById('loja-label').innerText = ab ? "ABERTA" : "FECHADA";
+            document.getElementById('loja-switch').checked = ab;
         });
     }
 
-    function renderizar() {
-        const lista = document.getElementById("listaProdutos");
-        if (!lista) return;
-        lista.innerHTML = produtos.length ? "" : '<p class="text-center text-danger">Nenhum produto.</p>';
+    function render() {
+        const lista = document.getElementById('lista');
+        lista.innerHTML = "";
         produtos.forEach((p, i) => {
+            const ativo = p.ativo !== false;
             lista.innerHTML += `
-            <div class="card-prod">
+            <div class="card-prod ${ativo ? '' : 'inativo'}">
                 <div class="row align-items-center">
-                    <div class="col-md-1 text-center"><img src="${p.image}" onerror="this.src='https://via.placeholder.com/100?text=Sem+Foto'"></div>
-                    <div class="col-md-3 col-12"><label>Título</label><input class="form-control" value="${p.title || ''}" onchange="editar(${i}, 'title', this.value)"></div>
-                    <div class="col-md-2 col-6"><label>Preço</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="editar(${i}, 'price', this.value)"></div>
-                    <div class="col-md-2 col-6"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="editar(${i}, 'categoria', this.value)"></div>
-                    <div class="col-md-3 col-10"><label>Imagem</label><input class="form-control" value="${p.image || ''}" onchange="editar(${i}, 'image', this.value)"></div>
-                    <div class="col-md-1 col-2 text-end"><button class="btn btn-outline-danger btn-sm" onclick="excluir(${i})">X</button></div>
-                    <div class="col-12 mt-2"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="editar(${i}, 'ingredientes', this.value)"></div>
+                    <div class="col-2"><img src="${p.image}"></div>
+                    <div class="col-4"><input class="form-control" value="${p.title}" onchange="edit(${i},'title',this.value)"></div>
+                    <div class="col-2"><input class="form-control" type="number" value="${p.price}" onchange="edit(${i},'price',this.value)"></div>
+                    <div class="col-4 text-end">
+                        <button class="btn ${ativo ? 'btn-outline-light' : 'btn-success'} btn-sm" onclick="toggleAtivo(${i})">${ativo ? 'Silenciar' : 'Ativar'}</button>
+                        <button class="btn btn-danger btn-sm" onclick="remover(${i})">X</button>
+                    </div>
                 </div>
             </div>`;
         });
     }
 
-    function editar(i, campo, valor) { produtos[i][campo] = (campo === "price") ? parseFloat(valor) : valor; }
-    function excluir(i) { if (confirm("Excluir?")) { produtos.splice(i, 1); db.ref('cardapio/produtos').set(produtos); } }
-    function novoProduto() { produtos.unshift({ title: "Novo Burger", price: 0, categoria: "burger", ingredientes: "", image: "" }); renderizar(); }
-    function salvarNoFirebase() { 
-        const btn = document.getElementById("btnSalvar"); btn.innerText = "⏳..."; 
-        db.ref('cardapio/produtos').set(produtos).then(() => alert("Sucesso! ✅")).finally(() => btn.innerText = "☁️ Salvar Cloud");
-    }
+    function edit(i, f, v) { produtos[i][f] = f === 'price' ? parseFloat(v) : v; }
+    function toggleAtivo(i) { produtos[i].ativo = (produtos[i].ativo === false); render(); }
+    function novoProduto() { produtos.unshift({title: "Novo", price: 0, categoria: "burger", image: "", ativo: true}); render(); }
+    function remover(i) { if(confirm("Remover?")) { produtos.splice(i, 1); salvarCloud(); } }
+    function toggleLoja(s) { db.ref('configuracoes/statusLoja').update({ aberto: s }); }
 
-    function renderizarCupons(cuponsObj) {
-        const container = document.getElementById("listaCuponsAdmin");
-        if (!container) return; container.innerHTML = "";
-        if (!cuponsObj) { container.innerHTML = "<p class='text-muted text-center small'>Nenhum cupom.</p>"; return; }
-        Object.entries(cuponsObj).forEach(([id, c]) => {
-            container.innerHTML += `
-            <div class="bg-dark p-2 mb-2 rounded border border-secondary row align-items-center mx-1">
-                <div class="col-md-4 col-12 mb-2"><label class="text-info small">Código</label><input class="form-control form-control-sm" value="${c.codigo}" onchange="editarCupom('${id}', 'codigo', this.value.toUpperCase())"></div>
-                <div class="col-md-3 col-6"><label class="text-info small">Valor</label><input class="form-control form-control-sm" type="number" value="${c.valor}" onchange="editarCupom('${id}', 'valor', parseFloat(this.value))"></div>
-                <div class="col-md-3 col-6"><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" ${c.ativo ? 'checked' : ''} onchange="editarCupom('${id}', 'ativo', this.checked)"><label class="ms-1 small text-white">${c.ativo ? 'ON' : 'OFF'}</label></div></div>
-                <div class="col-md-2 col-12 text-end mt-2"><button class="btn btn-sm btn-outline-danger w-100" onclick="excluirCupom('${id}')">🗑️</button></div>
-            </div>`;
+    function salvarCloud() {
+        const btn = document.getElementById('btnSave');
+        btn.innerText = "⏳...";
+        db.ref('cardapio/produtos').set(produtos).then(() => {
+            alert("Sincronizado! ✅");
+            btn.innerText = "☁️ Salvar na Nuvem";
         });
     }
-    function novoCupom() { db.ref('configuracoes/cupons').push({ codigo: "NOVO10", valor: 10, tipo: "fixo", ativo: true }); }
-    function editarCupom(id, campo, valor) { db.ref(`configuracoes/cupons/${id}`).update({ [campo]: valor }); }
-    function excluirCupom(id) { if(confirm("Excluir?")) db.ref(`configuracoes/cupons/${id}`).remove(); }
-    db.ref('configuracoes/cupons').on('value', (snapshot) => renderizarCupons(snapshot.val()));
 
-    async function migrarArquivoParaFirebase() {
-        try {
-            const resP = await fetch("content/produtos.json?v=" + Date.now());
-            const dataP = await resP.json();
-            if (dataP.produtos) await db.ref('cardapio/produtos').set(dataP.produtos);
-            alert("Sucesso! ✅");
-        } catch (err) { alert("Erro."); }
-    }
+    function logout() { firebase.auth().signOut().then(() => location.reload()); }
 
-    function verificarFechamentoAutomatico() {
-        db.ref('configuracoes/statusLoja').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data || !data.aberto) return;
-            const agora = new Date();
-            const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-            if (horaAtual >= data.horarioFechamento) alterarStatusLoja(false);
-        });
-    }
-    setInterval(verificarFechamentoAutomatico, 30000);
-
-    document.addEventListener("DOMContentLoaded", initFaceID);
+    firebase.auth().onAuthStateChanged(user => { if(user) entrarNoPainel(); });
 </script>
 </body>
 </html>
