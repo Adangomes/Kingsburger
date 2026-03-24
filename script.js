@@ -47,34 +47,42 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
 
 // --- NOVA VERSÃO: CARREGA DO FIREBASE EM TEMPO REAL ---
+// --- GLOBAL ---
+let produtosGeral = [];
+
+// --- FUNÇÃO PARA CARREGAR CARDÁPIO DO FIREBASE ---
 async function carregarCardapioCompleto() {
     if (!db) return;
 
-    const snapshot1 = await db.ref('cardapio').once('value');
-    const snapshot2 = await db.ref('cardapio_kings').once('value');
+    try {
+        // Pega os produtos de 'cardapio_kings' (pode adicionar outros caminhos se quiser)
+        const snapshot = await db.ref('cardapio_kings').once('value');
+        const data = snapshot.val() || {};
 
-    let data1 = snapshot1.val() || {};
-    let data2 = snapshot2.val() || {};
+        produtosGeral = data.produtos || [];
 
-    produtosGeral = [
-        ...(data1.produtos || []),
-        ...(data2.produtos || [])
-    ];
-
-    renderizarCardapio();
+        console.log("Produtos carregados do Firebase:", produtosGeral); // Debug
+        renderizarCardapio();
+    } catch (err) {
+        console.error("Erro ao carregar cardápio:", err);
+    }
 }
 
+// --- FUNÇÃO PARA RENDERIZAR O CARDÁPIO ---
 function renderizarCardapio() {
-
     const corpo = document.getElementById("cardapio-corpo");
     const nav = document.getElementById("categorias-scroll");
+
+    if (!corpo || !nav) return;
 
     corpo.innerHTML = "";
     nav.innerHTML = "";
 
+    // Pega categorias únicas
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
 
     categorias.forEach((cat, idx) => {
+        // --- BOTÃO DE CATEGORIA ---
         const btn = document.createElement("button");
         btn.className = `cat-item ${idx === 0 ? 'active' : ''}`;
         btn.innerText = cat.toUpperCase();
@@ -82,33 +90,40 @@ function renderizarCardapio() {
         btn.setAttribute("data-categoria", cat);
         nav.appendChild(btn);
 
+        // --- SEÇÃO DE PRODUTOS ---
         const section = document.createElement("section");
         section.className = "secao-categoria";
         section.id = `secao-${cat}`;
         section.innerHTML = `<h2 class="titulo-categoria">${cat.toUpperCase()}</h2>`;
 
-        produtosGeral.filter(p => p.categoria === cat).forEach(p => {
-            // REMOVIDO O FILTRO QUE SUMIA PRODUTOS
-            const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
+        produtosGeral
+            .filter(p => p.categoria === cat)
+            .forEach(p => {
+                const precoExibido = p.price > 0 ? `R$ ${p.price.toFixed(2)}` : "Escolher Opções";
 
-            section.innerHTML += `
-                <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
-                    <div class="info-produto">
-                        <h3>${p.title}</h3>
-                        <p>${p.ingredientes || ""}</p>
-                        <span class="preco-unico">${precoExibido}</span>
-                    </div>
-                    <div class="foto-produto-lista">
-                        <img src="${p.image}" onerror="this.src='imagens/placeholder.png'">
-                        <button class="btn-add-lista">+</button>
-                    </div>
-                </div>`;
-        });
+                section.innerHTML += `
+                    <div class="item-produto-lista" onclick="decidirFluxo('${p.title}')">
+                        <div class="info-produto">
+                            <h3>${p.title}</h3>
+                            <p>${p.ingredientes || ""}</p>
+                            <span class="preco-unico">${precoExibido}</span>
+                        </div>
+                        <div class="foto-produto-lista">
+                            <img src="${p.image}" onerror="this.src='imagens/placeholder.png'">
+                            <button class="btn-add-lista">+</button>
+                        </div>
+                    </div>`;
+            });
 
         corpo.appendChild(section);
     });
 }
 
+// --- FUNÇÃO PARA SCROLL NAS CATEGORIAS ---
+function scrollToCategoria(cat) {
+    const el = document.getElementById(`secao-${cat}`);
+    if (el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
+}
 
 
 // --- 2. LÓGICA DE SELEÇÃO ---
