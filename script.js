@@ -68,22 +68,18 @@ document.addEventListener("DOMContentLoaded", () => {
 async function carregarCardapioCompleto() {
     if (!db) return;
     try {
-        console.log("Conectando ao Firebase no caminho: cardapio/produtos...");
-        
-        // CORREÇÃO AQUI: Mudamos de 'cardapio_kings' para 'cardapio/produtos'
+        console.log("Tentando carregar produtos do Firebase...");
         const snapshot = await db.ref('cardapio/produtos').once('value');
-        const data = snapshot.val();
-        
-        if (!data) {
-            console.warn("Nenhum dado encontrado em cardapio/produtos");
-            return;
-        }
+        const data = snapshot.val() || [];
 
-        // Se 'data' for um objeto ou array, garantimos que produtosGeral receba os dados
         produtosGeral = Array.isArray(data) ? data : Object.values(data);
 
-        console.log("Produtos carregados:", produtosGeral);
-        renderizarCardapio();
+        if (produtosGeral.length === 0) {
+            console.warn("A lista de produtos está vazia!");
+        } else {
+            console.log("Produtos carregados:", produtosGeral);
+            renderizarCardapio();
+        }
     } catch (err) {
         console.error("Erro ao carregar cardápio:", err);
     }
