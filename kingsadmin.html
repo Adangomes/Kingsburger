@@ -93,27 +93,53 @@
     const db = firebase.database();
     let produtos = [];
 
+    // 1. CONFIGURAÇÕES DE ACESSO PERMITIDAS
+    const usuariosPermitidos = [
+        { email: "adangones55@gmail.com" },
+        { email: "gabrieljunirrr@gmail.com" }
+    ];
+
+    // 2. FUNÇÃO INICIAL (CHAMADA NO FINAL DO SCRIPT)
     function carregarTudo() {
-        // Monitora autenticação
         firebase.auth().onAuthStateChanged(user => {
-            if (!user) {
-                const senha = prompt("Acesso Restrito Adan. Digite sua senha:");
-                firebase.auth().signInWithEmailAndPassword("adangones55@gmail.com", senha)
-                .catch(() => alert("Senha incorreta!"));
+            if (user) {
+                const autorizado = usuariosPermitidos.some(u => u.email === user.email);
+                if (autorizado) {
+                    iniciarMonitoramentoDB();
+                } else {
+                    alert("Acesso Negado: E-mail não autorizado.");
+                    firebase.auth().signOut();
+                }
+            } else {
+                solicitarLogin();
             }
         });
+    }
 
-        // Monitora Produtos
+    function solicitarLogin() {
+        const email = prompt("E-mail de Administrador:");
+        const senha = prompt("Senha:");
+        if (email && senha) {
+            firebase.auth().signInWithEmailAndPassword(email.trim(), senha)
+                .catch(e => {
+                    alert("Erro: " + e.message);
+                    solicitarLogin();
+                });
+        }
+    }
+
+    // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
+    function iniciarMonitoramentoDB() {
         db.ref('cardapio/produtos').on('value', snap => {
             const data = snap.val();
             produtos = data ? Object.values(data).filter(i => i !== null) : [];
             renderProdutos();
         });
 
-        // Monitora Configurações
         db.ref('configuracoes/statusLoja').on('value', snap => {
             const d = snap.val() || {};
-            document.getElementById('loja-switch').checked = d.aberto;
+            const sw = document.getElementById('loja-switch');
+            if(sw) sw.checked = d.aberto;
             document.getElementById('h-abre').value = d.horarioAbertura || "";
             document.getElementById('h-fecha').value = d.horarioFechamento || "";
             const diasAbertos = d.diasAbertos || [];
@@ -122,10 +148,10 @@
             });
         });
 
-        // Monitora Cupons
         db.ref('configuracoes/cupons').on('value', snap => renderCupons(snap.val()));
     }
 
+    // 4. FUNÇÕES DE INTERFACE (RENDERIZAÇÃO)
     function renderProdutos() {
         const div = document.getElementById('lista-produtos');
         div.innerHTML = "";
@@ -155,12 +181,11 @@
         });
     }
 
+    // 5. FUNÇÕES DE LÓGICA E BANCO
     function salvarCloud() {
         const btn = document.getElementById('btnSave');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = "⏳ Sincronizando...";
+        btn.innerHTML = "⏳ Gravando...";
         btn.disabled = true;
-
         const dadosLimpos = produtos.map(p => ({
             title: p.title || "Sem nome",
             price: parseFloat(p.price) || 0,
@@ -169,23 +194,13 @@
             image: p.image || "",
             ativo: p.ativo !== false
         }));
-
         db.ref('cardapio/produtos').set(dadosLimpos)
-            .then(() => alert("Cardápio Atualizado no App! 🚀"))
-            .catch(e => alert("Erro ao salvar: " + e.message))
-            .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
+            .then(() => alert("Sincronizado! 🚀"))
+            .finally(() => { btn.innerHTML = "☁️ SALVAR TUDO"; btn.disabled = false; });
     }
 
     function edit(i, f, v) { produtos[i][f] = (f === 'price') ? parseFloat(v) : v; }
-    
-    function toggleAtivo(i) { 
-        produtos[i].ativo = ! (produtos[i].ativo !== false);
-        renderProdutos(); 
-    }
-
+    function toggleAtivo(i) { produtos[i].ativo = !(produtos[i].ativo !== false); renderProdutos(); }
     function toggleLoja(s) { db.ref('configuracoes/statusLoja/aberto').set(s); }
 
     function salvarConfigLoja() {
@@ -216,8 +231,9 @@
         renderProdutos(); 
     }
 
-    function remover(i) { if(confirm("Remover permanentemente?")) { produtos.splice(i,1); salvarCloud(); } }
+    function remover(i) { if(confirm("Remover?")) { produtos.splice(i,1); salvarCloud(); } }
 
+    // INICIALIZAÇÃO
     carregarTudo();
 </script>
 </body>
