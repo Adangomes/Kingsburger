@@ -38,8 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("scroll", sincronizarScrollMenu);
 
-    verificarFechamentoAutomatico(); // 👈 ADICIONA AQUI
-
 });
 
 
