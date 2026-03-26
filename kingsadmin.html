@@ -262,6 +262,23 @@
     }
 
     function remover(i) { if(confirm("Remover?")) { produtos.splice(i,1); salvarCloud(); } }
+    
+    
+    function adicionarCategoria() {
+    const nova = prompt("Nova categoria:");
+
+    if (!nova) return;
+
+    const nome = nova.toLowerCase().trim();
+
+    if (categorias.includes(nome)) {
+        alert("Essa categoria já existe!");
+        return;
+    }
+
+    categorias.push(nome);
+    renderProdutos();
+}
 
     // INICIALIZAÇÃO
     carregarTudo();
