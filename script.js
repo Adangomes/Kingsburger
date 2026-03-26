@@ -30,9 +30,9 @@ let tamanhoSelecionadoGlobal = "";
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    carregarStatusLoja();
-
     carregarCardapioCompleto();
+    
+    carregarStatusLoja();
 
     carregarCarrinhoStorage();
 
@@ -423,7 +423,6 @@ async function processarResumoGeo() {
         const resp = await fetch(url);
         const data = await resp.json();
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
 
         if (data.features && data.features.length > 0) {
             const result = data.features[0].properties;
