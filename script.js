@@ -25,7 +25,7 @@ let statusLojaAtual = JSON.parse(localStorage.getItem("status_kings_burger")) ||
     horarioFechamento: "23:59",
     diasAbertos: [0,1,2,3,4,5,6]
 };
-let primeiraCargaFeita = !!localStorage.getItem("status_kings_burger");
+
 
 
 
