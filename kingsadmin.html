@@ -121,22 +121,25 @@
 
     // 2. FUNÇÃO INICIAL (CHAMADA NO FINAL DO SCRIPT)
     function carregarTudo() {
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                const autorizado = usuariosPermitidos.some(u => u.email === user.email);
-                if (autorizado) {
-                    iniciarMonitoramentoDB();
-                } else {
-                    alert("Acesso Negado: E-mail não autorizado.");
-                    firebase.auth().signOut();
-                }
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            const autorizado = usuariosPermitidos.some(u => u.email === user.email);
+            if (autorizado) {
+                // Usuário autorizado, esconde tela de login e inicia monitores
+                document.getElementById('login-screen').style.display = 'none';
+                iniciarMonitoramentoDB();
             } else {
-                solicitarLogin();
+                alert("Acesso Negado: E-mail não autorizado.");
+                firebase.auth().signOut();
+                document.getElementById('login-screen').style.display = 'flex';
             }
-        });
-    }
+        } else {
+            solicitarLogin();
+        }
+    });
+}
 
-    function solicitarLogin() {
+function solicitarLogin() {
     document.getElementById('login-screen').style.display = 'flex';
 }
 
@@ -150,12 +153,21 @@ function entrar() {
     }
 
     firebase.auth().signInWithEmailAndPassword(email, senha)
-        .then(() => {
-            document.getElementById('login-screen').style.display = 'none';
+        .then(cred => {
+            const userEmail = cred.user.email;
+            const autorizado = usuariosPermitidos.some(u => u.email === userEmail);
+
+            if (autorizado) {
+                // Usuário autorizado, esconde login e inicia monitores
+                document.getElementById('login-screen').style.display = 'none';
+                iniciarMonitoramentoDB();
+            } else {
+                alert("Acesso Negado: E-mail não autorizado.");
+                firebase.auth().signOut();
+                document.getElementById('login-screen').style.display = 'flex';
+            }
         })
-        .catch(e => {
-            alert("Erro: " + e.message);
-        });
+        .catch(e => alert("Erro: " + e.message));
 }
 
     // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
