@@ -118,16 +118,26 @@
     }
 
     function solicitarLogin() {
-        const email = prompt("E-mail de Administrador:");
-        const senha = prompt("Senha:");
-        if (email && senha) {
-            firebase.auth().signInWithEmailAndPassword(email.trim(), senha)
-                .catch(e => {
-                    alert("Erro: " + e.message);
-                    solicitarLogin();
-                });
-        }
+    document.getElementById('login-screen').style.display = 'flex';
+}
+
+function entrar() {
+    const email = document.getElementById('login-email').value.trim();
+    const senha = document.getElementById('login-senha').value;
+
+    if (!email || !senha) {
+        alert("Preencha e-mail e senha!");
+        return;
     }
+
+    firebase.auth().signInWithEmailAndPassword(email, senha)
+        .then(() => {
+            document.getElementById('login-screen').style.display = 'none';
+        })
+        .catch(e => {
+            alert("Erro: " + e.message);
+        });
+}
 
     // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
     function iniciarMonitoramentoDB() {
