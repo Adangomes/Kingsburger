@@ -667,57 +667,7 @@ function mostrarResumoFinal() {
 
 
 // --- OUTROS ---
-function carregarStatusLoja() {
-    const el = document.getElementById("status-loja");
-    if (!db) return;
 
-    db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-
-        const data = snapshot.val();
-        if (!data) return;
-
-        const agora = new Date();
-
-        const diaSemana = agora.getDay(); // 0 = Domingo
-        const horaAtual = agora.getHours() * 60 + agora.getMinutes();
-
-        const abertoManual = data.aberto ?? false;
-        const dias = data.diasAbertos || [];
-
-        let horarioOk = true;
-
-        if (data.horarioAbertura && data.horarioFechamento) {
-
-            const [hA, mA] = data.horarioAbertura.split(":").map(Number);
-            const [hF, mF] = data.horarioFechamento.split(":").map(Number);
-
-            const aberturaMin = hA * 60 + mA;
-            const fechamentoMin = hF * 60 + mF;
-
-            horarioOk = horaAtual >= aberturaMin && horaAtual <= fechamentoMin;
-        }
-
-        const diaOk = dias.includes(diaSemana);
-
-        const lojaAberta = abertoManual && horarioOk && diaOk;
-
-        // --- ATUALIZA VISUAL ---
-        el.innerText = lojaAberta ? "ABERTO" : "FECHADO";
-        el.className = `status ${lojaAberta ? 'aberto' : 'fechado'}`;
-
-        // --- BLOQUEIA PEDIDO ---
-        const btnPedir = document.querySelector(".btn-finalizar-carrinho");
-        if (btnPedir) btnPedir.disabled = !lojaAberta;
-
-        // --- BLOQUEIA CLIQUE NO CARDÁPIO ---
-        const itens = document.querySelectorAll(".item-produto-lista");
-        itens.forEach(item => {
-            item.style.pointerEvents = lojaAberta ? "auto" : "none";
-            item.style.opacity = lojaAberta ? "1" : "0.4";
-        });
-
-    });
-}
 
 function abrirDelivery() {
 
@@ -1000,21 +950,9 @@ async function aplicarCupom() {
 
 
 // =============================
-// CONTROLE DE HORÁRIO DA LOJA
-// =============================
-let statusLojaAtual = {
-    aberto: false,
-    horarioAbertura: "00:00",
-    horarioFechamento: "00:00",
-    diasAbertos: []
-};
+
 // Carrega dados do Firebase
-db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-    statusLojaAtual = data;
-    atualizarStatusVisual();
-});
+
 // ----------------------------
 // VERIFICA SE A LOJA ESTÁ ABERTA
 // ----------------------------
@@ -1074,21 +1012,48 @@ function verificarFechamentoAutomatico() {
 }
 // Variável para saber se já recebemos a primeira resposta do Firebase
 // Variável de controle
-let primeiraCargaFeita = false;
-
-// O "Vigilante" do Firebase (Fica monitorando o status 24h)
+// --- O SUPER-VIGILANTE (ÚNICO E COMPLETO) ---
 db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
-    
-    statusLojaAtual = data;
-    primeiraCargaFeita = true; // Avisa o sistema que os horários chegaram
 
-    if (!lojaEstaAbertaAgora()) {
-        mostrarModalFechado();
-    } else {
-        const modal = document.getElementById("modal-fechado");
-        if (modal) modal.style.display = "none";
+    // 1. Atualiza as variáveis e salva no "bolso" (Cache) do celular do cliente
+    statusLojaAtual = data;
+    primeiraCargaFeita = true;
+    localStorage.setItem("status_kings_burger", JSON.stringify(data));
+
+    // 2. Calcula se a loja está aberta usando sua função lógica
+    const lojaAberta = lojaEstaAbertaAgora();
+
+    // 3. Atualiza o texto ABERTO/FECHADO lá no topo
+    const elStatus = document.getElementById("status-loja");
+    if (elStatus) {
+        elStatus.innerText = lojaAberta ? "ABERTO" : "FECHADO";
+        elStatus.className = `status ${lojaAberta ? 'aberto' : 'fechado'}`;
     }
+
+    // 4. Controle do Modal (se estiver fechado, mostra; se abriu, esconde)
+    const modalFechado = document.getElementById("modal-fechado");
+    if (!lojaAberta) {
+        mostrarModalFechado();
+    } else if (modalFechado) {
+        modalFechado.style.display = "none";
+    }
+
+    // 5. Bloqueia ou libera o botão de finalizar pedido
+    const btnPedir = document.querySelector(".btn-finalizar-carrinho");
+    if (btnPedir) {
+        btnPedir.disabled = !lojaAberta;
+        btnPedir.style.opacity = lojaAberta ? "1" : "0.5";
+    }
+
+    // 6. Deixa o cardápio "apagadinho" e sem clique se estiver fechado
+    document.querySelectorAll(".item-produto-lista").forEach(item => {
+        item.style.pointerEvents = lojaAberta ? "auto" : "none";
+        item.style.opacity = lojaAberta ? "1" : "0.5";
+    });
+
+    console.log("Mydi System: Status atualizado e sincronizado! ✅");
 });
+
 
