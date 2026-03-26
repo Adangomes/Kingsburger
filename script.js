@@ -43,6 +43,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // --- 1. CARREGAMENTO E RENDERIZAÇÃO ---
+// --- CACHE INSTANTÂNEO (ESTILO GRANDES APPS) ---
+let statusLojaAtual = {
+    aberto: false,
+    horarioAbertura: "00:00",
+    horarioFechamento: "00:00",
+    diasAbertos: []
+};
+
+// Tenta carregar o que ficou salvo da última visita
+const cacheStatus = localStorage.getItem("status_kings_burger");
+let primeiraCargaFeita = false;
+
+if (cacheStatus) {
+    statusLojaAtual = JSON.parse(cacheStatus);
+    primeiraCargaFeita = true; // Já libera o site na hora com o que ele lembra
+}
 
 // --- NOVA VERSÃO: CARREGA DO FIREBASE EM TEMPO REAL ---
 async function carregarCardapioCompleto() {
@@ -1077,7 +1093,10 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
     if (!data) return;
     
     statusLojaAtual = data;
-    primeiraCargaFeita = true; // Agora sabemos os horários reais
+    primeiraCargaFeita = true;
+
+    // Salva a "memória" para a próxima vez que o usuário abrir o link
+    localStorage.setItem("status_kings_burger", JSON.stringify(data));
 
     const modal = document.getElementById("modal-fechado");
     
@@ -1086,4 +1105,8 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
     } else {
         if (modal) modal.style.display = "none";
     }
+    
+    // Se você tiver a função de atualizar o texto "ABERTO/FECHADO", chame-a aqui
+    if (typeof carregarStatusLoja === 'function') carregarStatusLoja();
 });
+
