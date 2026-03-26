@@ -124,8 +124,8 @@
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             const autorizado = usuariosPermitidos.some(u => u.email === user.email);
+
             if (autorizado) {
-                // Usuário autorizado, esconde tela de login e inicia monitores
                 document.getElementById('login-screen').style.display = 'none';
                 iniciarMonitoramentoDB();
             } else {
@@ -153,12 +153,11 @@ function entrar() {
     }
 
     firebase.auth().signInWithEmailAndPassword(email, senha)
-        .then(cred => {
+        .then((cred) => {
             const userEmail = cred.user.email;
             const autorizado = usuariosPermitidos.some(u => u.email === userEmail);
 
             if (autorizado) {
-                // Usuário autorizado, esconde login e inicia monitores
                 document.getElementById('login-screen').style.display = 'none';
                 iniciarMonitoramentoDB();
             } else {
@@ -167,7 +166,9 @@ function entrar() {
                 document.getElementById('login-screen').style.display = 'flex';
             }
         })
-        .catch(e => alert("Erro: " + e.message));
+        .catch(e => {
+            alert("Erro: " + e.message);
+        });
 }
 
     // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
