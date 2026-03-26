@@ -1058,11 +1058,21 @@ function verificarFechamentoAutomatico() {
         }
     }, 1000);
 }
-db.ref('configuracoes/statusLoja').on('value', () => {
+// Variável para saber se já recebemos a primeira resposta do Firebase
+let primeiraCargaFeita = false;
+
+db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    
+    statusLojaAtual = data;
+    primeiraCargaFeita = true; // Agora sabemos os horários reais
+
+    const modal = document.getElementById("modal-fechado");
+    
     if (!lojaEstaAbertaAgora()) {
         mostrarModalFechado();
     } else {
-        const modal = document.getElementById("modal-fechado");
         if (modal) modal.style.display = "none";
     }
 });
