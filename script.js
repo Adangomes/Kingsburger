@@ -8,23 +8,25 @@ const WHATSAPP_NUMERO = "5547997278232";
 
 
 
+// --- VARIÁVEIS GLOBAIS COM CACHE INSTANTÂNEO ---
 let carrinho = [];
-
 let produtosGeral = [];
-
 let taxaEntregaCalculada = 0;
-
 let descontoAplicado = 0;
-
-
-
 let itemMestreTemporario = null; 
-
 let saboresSelecionados = [];
-
 let limiteSabores = 0;
-
 let tamanhoSelecionadoGlobal = ""; 
+
+// O PULO DO GATO: Carrega o horário da última vez que abriu
+let statusLojaAtual = JSON.parse(localStorage.getItem("status_kings_burger")) || {
+    aberto: true,
+    horarioAbertura: "18:00",
+    horarioFechamento: "23:59",
+    diasAbertos: [0,1,2,3,4,5,6]
+};
+let primeiraCargaFeita = !!localStorage.getItem("status_kings_burger");
+
 
 
 
