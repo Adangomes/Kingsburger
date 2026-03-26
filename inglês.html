@@ -4,26 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GET IT - LESSON 1 COMPLETE</title>
+    <title>GET IT - LESSON 2 COMPLETE</title>
     <style>
         body {
             margin: 0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #0f172a;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .app {
             width: 90%;
-            max-width: 420px;
+            max-width: 450px;
             background: #1e293b;
             padding: 25px;
             border-radius: 15px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
         .logo {
@@ -37,32 +38,39 @@
             font-size: 14px;
             color: #94a3b8;
             margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .phrase {
-            font-size: 22px;
+            font-size: 20px;
             margin: 20px 0;
-            min-height: 50px;
+            min-height: 60px;
             font-weight: bold;
+            line-height: 1.4;
         }
 
         .pronunciation {
             color: #38bdf8;
             margin-top: 10px;
-            font-size: 18px;
+            font-size: 16px;
             font-style: italic;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 5px;
+            border-radius: 5px;
         }
 
         .meaning {
             color: #94a3b8;
             margin-top: 10px;
-            font-size: 17px;
+            font-size: 16px;
         }
 
         .spoken {
             margin-top: 20px;
             font-size: 18px;
             color: #22c55e;
+            font-weight: bold;
         }
 
         button {
@@ -74,26 +82,29 @@
             font-size: 16px;
             cursor: pointer;
             font-weight: bold;
+            transition: opacity 0.2s;
         }
+
+        button:active { opacity: 0.8; }
 
         .listen { background: #2563eb; color: white; }
         .speak { background: #16a34a; color: white; }
         .next { background: #4f46e5; color: white; }
 
         .mic {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: #ef4444;
-            margin: 20px auto;
+            margin: 15px auto;
             display: none;
             animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(1) }
-            50% { transform: scale(1.2) }
-            100% { transform: scale(1) }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -102,7 +113,7 @@
 
     <div class="app">
         <div class="logo">GET IT</div>
-        <div class="lesson-info" id="lesson-info">LESSON 1</div>
+        <div class="lesson-info" id="lesson-info">LESSON 2</div>
 
         <div class="phrase" id="phrase"></div>
         <div class="pronunciation" id="pronunciation"></div>
@@ -118,70 +129,59 @@
     </div>
 
     <script>
-        /* FRASES COMPLETAS DA LESSON 1 (PÁGINAS 1 A 9) */
+        /* CONTEÚDO DA LESSON 2 EXTRAÍDO DAS IMAGENS (PÁGINAS 10-15) */
         const lessons = [
-            // Página 1 e 2
-            { phrase: "Hello", pronunciation: "relôu", meaning: "Olá" },
-            { phrase: "I am... I'm...", pronunciation: "ai ém... aim", meaning: "Eu sou / Eu estou" },
-            { phrase: "You are... You're...", pronunciation: "iú ár... iór", meaning: "Você é / Você está" },
-            { phrase: "Am I...? Yes, you're...", pronunciation: "ém ai? iés iór", meaning: "Eu sou...? Sim, você é..." },
-            { phrase: "Are you...? Yes, I'm...", pronunciation: "ár iú? iés aim", meaning: "Você é...? Sim, eu sou..." },
-            { phrase: "He is... He's... Jack", pronunciation: "ri iz... riz... djéc", meaning: "Ele é... Ele é (Jack)" },
-            { phrase: "She is... She's... Anna", pronunciation: "shi iz... shiz... éna", meaning: "Ela é... Ela é (Anna)" },
-            { phrase: "Is he Jack? Yes, he's Jack", pronunciation: "iz ri djéc? iés riz djéc", meaning: "Ele é o Jack? Sim, ele é o Jack" },
-            { phrase: "Is she Anna? Yes, she's Anna", pronunciation: "iz shi éna? iés shiz éna", meaning: "Ela é a Anna? Sim, ela é a Anna" },
+            // Página 10 - Preposições e Perguntas de Localização
+            { phrase: "On, under, in", pronunciation: "ón, ânder, ín", meaning: "Em cima, embaixo, dentro" },
+            { phrase: "Is the book on the table? Yes, the book's on the table", pronunciation: "iz dê búk ón dê têibou? iés dê búks ón dê têibou", meaning: "O livro está em cima da mesa? Sim..." },
+            { phrase: "Is the pen in the book? No, the pen isn't in the book; it's under the book", pronunciation: "iz dê pén ín dê búk? nou dê pén izênt ín dê búk, its ânder dê búk", meaning: "A caneta está dentro do livro? Não, está embaixo do livro" },
             
-            // Página 3
-            { phrase: "Pen, pencil, book, a", pronunciation: "pén, pênsil, búk, ei", meaning: "Caneta, lápis, livro, um/uma" },
-            { phrase: "What is...? What's this?", pronunciation: "uót iz? uóts dhis", meaning: "O que é...? O que é isto?" },
-            { phrase: "It is... It's...", pronunciation: "it iz... its", meaning: "Isto é / É" },
-            { phrase: "What's this? It's a pen", pronunciation: "uóts dhis? its ei pén", meaning: "O que é isto? É uma caneta" },
+            // Página 11 - Família e Cores
+            { phrase: "Mr, Mrs, family", pronunciation: "míster, mísiz, fémili", meaning: "Sr., Sra., família" },
+            { phrase: "Is this the Brown family? Yes, it's the Brown family", pronunciation: "iz dhis dê bráun fémili? iés its dê bráun fémili", meaning: "Esta é a família Brown? Sim..." },
+            { phrase: "Black, white, green, brown", pronunciation: "bléc, uáit, grín, bráun", meaning: "Preto, branco, verde, marrom" },
+            { phrase: "What colour's this pencil? This pencil's black", pronunciation: "uót cálorz dhis pênsil? dhis pênsilz bléc", meaning: "Qual a cor deste lápis? Este lápis é preto" },
             
-            // Página 4
-            { phrase: "Table, chair, light", pronunciation: "têibou, tchér, láit", meaning: "Mesa, cadeira, luz" },
-            { phrase: "Wall, floor, room", pronunciation: "uól, flór, rúm", meaning: "Parede, chão, sala" },
-            { phrase: "Ceiling, window, door", pronunciation: "sílin, uíndou, dór", meaning: "Teto, janela, porta" },
-            { phrase: "Clock, box, picture", pronunciation: "clóc, bócs, píctchur", meaning: "Relógio, caixa, quadro" },
-            { phrase: "Is this a pen? Yes, it's a pen", pronunciation: "iz dhis ei pén? iés its ei pén", meaning: "Isto é uma caneta? Sim, é uma caneta" },
+            // Página 12 - Onde (Where) e Negativas You/I
+            { phrase: "Where? Where's the pen? The pen's on the table", pronunciation: "uéer? uéerz dê pén? dê pénz ón dê têibou", meaning: "Onde? Onde está a caneta? Está na mesa" },
+            { phrase: "You are not... You aren't. I am not... I'm not", pronunciation: "iú ár nót, iú árênt. ai ém nót, aim nót", meaning: "Você não é... Eu não sou..." },
+            { phrase: "Are you Mr Brown? No, I'm not Mr Brown; I'm...", pronunciation: "ár iú míster bráun? nou aim nót míster bráun, aim...", meaning: "Você é o Sr. Brown? Não, eu não sou..." },
             
-            // Página 5
-            { phrase: "No, it is not, it isn't", pronunciation: "nou, it iz nót, it izênt", meaning: "Não, não é" },
-            { phrase: "Is this a pen? No, it isn't a pen; it's a pencil", pronunciation: "iz dhis ei pén? nou it izênt ei pén, its ei pênsil", meaning: "Isto é uma caneta? Não, é um lápis" },
-            { phrase: "Long, short, the, contraction", pronunciation: "lóng, shórt, dê, contrécshun", meaning: "Longo, curto, o/a, contração" },
-            { phrase: "Is the pen long? Yes, the pen's long", pronunciation: "iz dê pén lóng? iés dê pénz lóng", meaning: "A caneta é longa? Sim, a caneta é longa" },
+            // Página 13 - Negativas He/She e Localização 2
+            { phrase: "He is not... He isn't. She is not... She isn't", pronunciation: "ri iz nót, rizênt. shi iz nót, shizênt", meaning: "Ele não é... Ela não é..." },
+            { phrase: "Is he Mr Brown? Yes, he's Mr Brown", pronunciation: "iz ri míster bráun? iés riz míster bráun", meaning: "Ele é o Sr. Brown? Sim..." },
+            { phrase: "In front of, behind, me, you", pronunciation: "ín frânt óv, biráind, mí, iú", meaning: "Na frente de, atrás de, mim/me, você" },
+            { phrase: "Is the wall in front of you? No, the wall isn't in front of me; it's behind me", pronunciation: "iz dê uól ín frânt óv iú? nou dê uól izênt ín frânt óv mí, its biráind mí", meaning: "A parede está na sua frente? Não, está atrás de mim" },
+            { phrase: "Him, her, house", pronunciation: "rím, rér, ráuss", meaning: "Ele (objeto), ela (objeto), casa" },
+            { phrase: "Where's the house? The house is behind him", pronunciation: "uéerz dê ráuss? dê ráuss iz biráind rím", meaning: "Onde está a casa? A casa está atrás dele" },
             
-            // Página 6 e 7
-            { phrase: "Is the room short? No, the room isn't short; it's long", pronunciation: "iz dê rúm shórt? nou dê rúm izênt shórt, its lóng", meaning: "A sala é curta? Não, é longa" },
-            { phrase: "Large, small", pronunciation: "lárdj, smól", meaning: "Grande, pequeno" },
-            { phrase: "Is the table small? No, the table isn't small; it's large", pronunciation: "iz dê têibou smól? nou dê têibou izênt smól, its lárdj", meaning: "A mesa é pequena? Não, é grande" },
-            { phrase: "City, town, village", pronunciation: "síti, táun, víledj", meaning: "Cidade grande, cidade, vila" },
-            { phrase: "London is a city. Windsor is a town. Grantchester is a village", pronunciation: "lândon iz ei síti. uíndzor iz ei táun. gránt-tchéster iz ei víledj", meaning: "Londres é uma cidade..." },
+            // Página 14 - Verbos de Ação (Stand, Sit)
+            { phrase: "Stand, standing, sit, sitting", pronunciation: "sténd, sténdin, sít, sítin", meaning: "Ficar de pé, estando de pé, sentar, sentando" },
+            { phrase: "Are you sitting on the chair? Yes, I'm sitting on the chair", pronunciation: "ár iú sítin ón dê tchér? iés aim sítin ón dê tchér", meaning: "Você está sentado na cadeira? Sim..." },
+            { phrase: "Am I standing on the floor? Yes, you're standing on the floor", pronunciation: "ém ai sténdin ón dê flór? iés iór sténdin ón dê flór", meaning: "Eu estou de pé no chão? Sim..." },
             
-            // Página 8
-            { phrase: "Is the table long or short?", pronunciation: "iz dê têibou lóng ór shórt", meaning: "A mesa é longa ou curta?" },
-            { phrase: "Man, woman, boy, girl", pronunciation: "mén, uúman, bói, guérl", meaning: "Homem, mulher, menino, menina" },
-            { phrase: "Is he a man? Yes, he's a man", pronunciation: "iz ri ei mén? iés riz ei mén", meaning: "Ele é um homem? Sim, ele é um homem" },
-            
-            // Página 9
-            { phrase: "Number: one, two, three, four, five", pronunciation: "nâmber: uán, tchu, thrí, fór, fáiv", meaning: "Número: 1, 2, 3, 4, 5" },
-            { phrase: "What number's this? It's the number one", pronunciation: "uót nâmberz dhis? its dê nâmber uán", meaning: "Que número é este? É o número um" }
+            // Página 15 - Verbos de Ação (Take, Put) e Números
+            { phrase: "Taking from, putting on", pronunciation: "têikin fróm, pútin ón", meaning: "Tirando de, colocando em" },
+            { phrase: "Am I taking the book from the table? Yes, you're taking the book from the table", pronunciation: "ém ai têikin dê búk fróm dê têibou? iés iór têikin dê búk fróm dê têibou", meaning: "Eu estou tirando o livro da mesa? Sim..." },
+            { phrase: "Six, seven, eight, nine, ten", pronunciation: "sícs, sêven, êit, náin, tén", meaning: "6, 7, 8, 9, 10" },
+            { phrase: "What number's this? It's the number ten", pronunciation: "uót nâmberz dhis? its dê nâmber tén", meaning: "Que número é este? É o número dez" }
         ];
 
         let index = 0;
 
         function load() {
             document.getElementById("phrase").innerText = lessons[index].phrase;
-            document.getElementById("pronunciation").innerText = "Pronúncia: " + lessons[index].pronunciation;
-            document.getElementById("meaning").innerText = "Significado: " + lessons[index].meaning;
+            document.getElementById("pronunciation").innerText = "Pronúncia aprox: " + lessons[index].pronunciation;
+            document.getElementById("meaning").innerText = "Tradução: " + lessons[index].meaning;
             document.getElementById("spoken").innerText = "";
-            document.getElementById("lesson-info").innerText = "LESSON 1 - Item " + (index + 1) + "/" + lessons.length;
+            document.getElementById("lesson-info").innerText = "LESSON 2 - Item " + (index + 1) + "/" + lessons.length;
         }
 
         load();
 
         function hear() {
             let msg = new SpeechSynthesisUtterance(lessons[index].phrase);
-            msg.lang = "en-GB"; // Sotaque britânico (comum no método Callan)
+            msg.lang = "en-GB"; 
             speechSynthesis.speak(msg);
         }
 
@@ -205,6 +205,13 @@
                 mic.style.display = "none";
                 let text = event.results[0][0].transcript;
                 spoken.innerText = "You said: " + text;
+                
+                // Feedback visual simples se acertar (opcional)
+                if(text.toLowerCase().includes(lessons[index].phrase.split(' ')[0].toLowerCase())){
+                    spoken.style.color = "#22c55e";
+                } else {
+                    spoken.style.color = "#f87171";
+                }
             };
 
             recognition.onerror = function () {
@@ -222,4 +229,5 @@
         }
     </script>
 </body>
+
 </html>
