@@ -130,7 +130,7 @@
 
     // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
     function iniciarMonitoramentoDB() {
-        db.ref('cardapio/produtos').on('value', snap => {
+        db.ref('cardapio/produtos').once('value', snap => {
             const data = snap.val();
             produtos = data ? Object.values(data).filter(i => i !== null) : [];
             renderProdutos();
