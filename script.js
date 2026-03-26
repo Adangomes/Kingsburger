@@ -14,11 +14,9 @@ let itemMestreTemporario = null;
 let saboresSelecionados = [];
 let limiteSabores = 0;
 let tamanhoSelecionadoGlobal = ""; 
+let primeiraCargaFeita = true; // Força true para renderizar o cardápio sem esperar o Firebase
 
-// PULO DO GATO: Já começa como TRUE para não bloquear a renderização dos produtos
-let primeiraCargaFeita = true; 
-
-// Carrega o cache inicial do navegador para ser instantâneo
+// Cache inicial do status para não carregar vazio
 let statusLojaAtual = JSON.parse(localStorage.getItem("status_kings_burger")) || {
     aberto: true,
     horarioAbertura: "18:00",
@@ -28,13 +26,18 @@ let statusLojaAtual = JSON.parse(localStorage.getItem("status_kings_burger")) ||
 
 // --- INICIALIZAÇÃO ---
 document.addEventListener("DOMContentLoaded", () => {
-    // FUNÇÃO carregarStatusLoja() REMOVIDA PARA NÃO DAR ERRO
-    carregarCardapioCompleto();
+    // Inicializa o Firebase primeiro
+    const db = inicializarFirebase();
+    
+    // Carrega os dados locais e inicia escutas
+    carregarCardapioCompleto(db);
     carregarCarrinhoStorage();
+    configurarVigilanteStatus(db);
+    
     window.addEventListener("scroll", sincronizarScrollMenu);
 });
 
-// --- CONFIGURAÇÃO FIREBASE ---
+// --- FIREBASE SETUP ---
 function inicializarFirebase() {
     if (typeof firebase !== 'undefined') {
         const firebaseConfig = {
@@ -51,54 +54,63 @@ function inicializarFirebase() {
     }
     return null;
 }
+
 const db = inicializarFirebase();
 
 // --- VIGILANTE DE STATUS (FIREBASE) ---
-if (db) {
+function configurarVigilanteStatus(db) {
+    if (!db) return;
     db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
 
         statusLojaAtual = data;
         localStorage.setItem("status_kings_burger", JSON.stringify(data));
-
-        const lojaAberta = lojaEstaAbertaAgora();
-
-        // Atualiza UI de status
-        const elStatus = document.getElementById("status-loja");
-        if (elStatus) {
-            elStatus.innerText = lojaAberta ? "ABERTO" : "FECHADO";
-            elStatus.className = `status ${lojaAberta ? 'aberto' : 'fechado'}`;
-        }
-
-        // Controle do Modal de Fechado
-        const modalFechado = document.getElementById("modal-fechado");
-        if (!lojaAberta) {
-            mostrarModalFechado();
-        } else if (modalFechado) {
-            modalFechado.style.display = "none";
-        }
-
-        // Atualiza estado dos produtos no cardápio
-        document.querySelectorAll(".item-produto-lista").forEach(item => {
-            item.style.pointerEvents = lojaAberta ? "auto" : "none";
-            item.style.opacity = lojaAberta ? "1" : "0.5";
-        });
+        
+        const aberta = lojaEstaAbertaAgora();
+        atualizarInterfaceStatus(aberta);
     });
 }
 
-// --- LÓGICA DE FUNCIONAMENTO ---
+function atualizarInterfaceStatus(aberta) {
+    const elStatus = document.getElementById("status-loja");
+    if (elStatus) {
+        elStatus.innerText = aberta ? "ABERTO" : "FECHADO";
+        elStatus.className = `status ${aberta ? 'aberto' : 'fechado'}`;
+    }
+
+    const modalFechado = document.getElementById("modal-fechado");
+    if (!aberta) {
+        mostrarModalFechado();
+    } else if (modalFechado) {
+        modalFechado.style.display = "none";
+    }
+
+    // Bloqueia/Libera o botão de checkout
+    const btnPedir = document.querySelector(".btn-finalizar-carrinho");
+    if (btnPedir) {
+        btnPedir.disabled = !aberta;
+        btnPedir.style.opacity = aberta ? "1" : "0.5";
+    }
+
+    // Opacidade nos produtos
+    document.querySelectorAll(".item-produto-lista").forEach(item => {
+        item.style.pointerEvents = aberta ? "auto" : "none";
+        item.style.opacity = aberta ? "1" : "0.4";
+    });
+}
+
+// --- LÓGICA DE HORÁRIOS ---
 function lojaEstaAbertaAgora() {
     if (!statusLojaAtual.aberto) return false;
-
     const agora = new Date();
     const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
-    const [hA, mA] = statusLojaAtual.horarioAbertura.split(":").map(Number);
-    const [hF, mF] = statusLojaAtual.horarioFechamento.split(":").map(Number);
-
+    const [hA, mA] = (statusLojaAtual.horarioAbertura || "00:00").split(":").map(Number);
+    const [hF, mF] = (statusLojaAtual.horarioFechamento || "23:59").split(":").map(Number);
+    
     const aberturaMin = hA * 60 + mA;
     const fechamentoMin = hF * 60 + mF;
-
+    
     return statusLojaAtual.diasAbertos.includes(agora.getDay()) && 
            (minutosAgora >= aberturaMin && minutosAgora <= fechamentoMin);
 }
@@ -113,15 +125,15 @@ function mostrarModalFechado() {
     modal.style.display = "flex";
 }
 
-// --- CARDÁPIO E RENDERIZAÇÃO ---
-async function carregarCardapioCompleto() {
+// --- CARREGAMENTO DO CARDÁPIO ---
+async function carregarCardapioCompleto(db) {
     if (!db) return;
     db.ref('cardapio/produtos').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             produtosGeral = Array.isArray(data) ? data : Object.values(data);
             renderizarCardapio();
-            console.log("Cardápio carregado! ✅");
+            console.log("Cardápio carregado com sucesso! ✅");
         }
     });
 }
@@ -135,7 +147,7 @@ function renderizarCardapio() {
     nav.innerHTML = "";
 
     const categorias = [...new Set(produtosGeral.map(p => p.categoria))];
-    const lojaAberta = lojaEstaAbertaAgora();
+    const aberta = lojaEstaAbertaAgora();
 
     categorias.forEach((cat, idx) => {
         const btn = document.createElement("button");
@@ -158,7 +170,7 @@ function renderizarCardapio() {
 
             section.innerHTML += `
                 <div class="item-produto-lista" 
-                     style="pointer-events: ${lojaAberta ? 'auto' : 'none'}; opacity: ${lojaAberta ? '1' : '0.5'}" 
+                     style="pointer-events: ${aberta ? 'auto' : 'none'}; opacity: ${aberta ? '1' : '0.4'}" 
                      onclick="decidirFluxo('${p.title}')">
                     <div class="info-produto">
                         <h3>${p.title}</h3>
@@ -175,14 +187,22 @@ function renderizarCardapio() {
     });
 }
 
-// [O RESTANTE DAS FUNÇÕES: decidirFluxo, adicionarAoCarrinho, enviarWhatsApp, etc., permanecem iguais]
+// --- FLUXO DE PEDIDO E MODAIS ---
 function decidirFluxo(nome) {
     if (!lojaEstaAbertaAgora()) { mostrarModalFechado(); return; }
     const p = produtosGeral.find(prod => prod.title === nome);
-    if (p.categoria === 'pizza' || p.categoria === 'porcao') { abrirModalSelecao(nome); } 
-    else { adicionarAoCarrinho(p.title, p.price, ""); }
+    if (!p) return;
+
+    if (p.categoria === 'pizza' || p.categoria === 'porcao') {
+        abrirModalSelecao(nome);
+    } else {
+        adicionarAoCarrinho(p.title, p.price, "");
+    }
 }
 
+// [Mantenha aqui suas funções de abrirModalSelecao, montarListaSabores, confirmarSelecao que já funcionam]
+
+// --- CARRINHO ---
 function adicionarAoCarrinho(titulo, preco, sabor) {
     carrinho.push({ title: titulo, price: preco, sabor: sabor });
     atualizarCarrinho();
@@ -198,7 +218,10 @@ function atualizarCarrinho() {
         sub += item.price;
         box.innerHTML += `
             <div class="cart-item-row">
-                <div style="flex:1"><strong>${item.title}</strong><br><b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b></div>
+                <div style="flex:1">
+                    <strong>${item.title}</strong><br>
+                    <b style="color: #00a650;">R$ ${item.price.toFixed(2)}</b>
+                </div>
                 <button onclick="removerItem(${index})" class="btn-excluir-apenas-x">X</button>
             </div>`;
     });
@@ -218,6 +241,7 @@ function carregarCarrinhoStorage() {
     if (s) { carrinho = JSON.parse(s); atualizarCarrinho(); }
 }
 
+// --- UTILITÁRIOS ---
 function scrollToCategoria(cat) {
     const el = document.getElementById(`secao-${cat}`);
     if (el) window.scrollTo({ top: el.offsetTop - 140, behavior: "smooth" });
@@ -233,5 +257,9 @@ function sincronizarScrollMenu() {
 
 function mostrarToast(t) { 
     const el = document.getElementById("toast-geral");
-    if (el) { el.innerText = t + " adicionado! ✅"; el.style.display = "block"; setTimeout(() => el.style.display = "none", 2000); }
+    if (el) {
+        el.innerText = t + " adicionado! ✅"; 
+        el.style.display = "block";
+        setTimeout(() => el.style.display = "none", 2000);
+    }
 }
