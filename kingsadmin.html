@@ -153,33 +153,62 @@
 
     // 4. FUNÇÕES DE INTERFACE (RENDERIZAÇÃO)
     function renderProdutos() {
-        const div = document.getElementById('lista-produtos');
-        div.innerHTML = "";
-        produtos.forEach((p, i) => {
-            const isAtivo = p.ativo !== false;
-            div.innerHTML += `
-            <div class="card-prod ${isAtivo ? '' : 'is-hidden'}">
-                <div class="d-flex gap-3">
-                    <img src="${p.image || ''}" class="img-admin" onerror="this.src='https://via.placeholder.com/80?text=KING'">
-                    <div class="flex-grow-1">
-                        <div class="row g-2">
-                            <div class="col-9"><label>Produto</label><input class="form-control" value="${p.title || ''}" onchange="edit(${i},'title',this.value)"></div>
-                            <div class="col-3"><label>R$</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="edit(${i},'price',this.value)"></div>
-                            <div class="col-12"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)"></div>
-                            <div class="col-6"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="edit(${i},'categoria',this.value)"></div>
-                            <div class="col-6"><label>URL Imagem</label><input class="form-control" value="${p.image || ''}" onchange="edit(${i},'image',this.value)"></div>
+    const div = document.getElementById('lista-produtos');
+    div.innerHTML = "";
+
+    produtos.forEach((p, i) => {
+        const isAtivo = p.ativo !== false;
+
+        div.innerHTML += `
+        <div class="card-prod ${isAtivo ? '' : 'is-hidden'}">
+            <div class="d-flex gap-3">
+                <img src="${p.image || ''}" class="img-admin" onerror="this.src='https://via.placeholder.com/80?text=KING'">
+                <div class="flex-grow-1">
+                    <div class="row g-2">
+
+                        <div class="col-9">
+                            <label>Produto</label>
+                            <input class="form-control" value="${p.title || ''}" onchange="edit(${i},'title',this.value)">
                         </div>
+
+                        <div class="col-3">
+                            <label>R$</label>
+                            <input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="edit(${i},'price',this.value)">
+                        </div>
+
+                        <div class="col-12">
+                            <label>Ingredientes</label>
+                            <input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)">
+                        </div>
+
+                        <!-- 🔥 AQUI FOI CORRIGIDO -->
+                        <div class="col-6">
+                            <label>Categoria</label>
+                            <select class="form-control" onchange="edit(${i},'categoria',this.value)">
+                                <option value="burger" ${p.categoria === 'burger' ? 'selected' : ''}>Burger</option>
+                                <option value="bebidas" ${p.categoria === 'bebidas' ? 'selected' : ''}>Bebidas</option>
+                                <option value="combos" ${p.categoria === 'combos' ? 'selected' : ''}>Combos</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label>URL Imagem</label>
+                            <input class="form-control" value="${p.image || ''}" onchange="edit(${i},'image',this.value)">
+                        </div>
+
                     </div>
                 </div>
-                <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
-                    <button class="btn ${isAtivo ? 'btn-outline-warning' : 'btn-success'} btn-sm flex-grow-1 fw-bold" onclick="toggleAtivo(${i})">
-                        ${isAtivo ? 'SILENCIAR' : 'ATIVAR'}
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" onclick="remover(${i})">EXCLUIR</button>
-                </div>
-            </div>`;
-        });
-    }
+            </div>
+
+            <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
+                <button class="btn ${isAtivo ? 'btn-outline-warning' : 'btn-success'} btn-sm flex-grow-1 fw-bold" onclick="toggleAtivo(${i})">
+                    ${isAtivo ? 'SILENCIAR' : 'ATIVAR'}
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="remover(${i})">EXCLUIR</button>
+            </div>
+        </div>`;
+    });
+}
 
     // 5. FUNÇÕES DE LÓGICA E BANCO
     function salvarCloud() {
