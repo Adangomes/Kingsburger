@@ -92,6 +92,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let produtos = [];
+    let categorias = ["burger", "bebidas", "combos"];
 
     // 1. CONFIGURAÇÕES DE ACESSO PERMITIDAS
     const usuariosPermitidos = [
@@ -152,7 +153,7 @@
     }
 
     // 4. FUNÇÕES DE INTERFACE (RENDERIZAÇÃO)
-    function renderProdutos() {
+   function renderProdutos() {
     const div = document.getElementById('lista-produtos');
     div.innerHTML = "";
 
@@ -181,13 +182,13 @@
                             <input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)">
                         </div>
 
-                        <!-- 🔥 AQUI FOI CORRIGIDO -->
+                        <!-- 🔥 SELECT DINÂMICO -->
                         <div class="col-6">
                             <label>Categoria</label>
                             <select class="form-control" onchange="edit(${i},'categoria',this.value)">
-                                <option value="burger" ${p.categoria === 'burger' ? 'selected' : ''}>Burger</option>
-                                <option value="bebidas" ${p.categoria === 'bebidas' ? 'selected' : ''}>Bebidas</option>
-                                <option value="combos" ${p.categoria === 'combos' ? 'selected' : ''}>Combos</option>
+                                ${categorias.map(c => `
+                                    <option value="${c}" ${p.categoria === c ? 'selected' : ''}>${c}</option>
+                                `).join('')}
                             </select>
                         </div>
 
