@@ -32,26 +32,6 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
-<div id="login-screen" class="d-flex flex-column justify-content-center align-items-center" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0a; z-index:2000;">
-    <div class="card card-custom p-4" style="max-width:320px; width:100%;">
-        <h4 class="text-warning fw-bold mb-3 text-center">LOGIN ADMIN</h4>
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" id="login-email" class="form-control" placeholder="Digite seu e-mail">
-        </div>
-        <div class="mb-3">
-            <label>Senha</label>
-            <input type="password" id="login-senha" class="form-control" placeholder="Digite sua senha">
-        </div>
-        <button type="button" class="btn btn-warning w-100 fw-bold" onclick="entrar()">ENTRAR</button>
-
-        <small class="text-muted d-block mt-2 text-center">Somente administradores autorizados</small>
-    </div>
-</div>
-    
-    
-
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold text-warning m-0">Kings Admin <span class="text-white small" style="font-size: 12px;">PRO</span></h4>
@@ -91,13 +71,13 @@
     <div class="sticky-nav">
         <div class="d-flex gap-2">
             <button class="btn btn-success flex-grow-1 fw-bold" onclick="novoProduto()">+ NOVO PRODUTO</button>
-            <button class="btn btn-info flex-grow-1 fw-bold" onclick="adicionarCategoria()">+ Nova Categoria</button>
             <button class="btn btn-warning flex-grow-1 fw-bold" id="btnSave" onclick="salvarCloud()">☁️ SALVAR TUDO</button>
         </div>
     </div>
 
     <div id="lista-produtos" class="mt-3"></div>
 </div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
@@ -112,7 +92,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let produtos = [];
-    let categorias = ["burger", "bebidas", "combos"];
 
     // 1. CONFIGURAÇÕES DE ACESSO PERMITIDAS
     const usuariosPermitidos = [
@@ -122,59 +101,40 @@
 
     // 2. FUNÇÃO INICIAL (CHAMADA NO FINAL DO SCRIPT)
     function carregarTudo() {
-    firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-            const autorizado = usuariosPermitidos.some(u => u.email === user.email);
-
-            if (autorizado) {
-                document.getElementById('login-screen').style.display = 'none';
-
-                console.log("Usuário autorizado:", user.email);
-
-                iniciarMonitoramentoDB();
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                const autorizado = usuariosPermitidos.some(u => u.email === user.email);
+                if (autorizado) {
+                    iniciarMonitoramentoDB();
+                } else {
+                    alert("Acesso Negado: E-mail não autorizado.");
+                    firebase.auth().signOut();
+                }
             } else {
-                alert("Acesso Negado: E-mail não autorizado.");
-                firebase.auth().signOut();
-                document.getElementById('login-screen').style.display = 'flex';
+                solicitarLogin();
             }
-        } else {
-            document.getElementById('login-screen').style.display = 'flex';
-        }
-    });
-}
-
-function solicitarLogin() {
-    document.getElementById('login-screen').style.display = 'flex';
-}
-
-function entrar() {
-    const email = document.getElementById('login-email').value.trim();
-    const senha = document.getElementById('login-senha').value;
-
-    if (!email || !senha) {
-        alert("Preencha e-mail e senha!");
-        return;
+        });
     }
 
-    firebase.auth().signInWithEmailAndPassword(email, senha)
-        .then((userCredential) => {
-            // Força o fechamento da tela preta assim que logar
-            document.getElementById('login-screen').style.display = 'none';
-            console.log("Login realizado com sucesso!");
-        })
-        .catch(e => {
-            console.error(e);
-            alert("Erro no login: " + e.message);
-        });
-}
+    function solicitarLogin() {
+        const email = prompt("E-mail de Administrador:");
+        const senha = prompt("Senha:");
+        if (email && senha) {
+            firebase.auth().signInWithEmailAndPassword(email.trim(), senha)
+                .catch(e => {
+                    alert("Erro: " + e.message);
+                    solicitarLogin();
+                });
+        }
+    }
 
     // 3. MONITORES DO BANCO DE DADOS (SÓ RODAM SE LOGADO)
     function iniciarMonitoramentoDB() {
-        db.ref('cardapio/produtos').on('value', snap => {
-    const data = snap.val();
-    produtos = data ? Object.values(data).filter(i => i !== null) : [];
-    renderProdutos();
-});
+        db.ref('cardapio/produtos').once('value', snap => {
+            const data = snap.val();
+            produtos = data ? Object.values(data).filter(i => i !== null) : [];
+            renderProdutos();
+        });
 
         db.ref('configuracoes/statusLoja').on('value', snap => {
             const d = snap.val() || {};
@@ -192,63 +152,34 @@ function entrar() {
     }
 
     // 4. FUNÇÕES DE INTERFACE (RENDERIZAÇÃO)
-   function renderProdutos() {
-    const div = document.getElementById('lista-produtos');
-    div.innerHTML = "";
-
-    produtos.forEach((p, i) => {
-        const isAtivo = p.ativo !== false;
-
-        div.innerHTML += `
-        <div class="card-prod ${isAtivo ? '' : 'is-hidden'}">
-            <div class="d-flex gap-3">
-                <img src="${p.image || ''}" class="img-admin" onerror="this.src='https://via.placeholder.com/80?text=KING'">
-                <div class="flex-grow-1">
-                    <div class="row g-2">
-
-                        <div class="col-9">
-                            <label>Produto</label>
-                            <input class="form-control" value="${p.title || ''}" onchange="edit(${i},'title',this.value)">
+    function renderProdutos() {
+        const div = document.getElementById('lista-produtos');
+        div.innerHTML = "";
+        produtos.forEach((p, i) => {
+            const isAtivo = p.ativo !== false;
+            div.innerHTML += `
+            <div class="card-prod ${isAtivo ? '' : 'is-hidden'}">
+                <div class="d-flex gap-3">
+                    <img src="${p.image || ''}" class="img-admin" onerror="this.src='https://via.placeholder.com/80?text=KING'">
+                    <div class="flex-grow-1">
+                        <div class="row g-2">
+                            <div class="col-9"><label>Produto</label><input class="form-control" value="${p.title || ''}" onchange="edit(${i},'title',this.value)"></div>
+                            <div class="col-3"><label>R$</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="edit(${i},'price',this.value)"></div>
+                            <div class="col-12"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)"></div>
+                            <div class="col-6"><label>Categoria</label><input class="form-control" value="${p.categoria || ''}" onchange="edit(${i},'categoria',this.value)"></div>
+                            <div class="col-6"><label>URL Imagem</label><input class="form-control" value="${p.image || ''}" onchange="edit(${i},'image',this.value)"></div>
                         </div>
-
-                        <div class="col-3">
-                            <label>R$</label>
-                            <input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="edit(${i},'price',this.value)">
-                        </div>
-
-                        <div class="col-12">
-                            <label>Ingredientes</label>
-                            <input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)">
-                        </div>
-
-                        <!-- 🔥 SELECT DINÂMICO -->
-                        <div class="col-6">
-                            <label>Categoria</label>
-                            <select class="form-control" onchange="edit(${i},'categoria',this.value)">
-                                ${categorias.map(c => `
-                                    <option value="${c}" ${p.categoria === c ? 'selected' : ''}>${c}</option>
-                                `).join('')}
-                            </select>
-                        </div>
-
-                        <div class="col-6">
-                            <label>URL Imagem</label>
-                            <input class="form-control" value="${p.image || ''}" onchange="edit(${i},'image',this.value)">
-                        </div>
-
                     </div>
                 </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
-                <button class="btn ${isAtivo ? 'btn-outline-warning' : 'btn-success'} btn-sm flex-grow-1 fw-bold" onclick="toggleAtivo(${i})">
-                    ${isAtivo ? 'SILENCIAR' : 'ATIVAR'}
-                </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="remover(${i})">EXCLUIR</button>
-            </div>
-        </div>`;
-    });
-} 
+                <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
+                    <button class="btn ${isAtivo ? 'btn-outline-warning' : 'btn-success'} btn-sm flex-grow-1 fw-bold" onclick="toggleAtivo(${i})">
+                        ${isAtivo ? 'SILENCIAR' : 'ATIVAR'}
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="remover(${i})">EXCLUIR</button>
+                </div>
+            </div>`;
+        });
+    }
 
     // 5. FUNÇÕES DE LÓGICA E BANCO
     function salvarCloud() {
@@ -301,23 +232,6 @@ function entrar() {
     }
 
     function remover(i) { if(confirm("Remover?")) { produtos.splice(i,1); salvarCloud(); } }
-    
-    
-    function adicionarCategoria() {
-    const nova = prompt("Nova categoria:");
-
-    if (!nova) return;
-
-    const nome = nova.toLowerCase().trim();
-
-    if (categorias.includes(nome)) {
-        alert("Essa categoria já existe!");
-        return;
-    }
-
-    categorias.push(nome);
-    renderProdutos();
-}
 
     // INICIALIZAÇÃO
     carregarTudo();
