@@ -157,9 +157,14 @@ function entrar() {
     }
 
     firebase.auth().signInWithEmailAndPassword(email, senha)
+        .then((userCredential) => {
+            // Força o fechamento da tela preta assim que logar
+            document.getElementById('login-screen').style.display = 'none';
+            console.log("Login realizado com sucesso!");
+        })
         .catch(e => {
-            console.log(e);
-            alert("Erro: " + e.message);
+            console.error(e);
+            alert("Erro no login: " + e.message);
         });
 }
 
