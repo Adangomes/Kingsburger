@@ -127,6 +127,9 @@
 
             if (autorizado) {
                 document.getElementById('login-screen').style.display = 'none';
+
+                console.log("Usuário autorizado:", user.email);
+
                 iniciarMonitoramentoDB();
             } else {
                 alert("Acesso Negado: E-mail não autorizado.");
@@ -134,7 +137,7 @@
                 document.getElementById('login-screen').style.display = 'flex';
             }
         } else {
-            solicitarLogin();
+            document.getElementById('login-screen').style.display = 'flex';
         }
     });
 }
@@ -153,20 +156,8 @@ function entrar() {
     }
 
     firebase.auth().signInWithEmailAndPassword(email, senha)
-        .then((cred) => {
-            const userEmail = cred.user.email;
-            const autorizado = usuariosPermitidos.some(u => u.email === userEmail);
-
-            if (autorizado) {
-                document.getElementById('login-screen').style.display = 'none';
-                iniciarMonitoramentoDB();
-            } else {
-                alert("Acesso Negado: E-mail não autorizado.");
-                firebase.auth().signOut();
-                document.getElementById('login-screen').style.display = 'flex';
-            }
-        })
         .catch(e => {
+            console.log(e);
             alert("Erro: " + e.message);
         });
 }
