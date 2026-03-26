@@ -1016,18 +1016,31 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
 // VERIFICA SE A LOJA ESTÁ ABERTA
 // ----------------------------
 function lojaEstaAbertaAgora() {
+    // 1. Se o Firebase ainda não respondeu, não bloqueia o site (evita o delay)
+    if (!primeiraCargaFeita) return true; 
+
+    // 2. Se a loja foi fechada manualmente no Admin
     if (!statusLojaAtual.aberto) return false;
+
     const agora = new Date();
     const diaSemana = agora.getDay();
     const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+
+    // 3. Pega os horários que vieram do Firebase
     const [hA, mA] = statusLojaAtual.horarioAbertura.split(":").map(Number);
     const [hF, mF] = statusLojaAtual.horarioFechamento.split(":").map(Number);
+
     const aberturaMin = hA * 60 + mA;
     const fechamentoMin = hF * 60 + mF;
+
+    // 4. Valida dia e hora
     const diaPermitido = statusLojaAtual.diasAbertos.includes(diaSemana);
     const horarioPermitido = minutosAgora >= aberturaMin && minutosAgora <= fechamentoMin;
+
+    // Retorna verdadeiro apenas se o dia E o horário estiverem batendo
     return diaPermitido && horarioPermitido;
 }
+
 // ----------------------------
 // MOSTRAR MODAL DE LOJA FECHADA
 // ----------------------------
