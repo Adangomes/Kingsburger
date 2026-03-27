@@ -28,6 +28,10 @@
         .sticky-nav { position: sticky; top: 0; background: var(--dark-bg); z-index: 1000; padding: 10px 0; border-bottom: 1px solid #222; }
 
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+
+        /* Estilo para as Badges de Categoria que podem ser apagadas */
+        .cat-badge { background: #222; border: 1px solid #444; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .btn-del-cat { color: #ff4444; cursor: pointer; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -83,6 +87,7 @@
             <button class="btn btn-info flex-grow-1 fw-bold text-white" onclick="novaCategoria()">+ NOVA CATEGORIA</button>
             <button class="btn btn-warning flex-grow-1 fw-bold" id="btnSave" onclick="salvarCloud()">☁️ SALVAR TUDO</button>
         </div>
+        <div id="lista-categorias-admin" class="mt-2 d-flex flex-wrap gap-2 px-2"></div>
     </div>
 
     <div id="lista-produtos" class="mt-3"></div>
@@ -105,8 +110,8 @@
     let produtos = [];
     let categoriasExistentes = [];
     
-    // SEQUÊNCIA DE CATEGORIAS (Edite a ordem aqui se desejar)
-    const ordemCategorias = ["combos", "burger", "bebidas"];
+    // ORDEM FIXA - Altere aqui os nomes EXATOS que você quer no topo
+    const ordemCategoriasBase = ["combos", "burger", "bebida"];
 
     const usuariosPermitidos = ["adangones55@gmail.com", "gabrieljunirrr@gmail.com"];
 
@@ -134,21 +139,20 @@
     }
 
     function iniciarMonitoramentoDB() {
-        // Monitorar Produtos
         db.ref('cardapio/produtos').on('value', snap => {
             const data = snap.val();
             produtos = data ? Object.values(data).filter(i => i !== null) : [];
             
-            // Gerar lista de categorias baseada na ordem definida + novas categorias
+            // LÓGICA DE CATEGORIAS: Ordem Fixa + O que sobrar do banco no final
             const catsNoBanco = [...new Set(produtos.map(p => p.categoria).filter(c => c))];
+            const catsNovas = catsNoBanco.filter(c => !ordemCategoriasBase.includes(c));
             
-            // Une a ordem fixa com o que existe no banco, removendo duplicados
-            categoriasExistentes = [...new Set([...ordemCategorias, ...catsNoBanco])];
+            categoriasExistentes = [...ordemCategoriasBase, ...catsNovas];
             
             renderProdutos();
+            renderGerenciadorCategorias();
         });
 
-        // Status Loja
         db.ref('configuracoes/statusLoja').on('value', snap => {
             const d = snap.val() || {};
             document.getElementById('loja-switch').checked = d.aberto || false;
@@ -161,7 +165,6 @@
             });
         });
 
-        // Cupons
         db.ref('configuracoes/cupons').on('value', snap => renderCupons(snap.val()));
     }
 
@@ -204,6 +207,37 @@
         });
     }
 
+    // NOVA FUNÇÃO: Renderiza a lista de categorias que podem ser apagadas
+    function renderGerenciadorCategorias() {
+        const div = document.getElementById('lista-categorias-admin');
+        div.innerHTML = "";
+        
+        categoriasExistentes.forEach(cat => {
+            const isFixa = ordemCategoriasBase.includes(cat);
+            div.innerHTML += `
+                <div class="cat-badge">
+                    ${cat.toUpperCase()}
+                    ${!isFixa ? `<span class="btn-del-cat" onclick="excluirCategoria('${cat}')">✕</span>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // NOVA FUNÇÃO: Exclui a categoria da lista
+    function excluirCategoria(nomeCat) {
+        const temProduto = produtos.some(p => p.categoria === nomeCat);
+        if (temProduto) {
+            alert(`Erro: Mude os produtos da categoria "${nomeCat.toUpperCase()}" para outra antes de apagá-la.`);
+            return;
+        }
+
+        if (confirm(`Deseja apagar a categoria "${nomeCat.toUpperCase()}"?`)) {
+            categoriasExistentes = categoriasExistentes.filter(c => c !== nomeCat);
+            renderProdutos();
+            renderGerenciadorCategorias();
+        }
+    }
+
     function novaCategoria() {
         const nome = prompt("Nome da nova categoria:");
         if (nome) {
@@ -211,33 +245,9 @@
             if (!categoriasExistentes.includes(limpo)) {
                 categoriasExistentes.push(limpo);
                 renderProdutos();
+                renderGerenciadorCategorias();
             }
         }
-    }
-
-    function novoCupom() {
-        const cod = prompt("Código do Cupom (Ex: KING10):");
-        const val = prompt("Valor de desconto (apenas números %):");
-        if (cod && val) {
-            db.ref('configuracoes/cupons').push({
-                codigo: cod.toUpperCase().trim(),
-                valor: parseInt(val),
-                ativo: true
-            });
-        }
-    }
-
-    function renderCupons(obj) {
-        const div = document.getElementById('lista-cupons');
-        div.innerHTML = obj ? "" : "<small class='text-muted'>Nenhum cupom ativo</small>";
-        if(obj) Object.entries(obj).forEach(([id, c]) => {
-            div.innerHTML += `
-            <div class="d-flex gap-2 mb-2">
-                <input class="form-control py-1" value="${c.codigo}" readonly>
-                <input class="form-control py-1 w-25" value="${c.valor}%" readonly>
-                <button class="btn btn-danger btn-sm" onclick="db.ref('configuracoes/cupons/${id}').remove()">X</button>
-            </div>`;
-        });
     }
 
     function salvarCloud() {
@@ -282,6 +292,31 @@
     }
 
     function remover(i) { if(confirm("Deseja mesmo excluir?")) { produtos.splice(i,1); salvarCloud(); } }
+
+    function novoCupom() {
+        const cod = prompt("Código do Cupom:");
+        const val = prompt("Valor de desconto (%):");
+        if (cod && val) {
+            db.ref('configuracoes/cupons').push({
+                codigo: cod.toUpperCase().trim(),
+                valor: parseInt(val),
+                ativo: true
+            });
+        }
+    }
+
+    function renderCupons(obj) {
+        const div = document.getElementById('lista-cupons');
+        div.innerHTML = obj ? "" : "<small class='text-muted'>Nenhum cupom ativo</small>";
+        if(obj) Object.entries(obj).forEach(([id, c]) => {
+            div.innerHTML += `
+            <div class="d-flex gap-2 mb-2">
+                <input class="form-control py-1" value="${c.codigo}" readonly>
+                <input class="form-control py-1 w-25" value="${c.valor}%" readonly>
+                <button class="btn btn-danger btn-sm" onclick="db.ref('configuracoes/cupons/${id}').remove()">X</button>
+            </div>`;
+        });
+    }
 
     carregarTudo();
 </script>
