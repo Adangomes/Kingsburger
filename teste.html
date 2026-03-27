@@ -813,3 +813,294 @@ kingsadmin funcionando
 </body>
 </html>
 
+KINGSADMIM FUNCIONANDO 
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings Admin PRO - Adan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <style>
+        :root { --gold: #ffc107; --dark-bg: #0a0a0a; --card-bg: #161616; }
+        body { background: var(--dark-bg); color: white; padding-bottom: 100px; font-family: sans-serif; }
+        
+        .card-custom { background: var(--card-bg); border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .card-prod { background: #1a1a1a; border-radius: 12px; border: 1px solid #333; padding: 12px; margin-bottom: 12px; transition: 0.3s; }
+        
+        .is-hidden { opacity: 0.3; filter: grayscale(1); border-color: #ff4444; }
+
+        .img-admin { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; background: #333; }
+        .form-control, .form-select { background: #222 !important; border: 1px solid #444 !important; color: white !important; font-size: 0.9rem; }
+        label { font-size: 0.7rem; color: var(--gold); font-weight: bold; text-transform: uppercase; margin-top: 5px; display: block; }
+        
+        .dia-btn { width: 35px; height: 35px; border: 1px solid #444; background: #222; color: #888; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        .dia-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
+        
+        .sticky-nav { position: sticky; top: 0; background: var(--dark-bg); z-index: 1000; padding: 10px 0; border-bottom: 1px solid #222; }
+
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="card-custom" style="width: 320px; text-align: center;">
+        <h4 class="text-warning fw-bold mb-3">ACESSO ADMIN</h4>
+        <input type="email" id="email-login" class="form-control mb-2" placeholder="E-mail">
+        <input type="password" id="senha-login" class="form-control mb-3" placeholder="Senha">
+        <button class="btn btn-warning w-100 fw-bold" onclick="fazerLogin()">ENTRAR</button>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-warning m-0">Kings Admin <span class="text-white small" style="font-size: 12px;">PRO</span></h4>
+        <button class="btn btn-outline-danger btn-sm" onclick="firebase.auth().signOut().then(() => location.reload())">Sair</button>
+    </div>
+
+    <div class="card-custom">
+        <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold text-uppercase" style="font-size: 0.8rem;">Status da Loja</span>
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="loja-switch" onchange="toggleLoja(this.checked)"></div>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-6"><label>Abre às</label><input type="time" id="h-abre" class="form-control"></div>
+            <div class="col-6"><label>Fecha às</label><input type="time" id="h-fecha" class="form-control"></div>
+        </div>
+        <label>Dias de Funcionamento</label>
+        <div class="d-flex gap-1 mb-3" id="dias-grid">
+            <div class="dia-btn" data-dia="0">D</div>
+            <div class="dia-btn" data-dia="1">S</div>
+            <div class="dia-btn" data-dia="2">T</div>
+            <div class="dia-btn" data-dia="3">Q</div>
+            <div class="dia-btn" data-dia="4">Q</div>
+            <div class="dia-btn" data-dia="5">S</div>
+            <div class="dia-btn" data-dia="6">S</div>
+        </div>
+        <button class="btn btn-warning w-100 fw-bold" onclick="salvarConfigLoja()">ATUALIZAR HORÁRIOS</button>
+    </div>
+
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label style="color: #00d1ff;">CUPONS ATIVOS</label>
+            <button class="btn btn-outline-info btn-sm" onclick="novoCupom()">+ NOVO CUPOM</button>
+        </div>
+        <div id="lista-cupons"></div>
+    </div>
+
+    <div class="sticky-nav">
+        <div class="d-flex gap-2">
+            <button class="btn btn-success flex-grow-1 fw-bold" onclick="novoProduto()">+ NOVO PRODUTO</button>
+            <button class="btn btn-info flex-grow-1 fw-bold text-white" onclick="novaCategoria()">+ NOVA CATEGORIA</button>
+            <button class="btn btn-warning flex-grow-1 fw-bold" id="btnSave" onclick="salvarCloud()">☁️ SALVAR TUDO</button>
+        </div>
+    </div>
+
+    <div id="lista-produtos" class="mt-3"></div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXA1yP1F-riNkzOX5zJs5gsQ82EzsT7Qg",
+        authDomain: "myproject26-10f0e.firebaseapp.com",
+        databaseURL: "https://myproject26-10f0e-default-rtdb.firebaseio.com",
+        projectId: "myproject26-10f0e",
+        storageBucket: "myproject26-10f0e.firebasestorage.app",
+        messagingSenderId: "884850608032",
+        appId: "1:884850608032:web:79db6983346c3c20edc6c5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    let produtos = [];
+    let categoriasExistentes = [];
+    
+    // SEQUÊNCIA DE CATEGORIAS (Edite a ordem aqui se desejar)
+    const ordemCategorias = ["combos", "burger", "bebidas"];
+
+    const usuariosPermitidos = ["adangones55@gmail.com", "gabrieljunirrr@gmail.com"];
+
+    function carregarTudo() {
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                const emailNormalizado = user.email.toLowerCase().trim();
+                if (usuariosPermitidos.includes(emailNormalizado)) {
+                    document.getElementById('login-screen').style.display = 'none';
+                    iniciarMonitoramentoDB();
+                } else {
+                    alert("Acesso Negado.");
+                    firebase.auth().signOut();
+                }
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
+        });
+    }
+
+    function fazerLogin() {
+        const e = document.getElementById('email-login').value;
+        const s = document.getElementById('senha-login').value;
+        firebase.auth().signInWithEmailAndPassword(e, s).catch(err => alert("Erro: " + err.message));
+    }
+
+    function iniciarMonitoramentoDB() {
+        // Monitorar Produtos
+        db.ref('cardapio/produtos').on('value', snap => {
+            const data = snap.val();
+            produtos = data ? Object.values(data).filter(i => i !== null) : [];
+            
+            // Gerar lista de categorias baseada na ordem definida + novas categorias
+            const catsNoBanco = [...new Set(produtos.map(p => p.categoria).filter(c => c))];
+            
+            // Une a ordem fixa com o que existe no banco, removendo duplicados
+            categoriasExistentes = [...new Set([...ordemCategorias, ...catsNoBanco])];
+            
+            renderProdutos();
+        });
+
+        // Status Loja
+        db.ref('configuracoes/statusLoja').on('value', snap => {
+            const d = snap.val() || {};
+            document.getElementById('loja-switch').checked = d.aberto || false;
+            document.getElementById('h-abre').value = d.horarioAbertura || "";
+            document.getElementById('h-fecha').value = d.horarioFechamento || "";
+            const diasAbertos = d.diasAbertos || [];
+            document.querySelectorAll('.dia-btn').forEach(btn => {
+                btn.classList.toggle('active', diasAbertos.includes(parseInt(btn.dataset.dia)));
+                btn.onclick = () => btn.classList.toggle('active');
+            });
+        });
+
+        // Cupons
+        db.ref('configuracoes/cupons').on('value', snap => renderCupons(snap.val()));
+    }
+
+    function renderProdutos() {
+        const div = document.getElementById('lista-produtos');
+        div.innerHTML = "";
+        
+        produtos.forEach((p, i) => {
+            const isAtivo = p.ativo !== false;
+            let optionsHtml = categoriasExistentes.map(cat => 
+                `<option value="${cat}" ${p.categoria === cat ? 'selected' : ''}>${cat.toUpperCase()}</option>`
+            ).join('');
+
+            div.innerHTML += `
+            <div class="card-prod ${isAtivo ? '' : 'is-hidden'}">
+                <div class="d-flex gap-3">
+                    <img src="${p.image || ''}" class="img-admin" onerror="this.src='https://via.placeholder.com/80?text=KING'">
+                    <div class="flex-grow-1">
+                        <div class="row g-2">
+                            <div class="col-9"><label>Produto</label><input class="form-control" value="${p.title || ''}" onchange="edit(${i},'title',this.value)"></div>
+                            <div class="col-3"><label>R$</label><input class="form-control" type="number" step="0.01" value="${p.price || 0}" onchange="edit(${i},'price',this.value)"></div>
+                            <div class="col-12"><label>Ingredientes</label><input class="form-control" value="${p.ingredientes || ''}" onchange="edit(${i},'ingredientes',this.value)"></div>
+                            <div class="col-6">
+                                <label>Categoria</label>
+                                <select class="form-select" onchange="edit(${i},'categoria',this.value)">
+                                    ${optionsHtml}
+                                </select>
+                            </div>
+                            <div class="col-6"><label>URL Imagem</label><input class="form-control" value="${p.image || ''}" onchange="edit(${i},'image',this.value)"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary">
+                    <button class="btn ${isAtivo ? 'btn-outline-warning' : 'btn-success'} btn-sm flex-grow-1 fw-bold" onclick="toggleAtivo(${i})">
+                        ${isAtivo ? 'SILENCIAR' : 'ATIVAR'}
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="remover(${i})">EXCLUIR</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function novaCategoria() {
+        const nome = prompt("Nome da nova categoria:");
+        if (nome) {
+            const limpo = nome.toLowerCase().trim();
+            if (!categoriasExistentes.includes(limpo)) {
+                categoriasExistentes.push(limpo);
+                renderProdutos();
+            }
+        }
+    }
+
+    function novoCupom() {
+        const cod = prompt("Código do Cupom (Ex: KING10):");
+        const val = prompt("Valor de desconto (apenas números %):");
+        if (cod && val) {
+            db.ref('configuracoes/cupons').push({
+                codigo: cod.toUpperCase().trim(),
+                valor: parseInt(val),
+                ativo: true
+            });
+        }
+    }
+
+    function renderCupons(obj) {
+        const div = document.getElementById('lista-cupons');
+        div.innerHTML = obj ? "" : "<small class='text-muted'>Nenhum cupom ativo</small>";
+        if(obj) Object.entries(obj).forEach(([id, c]) => {
+            div.innerHTML += `
+            <div class="d-flex gap-2 mb-2">
+                <input class="form-control py-1" value="${c.codigo}" readonly>
+                <input class="form-control py-1 w-25" value="${c.valor}%" readonly>
+                <button class="btn btn-danger btn-sm" onclick="db.ref('configuracoes/cupons/${id}').remove()">X</button>
+            </div>`;
+        });
+    }
+
+    function salvarCloud() {
+        const btn = document.getElementById('btnSave');
+        btn.innerHTML = "⏳ Gravando...";
+        btn.disabled = true;
+        
+        const dadosLimpos = produtos.map(p => ({
+            title: p.title || "Sem nome",
+            price: parseFloat(p.price) || 0,
+            ingredientes: p.ingredientes || "",
+            categoria: p.categoria || "burger",
+            image: p.image || "",
+            ativo: p.ativo !== false
+        }));
+
+        db.ref('cardapio/produtos').set(dadosLimpos)
+            .then(() => alert("Tudo salvo com sucesso! 🚀"))
+            .finally(() => { 
+                btn.innerHTML = "☁️ SALVAR TUDO"; 
+                btn.disabled = false; 
+            });
+    }
+
+    function edit(i, f, v) { produtos[i][f] = (f === 'price') ? parseFloat(v) : v; }
+    function toggleAtivo(i) { produtos[i].ativo = !(produtos[i].ativo !== false); renderProdutos(); }
+    function toggleLoja(s) { db.ref('configuracoes/statusLoja/aberto').set(s); }
+
+    function salvarConfigLoja() {
+        const dias = Array.from(document.querySelectorAll('.dia-btn.active')).map(b => parseInt(b.dataset.dia));
+        db.ref('configuracoes/statusLoja').update({
+            horarioAbertura: document.getElementById('h-abre').value,
+            horarioFechamento: document.getElementById('h-fecha').value,
+            diasAbertos: dias
+        }).then(() => alert("Configurações de horários salvas!"));
+    }
+
+    function novoProduto() { 
+        const catPadrao = categoriasExistentes[0] || "combos";
+        produtos.unshift({title: "Novo Item", price: 0, categoria: catPadrao, image: "", ingredientes: "", ativo: true}); 
+        renderProdutos(); 
+    }
+
+    function remover(i) { if(confirm("Deseja mesmo excluir?")) { produtos.splice(i,1); salvarCloud(); } }
+
+    carregarTudo();
+</script>
+</body>
+</html>
