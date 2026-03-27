@@ -30,7 +30,6 @@
 
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 9999; display: flex; justify-content: center; align-items: center; }
 
-        /* Estilos do Modal de Categorias */
         .modal-content { background: #161616; border: 1px solid #444; color: white; }
         .cat-item-list { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #222; border-radius: 8px; margin-bottom: 5px; border: 1px solid #333; }
         .btn-del-cat-modal { color: #ff4444; cursor: pointer; font-weight: bold; background: none; border: none; font-size: 1.1rem; }
@@ -56,11 +55,8 @@
             </div>
             <div class="modal-body">
                 <label>Categorias Criadas</label>
-                <div id="lista-categorias-modal" class="mb-4 mt-2" style="max-height: 250px; overflow-y: auto;">
-                    </div>
-                
+                <div id="lista-categorias-modal" class="mb-4 mt-2" style="max-height: 250px; overflow-y: auto;"></div>
                 <hr class="border-secondary">
-                
                 <label>Nova Categoria</label>
                 <div class="input-group mt-1">
                     <input type="text" id="input-nova-cat" class="form-control" placeholder="Ex: ADICIONAIS">
@@ -134,10 +130,7 @@
     
     let produtos = [];
     let categoriasExistentes = [];
-    
-    // ORDEM CORRETA AGORA: Combos, Burger e Bebida
     const ordemCategoriasBase = ["combos", "burger", "bebida"];
-
     const usuariosPermitidos = ["adangones55@gmail.com", "gabrieljunirrr@gmail.com"];
 
     function carregarTudo() {
@@ -167,12 +160,9 @@
         db.ref('cardapio/produtos').on('value', snap => {
             const data = snap.val();
             produtos = data ? Object.values(data).filter(i => i !== null) : [];
-            
             const catsNoBanco = [...new Set(produtos.map(p => p.categoria).filter(c => c))];
             const catsNovas = catsNoBanco.filter(c => !ordemCategoriasBase.includes(c));
-            
             categoriasExistentes = [...ordemCategoriasBase, ...catsNovas];
-            
             renderProdutos();
             renderCategoriasModal();
         });
@@ -196,7 +186,14 @@
         const div = document.getElementById('lista-produtos');
         div.innerHTML = "";
         
-        produtos.forEach((p, i) => {
+        // ORDENAÇÃO: Garante que os blocos fiquem na ordem correta no Admin
+        const produtosOrdenados = [...produtos].sort((a, b) => {
+            let indexA = categoriasExistentes.indexOf(a.categoria);
+            let indexB = categoriasExistentes.indexOf(b.categoria);
+            return indexA - indexB;
+        });
+
+        produtosOrdenados.forEach((p, i) => {
             const isAtivo = p.ativo !== false;
             let optionsHtml = categoriasExistentes.map(cat => 
                 `<option value="${cat}" ${p.categoria === cat ? 'selected' : ''}>${cat.toUpperCase()}</option>`
@@ -229,47 +226,39 @@
                 </div>
             </div>`;
         });
+        produtos = produtosOrdenados; // Sincroniza a variável global
     }
 
     function renderCategoriasModal() {
         const div = document.getElementById('lista-categorias-modal');
         div.innerHTML = "";
-        
         categoriasExistentes.forEach(cat => {
             const isFixa = ordemCategoriasBase.includes(cat);
             div.innerHTML += `
                 <div class="cat-item-list">
                     <span>${cat.toUpperCase()}</span>
                     ${!isFixa ? `<button class="btn-del-cat-modal" onclick="excluirCategoria('${cat}')">✕</button>` : '<small class="text-muted">Padrão</small>'}
-                </div>
-            `;
+                </div>`;
         });
     }
 
     function adicionarCategoria() {
         const input = document.getElementById('input-nova-cat');
         const nome = input.value.toLowerCase().trim();
-        
-        if (nome) {
-            if (!categoriasExistentes.includes(nome)) {
-                categoriasExistentes.push(nome);
-                input.value = "";
-                renderProdutos();
-                renderCategoriasModal();
-            } else {
-                alert("Essa categoria já existe!");
-            }
+        if (nome && !categoriasExistentes.includes(nome)) {
+            categoriasExistentes.push(nome);
+            input.value = "";
+            renderProdutos();
+            renderCategoriasModal();
         }
     }
 
     function excluirCategoria(nome) {
-        const temProduto = produtos.some(p => p.categoria === nome);
-        if (temProduto) {
-            alert(`Erro: A categoria "${nome.toUpperCase()}" ainda tem produtos cadastrados nela.`);
+        if (produtos.some(p => p.categoria === nome)) {
+            alert("Erro: A categoria ainda tem produtos.");
             return;
         }
-
-        if (confirm(`Deseja apagar a categoria "${nome.toUpperCase()}"?`)) {
+        if (confirm(`Excluir categoria "${nome.toUpperCase()}"?`)) {
             categoriasExistentes = categoriasExistentes.filter(c => c !== nome);
             renderProdutos();
             renderCategoriasModal();
@@ -280,7 +269,6 @@
         const btn = document.getElementById('btnSave');
         btn.innerHTML = "⏳ Gravando...";
         btn.disabled = true;
-        
         const dadosLimpos = produtos.map(p => ({
             title: p.title || "Sem nome",
             price: parseFloat(p.price) || 0,
@@ -289,13 +277,9 @@
             image: p.image || "",
             ativo: p.ativo !== false
         }));
-
         db.ref('cardapio/produtos').set(dadosLimpos)
             .then(() => alert("Tudo salvo com sucesso! 🚀"))
-            .finally(() => { 
-                btn.innerHTML = "☁️ SALVAR TUDO"; 
-                btn.disabled = false; 
-            });
+            .finally(() => { btn.innerHTML = "☁️ SALVAR TUDO"; btn.disabled = false; });
     }
 
     function edit(i, f, v) { produtos[i][f] = (f === 'price') ? parseFloat(v) : v; }
@@ -323,11 +307,7 @@
         const cod = prompt("Código:");
         const val = prompt("Desconto %:");
         if (cod && val) {
-            db.ref('configuracoes/cupons').push({
-                codigo: cod.toUpperCase().trim(),
-                valor: parseInt(val),
-                ativo: true
-            });
+            db.ref('configuracoes/cupons').push({ codigo: cod.toUpperCase().trim(), valor: parseInt(val), ativo: true });
         }
     }
 
