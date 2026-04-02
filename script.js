@@ -929,13 +929,14 @@ async function migrarArquivoParaFirebase() {
 // --- SISTEMA DE CUPONS E DESCONTO ---
 
 // --- SISTEMA DE CUPONS E DESCONTO (VERSÃO CORRIGIDA) ---
+// --- SISTEMA DE CUPONS E DESCONTO (VERSÃO FINAL) ---
 async function aplicarCupom() {
     const inputField = document.getElementById("input-cupom");
     const feedback = document.getElementById("msg-cupom-feedback");
     const btnOk = document.getElementById("btn-aplicar-cupom");
     const codigo = inputField?.value.trim().toUpperCase();
 
-    // Se o cupom já foi aplicado, não faz nada
+    // Se o cupom já foi aplicado, bloqueia nova tentativa
     if (inputField.disabled) return;
 
     if (!codigo) {
@@ -949,7 +950,8 @@ async function aplicarCupom() {
         const cupons = snapshot.val();
 
         if (!cupons) {
-            feedback.innerText = "Nenhum cupom ativo.";
+            feedback.innerText = "Nenhum cupom ativo no sistema.";
+            feedback.style.color = "orange";
             return;
         }
 
@@ -959,16 +961,19 @@ async function aplicarCupom() {
         if (cupomValido) {
             let subtotalAtual = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-            if (!cupomValido.tipo || cupomValido.tipo === "porcentagem") {
-    descontoAplicado = subtotalAtual * (parseFloat(cupomValido.valor) / 100);
-} else {
-    descontoAplicado = parseFloat(cupomValido.valor);
-}
+            // LOGICA: Se no Admin estiver "porcentagem", ele calcula % do total.
+            // Se for valor fixo (ex: R$ 5,00), ele apenas subtrai o valor.
+            if (cupomValido.tipo === "porcentagem") {
+                descontoAplicado = subtotalAtual * (parseFloat(cupomValido.valor) / 100);
+            } else {
+                descontoAplicado = parseFloat(cupomValido.valor);
+            }
 
-            feedback.innerText = `Cupom aplicado: R$ ${descontoAplicado.toFixed(2)} OFF! ✅`;
-            feedback.style.color = "#00a650"; // Verde Sucesso
+            // Exibe o valor do desconto calculado para o cliente
+            feedback.innerText = `Desconto de R$ ${descontoAplicado.toFixed(2)} aplicado! ✅`;
+            feedback.style.color = "#00a650"; // Verde Kings
             
-            // --- SEGURANÇA: TRAVA O CAMPO PARA USAR APENAS 1 VEZ ---
+            // --- TRAVA DE SEGURANÇA ---
             inputField.disabled = true;
             btnOk.disabled = true;
             btnOk.style.opacity = "0.5";
@@ -976,16 +981,17 @@ async function aplicarCupom() {
             
             atualizarCarrinho();  
         } else {
-            feedback.innerText = "Cupom inválido ou expirado. ❌";
+            feedback.innerText = "Código inválido ou expirado. ❌";
             feedback.style.color = "red";
             descontoAplicado = 0;
             atualizarCarrinho();
         }
     } catch (err) {
         console.error("Erro ao validar cupom:", err);
-        feedback.innerText = "Erro ao validar. Tente novamente.";
+        feedback.innerText = "Erro na conexão. Tente novamente.";
     }
 }
+
 
 
 // =============================
