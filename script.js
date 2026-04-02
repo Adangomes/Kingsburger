@@ -959,11 +959,11 @@ async function aplicarCupom() {
         if (cupomValido) {
             let subtotalAtual = carrinho.reduce((acc, i) => acc + i.price, 0);
 
-            if (cupomValido.tipo === "porcentagem" || cupomValido.tipo === "percentual") {
-                descontoAplicado = subtotalAtual * (cupomValido.valor / 100);
-            } else {
-                descontoAplicado = parseFloat(cupomValido.valor);
-            }
+            if (!cupomValido.tipo || cupomValido.tipo === "porcentagem") {
+    descontoAplicado = subtotalAtual * (parseFloat(cupomValido.valor) / 100);
+} else {
+    descontoAplicado = parseFloat(cupomValido.valor);
+}
 
             feedback.innerText = `Cupom aplicado: R$ ${descontoAplicado.toFixed(2)} OFF! ✅`;
             feedback.style.color = "#00a650"; // Verde Sucesso
