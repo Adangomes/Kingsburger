@@ -391,12 +391,18 @@
     function remover(i) { if(confirm("Deseja excluir este item?")) { produtos.splice(i,1); salvarCloud(); } }
 
     function novoCupom() {
-        const cod = prompt("Código:");
-        const val = prompt("Desconto %:");
-        if (cod && val) {
-            db.ref('configuracoes/cupons').push({ codigo: cod.toUpperCase().trim(), valor: parseInt(val), ativo: true });
-        }
+    const cod = prompt("Código:");
+    const val = prompt("Desconto (%):");
+
+    if (cod && val) {
+        db.ref('configuracoes/cupons').push({ 
+            codigo: cod.toUpperCase().trim(), 
+            tipo: "porcentagem", // ESSA LINHA RESOLVE
+            valor: parseInt(val), 
+            ativo: true 
+        });
     }
+}
 
     function renderCupons(obj) {
         const div = document.getElementById('lista-cupons');
