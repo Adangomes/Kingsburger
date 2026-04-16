@@ -7,8 +7,8 @@ const WHATSAPP_NUMERO = "5547997278232";
 
 
 
-???????????????AQUI VAI TRAVAR 
-let carrinho = [];
+
+let carrinho = []
 
 let produtosGeral = [];
 
