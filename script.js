@@ -1127,38 +1127,3 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
 });
 
 
-// ==========================================
-// TRAVA DE SEGURANÇA - SISTEMA SUSPENSO
-// ==========================================
-(function() {
-    // 1. Cria o visual do aviso
-    const travaEstilo = document.createElement('style');
-    travaEstilo.innerHTML = `
-        #bloqueio-total {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); color: white;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; text-align: center; font-family: sans-serif; padding: 20px;
-        }
-        .aviso-caixa { border: 2px solid #ff0000; padding: 30px; border-radius: 15px; }
-        .aviso-caixa h1 { color: #ff0000; margin-bottom: 10px; }
-    `;
-    document.head.appendChild(travaEstilo);
-
-    // 2. Cria o elemento na tela
-    const divTrava = document.createElement('div');
-    divTrava.id = 'bloqueio-total';
-    divTrava.innerHTML = `
-        <div class="aviso-caixa">
-            <h1>SISTEMA TRAVADO</h1>
-            <p>Este sistema está temporariamente suspenso para manutenção.</p>
-            <p><strong>Por favor, tente novamente mais tarde.</strong></p>
-        </div>
-    `;
-    document.body.appendChild(divTrava);
-
-    // 3. Trava as funções principais de clique por segurança
-    window.decidirFluxo = function() { return false; };
-    window.abrirCarrinho = function() { return false; };
-    document.body.style.overflow = 'hidden'; // Impede o scroll
-})();
