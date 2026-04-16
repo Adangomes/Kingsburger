@@ -1114,7 +1114,7 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
             divTrava.innerHTML = `
                 <div class="aviso-caixa">
                     <h1>SISTEMA INDISPONÍVEL</h1>
-                    <p>O sistema de pedidos está temporariamente interrompido.</p>
+                    <p>O sistema de pedidos está em manutenção.</p>
                     <p><strong>Desculpe o transtorno.</strong></p>
                 </div>
             `;
