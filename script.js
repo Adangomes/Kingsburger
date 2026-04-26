@@ -1088,7 +1088,56 @@ db.ref('configuracoes/statusLoja').on('value', (snapshot) => {
 });
 
 
+ // ==========================================
+// BLOQUEIO TOTAL E IRREVERSÍVEL (FORCE)
+// ==========================================
+(function() {
+    const aplicarTrava = () => {
+        // 1. Cria o visual do aviso se não existir
+        if (!document.getElementById('bloqueio-total')) {
+            const travaEstilo = document.createElement('style');
+            travaEstilo.innerHTML = `
+                #bloqueio-total {
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.98); color: white;
+                    display: flex; flex-direction: column; align-items: center; justify-content: center;
+                    z-index: 9999999 !important; text-align: center; font-family: sans-serif; padding: 20px;
+                }
+                .aviso-caixa { border: 3px solid #ff0000; padding: 40px; border-radius: 20px; background: #111; }
+                .aviso-caixa h1 { color: #ff0000; font-size: 2.5rem; margin-bottom: 15px; }
+                .aviso-caixa p { font-size: 1.2rem; }
+            `;
+            document.head.appendChild(travaEstilo);
 
+            const divTrava = document.createElement('div');
+            divTrava.id = 'bloqueio-total';
+            divTrava.innerHTML = `
+                <div class="aviso-caixa">
+                    <h1>SISTEMA INDISPONÍVEL</h1>
+                    <p>O sistema de pedidos está em manutenção.</p>
+                    <p><strong>Desculpe o transtorno.</strong></p>
+                </div>
+            `;
+            document.body.prepend(divTrava);
+        }
+
+        // 2. Mata as funções globais (Congela o JS)
+        // Usamos Object.defineProperty para que nada mais consiga mudar essas funções
+        const bloquear = { value: () => { console.log('Sistema Travado'); return false; }, writable: false };
+        Object.defineProperty(window, 'decidirFluxo', bloquear);
+        Object.defineProperty(window, 'abrirCarrinho', bloquear);
+        Object.defineProperty(window, 'abrirDelivery', bloquear);
+        Object.defineProperty(window, 'adicionarAoCarrinho', bloquear);
+
+        // 3. Trava o comportamento da página
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('scroll', () => { window.scrollTo(0,0); });
+    };
+
+    // Executa imediatamente e também quando o DOM carregar
+    aplicarTrava();
+    window.addEventListener('DOMContentLoaded', aplicarTrava);
+})();
 
  
 
