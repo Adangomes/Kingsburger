@@ -218,7 +218,7 @@
     let produtos = [];
     let categoriasExistentes = [];
     const ordemCategoriasBase = ["combos", "burger", "bebida"];
-    const usuariosPermitidos = ["adangones55@gmail.com", "gabrieljunirrr@gmail.com"];
+    const usuariosPermitidos = ["adangones55@gmail.com"];
 
     function carregarTudo() {
         firebase.auth().onAuthStateChanged(user => {
@@ -365,7 +365,7 @@
             ativo: p.ativo !== false
         }));
         db.ref('cardapio/produtos').set(dadosLimpos)
-            .then(() => alert("Tudo salvo com sucesso! 🚀"))
+            .then(() => alert("Tudo salvo com sucesso! "))
             .finally(() => { btn.innerHTML = "☁️ SALVAR TUDO"; btn.disabled = false; });
     }
 
