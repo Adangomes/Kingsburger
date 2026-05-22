@@ -15,6 +15,13 @@
       "image": "imagens/kingsduplo.jpg"
     },
     {
+      "title": "Kings Duplo Bacon",
+      "price": 70,00,
+      "categoria": "burger",
+      "ingredientes": "Dois hambúrgueres artesanais de 140g cada, queijo derretido, bacon crocante e pão brioche",
+      "image": "imagens/kingsduplo.jpg"
+    },
+    {
       "title": "Kings Calabresa",
       "price": 31.99,
       "categoria": "burger",
