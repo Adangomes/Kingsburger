@@ -1,233 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GET IT - LESSON 2 COMPLETE</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relógio Neon Pro</title>
 
-        .app {
-            width: 90%;
-            max-width: 450px;
-            background: #1e293b;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
+<style>
 
-        .logo {
-            font-size: 30px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #38bdf8;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
 
-        .lesson-info {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    transition:1s;
+    background:
+    radial-gradient(circle at top,#ff000040,#000),
+    linear-gradient(135deg,#050505,#151515);
+}
 
-        .phrase {
-            font-size: 20px;
-            margin: 20px 0;
-            min-height: 60px;
-            font-weight: bold;
-            line-height: 1.4;
-        }
+.container{
+    text-align:center;
+    z-index:2;
+}
 
-        .pronunciation {
-            color: #38bdf8;
-            margin-top: 10px;
-            font-size: 16px;
-            font-style: italic;
-            background: rgba(56, 189, 248, 0.1);
-            padding: 5px;
-            border-radius: 5px;
-        }
+.clock{
+    font-size:110px;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:5px;
 
-        .meaning {
-            color: #94a3b8;
-            margin-top: 10px;
-            font-size: 16px;
-        }
+    text-shadow:
+    0 0 10px #ff0000,
+    0 0 20px #ff0000,
+    0 0 40px #ff0000,
+    0 0 80px #ff0000;
+}
 
-        .spoken {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #22c55e;
-            font-weight: bold;
-        }
+.date{
+    color:#fff;
+    margin-top:20px;
+    font-size:28px;
+    letter-spacing:2px;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
+.logo{
+    margin-top:30px;
+    color:#ff0000;
+    font-size:20px;
+    text-transform:uppercase;
+    letter-spacing:6px;
+}
 
-        button:active { opacity: 0.8; }
+.circle{
+    position:absolute;
+    border-radius:50%;
+    background:#ffffff10;
+    animation:float 8s infinite ease-in-out;
+}
 
-        .listen { background: #2563eb; color: white; }
-        .speak { background: #16a34a; color: white; }
-        .next { background: #4f46e5; color: white; }
+.circle:nth-child(1){
+    width:300px;
+    height:300px;
+    top:10%;
+    left:10%;
+}
 
-        .mic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ef4444;
-            margin: 15px auto;
-            display: none;
-            animation: pulse 1s infinite;
-        }
+.circle:nth-child(2){
+    width:200px;
+    height:200px;
+    bottom:10%;
+    right:10%;
+    animation-delay:2s;
+}
 
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(1); }
-        }
-    </style>
+#btnTema{
+    margin-top:30px;
+    padding:15px 30px;
+    border:none;
+    border-radius:40px;
+    cursor:pointer;
+    font-size:16px;
+    font-weight:bold;
+    transition:.3s;
+}
+
+#btnTema:hover{
+    transform:scale(1.08);
+}
+
+@keyframes float{
+    0%,100%{
+        transform:translateY(0px);
+    }
+    50%{
+        transform:translateY(-30px);
+    }
+}
+
+</style>
 </head>
-
 <body>
 
-    <div class="app">
-        <div class="logo">GET IT</div>
-        <div class="lesson-info" id="lesson-info">LESSON 2</div>
+<div class="circle"></div>
+<div class="circle"></div>
 
-        <div class="phrase" id="phrase"></div>
-        <div class="pronunciation" id="pronunciation"></div>
-        <div class="meaning" id="meaning"></div>
+<div class="container">
 
-        <button class="listen" onclick="hear()">Hear phrase</button>
-        <button class="speak" onclick="listenUser()">Speak</button>
-
-        <div class="mic" id="mic"></div>
-        <div class="spoken" id="spoken"></div>
-
-        <button class="next" onclick="next()">Next phrase</button>
+    <div class="clock" id="clock">
+        00:00:00
     </div>
 
-    <script>
-        /* CONTEÚDO DA LESSON 2 EXTRAÍDO DAS IMAGENS (PÁGINAS 10-15) */
-        const lessons = [
-            // Página 10 - Preposições e Perguntas de Localização
-            { phrase: "On, under, in", pronunciation: "ón, ânder, ín", meaning: "Em cima, embaixo, dentro" },
-            { phrase: "Is the book on the table? Yes, the book's on the table", pronunciation: "iz dê búk ón dê têibou? iés dê búks ón dê têibou", meaning: "O livro está em cima da mesa? Sim..." },
-            { phrase: "Is the pen in the book? No, the pen isn't in the book; it's under the book", pronunciation: "iz dê pén ín dê búk? nou dê pén izênt ín dê búk, its ânder dê búk", meaning: "A caneta está dentro do livro? Não, está embaixo do livro" },
-            
-            // Página 11 - Família e Cores
-            { phrase: "Mr, Mrs, family", pronunciation: "míster, mísiz, fémili", meaning: "Sr., Sra., família" },
-            { phrase: "Is this the Brown family? Yes, it's the Brown family", pronunciation: "iz dhis dê bráun fémili? iés its dê bráun fémili", meaning: "Esta é a família Brown? Sim..." },
-            { phrase: "Black, white, green, brown", pronunciation: "bléc, uáit, grín, bráun", meaning: "Preto, branco, verde, marrom" },
-            { phrase: "What colour's this pencil? This pencil's black", pronunciation: "uót cálorz dhis pênsil? dhis pênsilz bléc", meaning: "Qual a cor deste lápis? Este lápis é preto" },
-            
-            // Página 12 - Onde (Where) e Negativas You/I
-            { phrase: "Where? Where's the pen? The pen's on the table", pronunciation: "uéer? uéerz dê pén? dê pénz ón dê têibou", meaning: "Onde? Onde está a caneta? Está na mesa" },
-            { phrase: "You are not... You aren't. I am not... I'm not", pronunciation: "iú ár nót, iú árênt. ai ém nót, aim nót", meaning: "Você não é... Eu não sou..." },
-            { phrase: "Are you Mr Brown? No, I'm not Mr Brown; I'm...", pronunciation: "ár iú míster bráun? nou aim nót míster bráun, aim...", meaning: "Você é o Sr. Brown? Não, eu não sou..." },
-            
-            // Página 13 - Negativas He/She e Localização 2
-            { phrase: "He is not... He isn't. She is not... She isn't", pronunciation: "ri iz nót, rizênt. shi iz nót, shizênt", meaning: "Ele não é... Ela não é..." },
-            { phrase: "Is he Mr Brown? Yes, he's Mr Brown", pronunciation: "iz ri míster bráun? iés riz míster bráun", meaning: "Ele é o Sr. Brown? Sim..." },
-            { phrase: "In front of, behind, me, you", pronunciation: "ín frânt óv, biráind, mí, iú", meaning: "Na frente de, atrás de, mim/me, você" },
-            { phrase: "Is the wall in front of you? No, the wall isn't in front of me; it's behind me", pronunciation: "iz dê uól ín frânt óv iú? nou dê uól izênt ín frânt óv mí, its biráind mí", meaning: "A parede está na sua frente? Não, está atrás de mim" },
-            { phrase: "Him, her, house", pronunciation: "rím, rér, ráuss", meaning: "Ele (objeto), ela (objeto), casa" },
-            { phrase: "Where's the house? The house is behind him", pronunciation: "uéerz dê ráuss? dê ráuss iz biráind rím", meaning: "Onde está a casa? A casa está atrás dele" },
-            
-            // Página 14 - Verbos de Ação (Stand, Sit)
-            { phrase: "Stand, standing, sit, sitting", pronunciation: "sténd, sténdin, sít, sítin", meaning: "Ficar de pé, estando de pé, sentar, sentando" },
-            { phrase: "Are you sitting on the chair? Yes, I'm sitting on the chair", pronunciation: "ár iú sítin ón dê tchér? iés aim sítin ón dê tchér", meaning: "Você está sentado na cadeira? Sim..." },
-            { phrase: "Am I standing on the floor? Yes, you're standing on the floor", pronunciation: "ém ai sténdin ón dê flór? iés iór sténdin ón dê flór", meaning: "Eu estou de pé no chão? Sim..." },
-            
-            // Página 15 - Verbos de Ação (Take, Put) e Números
-            { phrase: "Taking from, putting on", pronunciation: "têikin fróm, pútin ón", meaning: "Tirando de, colocando em" },
-            { phrase: "Am I taking the book from the table? Yes, you're taking the book from the table", pronunciation: "ém ai têikin dê búk fróm dê têibou? iés iór têikin dê búk fróm dê têibou", meaning: "Eu estou tirando o livro da mesa? Sim..." },
-            { phrase: "Six, seven, eight, nine, ten", pronunciation: "sícs, sêven, êit, náin, tén", meaning: "6, 7, 8, 9, 10" },
-            { phrase: "What number's this? It's the number ten", pronunciation: "uót nâmberz dhis? its dê nâmber tén", meaning: "Que número é este? É o número dez" }
-        ];
+    <div class="date" id="date">
+        Carregando...
+    </div>
 
-        let index = 0;
+    <div class="logo">
+        ADAN GOMES
+    </div>
 
-        function load() {
-            document.getElementById("phrase").innerText = lessons[index].phrase;
-            document.getElementById("pronunciation").innerText = "Pronúncia aprox: " + lessons[index].pronunciation;
-            document.getElementById("meaning").innerText = "Tradução: " + lessons[index].meaning;
-            document.getElementById("spoken").innerText = "";
-            document.getElementById("lesson-info").innerText = "LESSON 2 - Item " + (index + 1) + "/" + lessons.length;
-        }
+    <button onclick="trocarFundo()" id="btnTema">
+        🎨 TROCAR FUNDO
+    </button>
 
-        load();
+</div>
 
-        function hear() {
-            let msg = new SpeechSynthesisUtterance(lessons[index].phrase);
-            msg.lang = "en-GB"; 
-            speechSynthesis.speak(msg);
-        }
+<script>
 
-        function listenUser() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                alert("Seu navegador não suporta reconhecimento de voz.");
-                return;
-            }
+// =====================
+// RELÓGIO
+// =====================
 
-            const mic = document.getElementById("mic");
-            const spoken = document.getElementById("spoken");
-            spoken.innerText = "";
-            mic.style.display = "block";
+function atualizarRelogio(){
 
-            const recognition = new SpeechRecognition();
-            recognition.lang = "en-GB";
-            recognition.start();
+    const agora = new Date();
 
-            recognition.onresult = function (event) {
-                mic.style.display = "none";
-                let text = event.results[0][0].transcript;
-                spoken.innerText = "You said: " + text;
-                
-                // Feedback visual simples se acertar (opcional)
-                if(text.toLowerCase().includes(lessons[index].phrase.split(' ')[0].toLowerCase())){
-                    spoken.style.color = "#22c55e";
-                } else {
-                    spoken.style.color = "#f87171";
-                }
-            };
+    const hora = String(agora.getHours()).padStart(2,'0');
+    const min = String(agora.getMinutes()).padStart(2,'0');
+    const seg = String(agora.getSeconds()).padStart(2,'0');
 
-            recognition.onerror = function () {
-                mic.style.display = "none";
-                spoken.innerText = "Erro ao ouvir...";
-            };
-        }
+    document.getElementById("clock").innerHTML =
+    `${hora}:${min}:${seg}`;
 
-        function next() {
-            index++;
-            if (index >= lessons.length) {
-                index = 0;
-            }
-            load();
-        }
-    </script>
+    const opcoes = {
+        weekday:'long',
+        day:'2-digit',
+        month:'long',
+        year:'numeric'
+    };
+
+    document.getElementById("date").innerHTML =
+    agora.toLocaleDateString('pt-BR',opcoes);
+
+}
+
+setInterval(atualizarRelogio,1000);
+atualizarRelogio();
+
+
+// =====================
+// 5 FUNDOS PROFISSIONAIS
+// =====================
+
+const fundos = [
+
+`radial-gradient(circle at top,#ff000040,#000),
+ linear-gradient(135deg,#050505,#151515)`,
+
+`radial-gradient(circle at top,#00e5ff40,#000),
+ linear-gradient(135deg,#001f3f,#000814)`,
+
+`radial-gradient(circle at top,#00ff6640,#000),
+ linear-gradient(135deg,#001a0a,#000)`,
+
+`radial-gradient(circle at top,#ff00ff40,#000),
+ linear-gradient(135deg,#2b1055,#000)`,
+
+`radial-gradient(circle at top,#ffaa0040,#000),
+ linear-gradient(135deg,#2a1400,#000)`
+
+];
+
+let fundoAtual = 0;
+
+function trocarFundo(){
+
+    fundoAtual++;
+
+    if(fundoAtual >= fundos.length){
+        fundoAtual = 0;
+    }
+
+    document.body.style.background = fundos[fundoAtual];
+
+}
+
+</script>
+
 </body>
-
 </html>
