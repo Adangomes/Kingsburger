@@ -3,195 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relógio Neon Pro</title>
+<title>Chronographe d'Élite</title>
+
+<!-- Fontes elegantes de alta relojoaria -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    transition:1s;
-    background:
-    radial-gradient(circle at top,#ff000040,#000),
-    linear-gradient(135deg,#050505,#151515);
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: background 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    /* Fundo Inicial: Rolex Oyster Perpetual Green */
+    background: 
+        radial-gradient(circle at 50% 40%, rgba(0, 96, 57, 0.4) 0%, rgba(0,0,0,0) 70%),
+        radial-gradient(circle at top right, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 50%),
+        linear-gradient(135deg, #021a10 0%, #000503 100%);
+    background-attachment: fixed;
 }
 
-.container{
-    text-align:center;
-    z-index:2;
+/* Reflexo de Vidro de Safira do mostrador */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+    pointer-events: none;
+    z-index: 3;
 }
 
-.clock{
-    font-size:110px;
-    font-weight:900;
-    color:#fff;
-    letter-spacing:5px;
-
-    text-shadow:
-    0 0 10px #ff0000,
-    0 0 20px #ff0000,
-    0 0 40px #ff0000,
-    0 0 80px #ff0000;
+.container {
+    text-align: center;
+    z-index: 2;
+    padding: 40px 60px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.8);
 }
 
-.date{
-    color:#fff;
-    margin-top:20px;
-    font-size:28px;
-    letter-spacing:2px;
+.brand-header {
+    margin-bottom: 15px;
 }
 
-.logo{
-    margin-top:30px;
-    color:#ff0000;
-    font-size:20px;
-    text-transform:uppercase;
-    letter-spacing:6px;
+/* A icônica coroa heráldica */
+.crown {
+    font-size: 26px;
+    color: #d4af37; /* Ouro */
+    line-height: 1;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
-.circle{
-    position:absolute;
-    border-radius:50%;
-    background:#ffffff10;
-    animation:float 8s infinite ease-in-out;
+.logo {
+    color: #ffffff;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 9px;
+    opacity: 0.95;
 }
 
-.circle:nth-child(1){
-    width:300px;
-    height:300px;
-    top:10%;
-    left:10%;
+.sub-logo {
+    font-family: 'Cormorant Garamond', serif;
+    color: #d4af37;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-top: 4px;
 }
 
-.circle:nth-child(2){
-    width:200px;
-    height:200px;
-    bottom:10%;
-    right:10%;
-    animation-delay:2s;
+/* Mostrador Digital de Alta Precisão */
+.clock {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 105px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin: 25px 0;
+    background: linear-gradient(to bottom, #ffffff 60%, #e0e0e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.6));
 }
 
-#btnTema{
-    margin-top:30px;
-    padding:15px 30px;
-    border:none;
-    border-radius:40px;
-    cursor:pointer;
-    font-size:16px;
-    font-weight:bold;
-    transition:.3s;
+.clock span.seconds {
+    font-size: 65px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-left: 5px;
 }
 
-#btnTema:hover{
-    transform:scale(1.08);
+/* Data no estilo calendário perpétuo */
+.date {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: #a0a0a0;
+    font-size: 20px;
+    font-style: italic;
+    letter-spacing: 2px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 20px;
+    display: inline-block;
+    min-width: 250px;
 }
 
-@keyframes float{
-    0%,100%{
-        transform:translateY(0px);
-    }
-    50%{
-        transform:translateY(-30px);
-    }
+/* Seletor de Mostrador Oculto/Minimalista */
+#btnTema {
+    margin-top: 45px;
+    padding: 10px 24px;
+    background: transparent;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
+    color: #d4af37;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+#btnTema:hover {
+    background: #d4af37;
+    color: #000;
+    border-color: #d4af37;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
 </style>
 </head>
 <body>
 
-<div class="circle"></div>
-<div class="circle"></div>
-
 <div class="container">
 
+    <div class="brand-header">
+        <div class="crown">👑</div>
+        <div class="logo">Adan Gomes</div>
+        <div class="sub-logo">Oyster Perpetual</div>
+    </div>
+
+    <!-- Separamos os segundos para um efeito de design simétrico -->
     <div class="clock" id="clock">
-        00:00:00
+        00:00<span class="seconds" id="seconds">00</span>
     </div>
 
     <div class="date" id="date">
-        Carregando...
+        Chronometer
     </div>
 
-    <div class="logo">
-        ADAN GOMES
-    </div>
-
+    <br>
     <button onclick="trocarFundo()" id="btnTema">
-        🎨 TROCAR FUNDO
+        Changer de Cadran
     </button>
 
 </div>
 
 <script>
-
-// =====================
-// RELÓGIO
-// =====================
-
+// ==========================================
+// CRONÔMETRO PERPÉTUO (RELÓGIO)
+// ==========================================
 function atualizarRelogio(){
-
     const agora = new Date();
 
     const hora = String(agora.getHours()).padStart(2,'0');
     const min = String(agora.getMinutes()).padStart(2,'0');
     const seg = String(agora.getSeconds()).padStart(2,'0');
 
-    document.getElementById("clock").innerHTML =
-    `${hora}:${min}:${seg}`;
+    // Atualiza hora e minuto principais
+    document.getElementById("clock").innerHTML = `${hora}:${min}<span class="seconds">${seg}</span>`;
 
     const opcoes = {
-        weekday:'long',
-        day:'2-digit',
-        month:'long',
-        year:'numeric'
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
     };
 
-    document.getElementById("date").innerHTML =
-    agora.toLocaleDateString('pt-BR',opcoes);
+    // Primeira letra maiúscula para manter o padrão de luxo
+    let dataFormatada = agora.toLocaleDateString('pt-BR', opcoes);
+    dataFormatada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
 
+    document.getElementById("date").innerHTML = dataFormatada;
 }
 
-setInterval(atualizarRelogio,1000);
+setInterval(atualizarRelogio, 1000);
 atualizarRelogio();
 
 
-// =====================
-// 5 FUNDOS PROFISSIONAIS
-// =====================
-
+// ==========================================
+// COLEÇÃO DE MOSTRADORES (DIALS) DE LUXO
+// ==========================================
 const fundos = [
+    // 1. Rolex Green & Gold (Padrão)
+    `radial-gradient(circle at 50% 40%, rgba(0, 96, 57, 0.4) 0%, rgba(0,0,0,0) 70%),
+     radial-gradient(circle at top right, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 50%),
+     linear-gradient(135deg, #021a10 0%, #000503 100%)`,
 
-`radial-gradient(circle at top,#ff000040,#000),
- linear-gradient(135deg,#050505,#151515)`,
+    // 2. Deepsea Blue (Azul Escovado / Gradiente Abissal)
+    `radial-gradient(circle at 50% 40%, rgba(0, 50, 110, 0.4) 0%, rgba(0,0,0,0) 70%),
+     linear-gradient(135deg, #011126 0%, #000205 100%)`,
 
-`radial-gradient(circle at top,#00e5ff40,#000),
- linear-gradient(135deg,#001f3f,#000814)`,
+    // 3. Everose Gold (Ouro Rosa Nobre)
+    `radial-gradient(circle at 50% 40%, rgba(140, 70, 70, 0.25) 0%, rgba(0,0,0,0) 70%),
+     radial-gradient(circle at bottom left, rgba(224, 163, 163, 0.1) 0%, rgba(0,0,0,0) 40%),
+     linear-gradient(135deg, #140b0b 0%, #050202 100%)`,
 
-`radial-gradient(circle at top,#00ff6640,#000),
- linear-gradient(135deg,#001a0a,#000)`,
+    // 4. Onyx Black & Platinum (Preto Diamante Absoluto)
+    `radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.04) 0%, rgba(0,0,0,0) 60%),
+     linear-gradient(135deg, #111111 0%, #000000 100%)`,
 
-`radial-gradient(circle at top,#ff00ff40,#000),
- linear-gradient(135deg,#2b1055,#000)`,
-
-`radial-gradient(circle at top,#ffaa0040,#000),
- linear-gradient(135deg,#2a1400,#000)`
-
+    // 5. Champagne Dial (Ouro Clássico)
+    `radial-gradient(circle at 50% 40%, rgba(184, 134, 11, 0.25) 0%, rgba(0,0,0,0) 70%),
+     linear-gradient(135deg, #1c1505 0%, #080601 100%)`
 ];
 
 let fundoAtual = 0;
 
 function trocarFundo(){
-
     fundoAtual++;
 
     if(fundoAtual >= fundos.length){
@@ -199,9 +241,7 @@ function trocarFundo(){
     }
 
     document.body.style.background = fundos[fundoAtual];
-
 }
-
 </script>
 
 </body>
