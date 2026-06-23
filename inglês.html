@@ -3,239 +3,253 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relógio Elegance Pro</title>
+<title>Mydi Tic-Tac-Toe d'Élite</title>
 
-<!-- Importando fontes clássicas de alta relojoaria -->
+<!-- Fontes clássicas e elegantes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    transition:1s;
-    /* Fundo Inicial: Verde Real com reflexo dourado sutil */
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
     background:
-    radial-gradient(circle at top,#00331f 0%,#000 70%),
-    linear-gradient(135deg,#02110b,#000);
+    radial-gradient(circle at top, #00331f 0%, #000 70%),
+    linear-gradient(135deg, #02110b, #000);
+    font-family: 'Space Grotesk', sans-serif;
 }
 
-.container{
-    text-align:center;
-    z-index:2;
-    /* Efeito de vidro escuro no mostrador */
-    background: rgba(0, 0, 0, 0.3);
-    padding: 40px 60px;
-    border-radius: 8px;
+.container {
+    text-align: center;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 30px 40px;
+    border-radius: 12px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.03);
     box-shadow: 0 30px 60px rgba(0,0,0,0.8);
 }
 
-.clock{
-    font-family: 'Space Grotesk', sans-serif;
-    font-size:110px;
-    font-weight:700;
-    letter-spacing:-2px;
-    /* Degradê metálico suave nos números, sem o borrão neon */
-    background: linear-gradient(to bottom, #ffffff 60%, #dcdcdc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
-}
-
-.date{
+.logo {
     font-family: 'Playfair Display', Georgia, serif;
-    color:#a5a5a5;
-    margin-top:20px;
-    font-size:22px;
-    letter-spacing:1px;
-    font-style: italic;
-}
-
-.logo{
-    font-family: 'Playfair Display', Georgia, serif;
-    margin-top:30px;
-    color:#d4af37; /* Cor Ouro */
-    font-size:14px;
+    color: #d4af37; /* Tom Ouro */
+    font-size: 14px;
     font-weight: 700;
-    text-transform:uppercase;
-    letter-spacing:8px;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    margin-bottom: 10px;
 }
 
-/* Transformei os círculos flutuantes em reflexos sutis de luz (efeito Sunburst) */
-.circle{
-    position:absolute;
-    border-radius:50%;
-    background:#ffffff03;
-    filter: blur(40px);
-    animation:float 12s infinite ease-in-out;
+.status {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
 }
 
-.circle:nth-child(1){
-    width:500px;
-    height:500px;
-    top:-10%;
-    left:5%;
-}
-
-.circle:nth-child(2){
-    width:400px;
-    height:400px;
-    bottom:-10%;
-    right:5%;
-    animation-delay:3s;
-}
-
-#btnTema{
-    margin-top:40px;
-    padding:12px 28px;
-    background: transparent;
-    border:1px solid rgba(212, 175, 55, 0.4);
+.status span {
     color: #d4af37;
-    border-radius:4px;
-    cursor:pointer;
+    font-weight: bold;
+}
+
+/* Tabuleiro do Jogo */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    margin-bottom: 25px;
+    justify-content: center;
+}
+
+/* Cada quadrado do tabuleiro */
+.cell {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 45px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.cell:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: #d4af37;
+}
+
+/* Estilo customizado para o X e para o O */
+.cell.x {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.cell.o {
+    color: #d4af37;
+    text-shadow: 0 0 10px rgba(212,175,55,0.5);
+}
+
+/* Botão de Reiniciar */
+#btnReset {
+    padding: 12px 28px;
+    background: transparent;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: #d4af37;
+    border-radius: 4px;
+    cursor: pointer;
     font-family: 'Space Grotesk', sans-serif;
-    font-size:11px;
-    font-weight:bold;
+    font-size: 11px;
+    font-weight: bold;
     letter-spacing: 2px;
     text-transform: uppercase;
-    transition:.4s;
+    transition: .4s;
 }
 
-#btnTema:hover{
+#btnReset:hover {
     background: #d4af37;
     color: #000;
     border-color: #d4af37;
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
 }
-
-@keyframes float{
-    0%,100%{
-        transform:translate(0px, 0px) scale(1);
-    }
-    50%{
-        transform:translate(-20px, -20px) scale(1.05);
-    }
-}
-
 </style>
 </head>
 <body>
 
-<div class="circle"></div>
-<div class="circle"></div>
-
 <div class="container">
 
-    <div class="clock" id="clock">
-        00:00:00
+    <div class="logo">Adan Gomes • Élite</div>
+    
+    <div class="status" id="statusText">
+        Vez do Jogador: <span>X</span>
     </div>
 
-    <div class="date" id="date">
-        Carregando...
+    <div class="board" id="board">
+        <div data-cell-index="0" class="cell"></div>
+        <div data-cell-index="1" class="cell"></div>
+        <div data-cell-index="2" class="cell"></div>
+        <div data-cell-index="3" class="cell"></div>
+        <div data-cell-index="4" class="cell"></div>
+        <div data-cell-index="5" class="cell"></div>
+        <div data-cell-index="6" class="cell"></div>
+        <div data-cell-index="7" class="cell"></div>
+        <div data-cell-index="8" class="cell"></div>
     </div>
 
-    <div class="logo">
-        ADAN GOMES
-    </div>
-
-    <button onclick="trocarFundo()" id="btnTema">
-        🎨 TROCAR FUNDO
+    <button onclick="reiniciarJogo()" id="btnReset">
+        🔄 Reiniciar Partida
     </button>
 
 </div>
 
 <script>
+// ==========================================
+// LÓGICA DO JOGO DA VELHA
+// ==========================================
 
-// =====================
-// RELÓGIO
-// =====================
+const statusText = document.getElementById('statusText');
+const cells = document.querySelectorAll('.cell');
+let jogoAtivo = true;
+let jogadorAtual = "X";
 
-function atualizarRelogio(){
+// Array para mapear o estado do tabuleiro (vazio inicialmente)
+let estadoDoJogo = ["", "", "", "", "", "", "", "", ""];
 
-    const agora = new Date();
-
-    const hora = String(agora.getHours()).padStart(2,'0');
-    const min = String(agora.getMinutes()).padStart(2,'0');
-    const seg = String(agora.getSeconds()).padStart(2,'0');
-
-    document.getElementById("clock").innerHTML =
-    `${hora}:${min}:${seg}`;
-
-    const opcoes = {
-        weekday:'long',
-        day:'2-digit',
-        month:'long',
-        year:'numeric'
-    };
-
-    let dataFormatada = agora.toLocaleDateString('pt-BR',opcoes);
-    // Deixa a primeira letra maiúscula para ficar mais formal
-    dataFormatada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
-
-    document.getElementById("date").innerHTML = dataFormatada;
-
-}
-
-setInterval(atualizarRelogio,1000);
-atualizarRelogio();
-
-
-// =====================
-// 5 FUNDOS PROFISSIONAIS (Estilo Relojoaria Suíça)
-// =====================
-
-const fundos = [
-
-/* 1. Verde Clássico (Rolex Green) */
-`radial-gradient(circle at top,#00331f 0%,#000 70%),
- linear-gradient(135deg,#02110b,#000)`,
-
-/* 2. Azul Abissal (Deepsea Blue) */
-`radial-gradient(circle at top,#001f3f 0%,#000 70%),
- linear-gradient(135deg,#000b18,#000)`,
-
-/* 3. Ouro Rosa (Everose) */
-`radial-gradient(circle at top,#221010 0%,#000 70%),
- linear-gradient(135deg,#110505,#000)`,
-
-/* 4. Preto Platina (Onyx) */
-`radial-gradient(circle at top,#161616 0%,#000 70%),
- linear-gradient(135deg,#0a0a0a,#000)`,
-
-/* 5. Vinho Nobre (Bordeaux) */
-`radial-gradient(circle at top,#2a0813 0%,#000 70%),
- linear-gradient(135deg,#120207,#000)`
-
+// Combinações possíveis para vitória
+const combinacoesVitoria = [
+    [0, 1, 2], // Linhas
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6], // Colunas
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8], // Diagonais
+    [2, 4, 6]
 ];
 
-let fundoAtual = 0;
+// Adiciona evento de clique para cada célula do tabuleiro
+cells.forEach(cell => cell.addEventListener('click', cliqueNaCelula));
 
-function trocarFundo(){
+function cliqueNaCelula(evento) {
+    const celulaClicada = evento.target;
+    const indiceClicado = parseInt(celulaClicada.getAttribute('data-cell-index'));
 
-    fundoAtual++;
-
-    if(fundoAtual >= fundos.length){
-        fundoAtual = 0;
+    // Verifica se a célula já está ocupada ou se o jogo acabou
+    if (estadoDoJogo[indiceClicado] !== "" || !jogoAtivo) {
+        return;
     }
 
-    document.body.style.background = fundos[fundoAtual];
+    // Atualiza o estado lógico e visual
+    estadoDoJogo[indiceClicado] = jogadorAtual;
+    celulaClicada.innerHTML = jogadorAtual;
+    celulaClicada.classList.add(jogadorAtual.toLowerCase());
 
+    verificarResultado();
 }
 
+function verificarResultado() {
+    let rodadaGanhou = false;
+
+    // Checa cada combinação de vitória
+    for (let i = 0; i < combinacoesVitoria.length; i++) {
+        const condicao = combinacoesVitoria[i];
+        let a = estadoDoJogo[condicao[0]];
+        let b = estadoDoJogo[condicao[1]];
+        let c = estadoDoJogo[condicao[2]];
+
+        if (a === '' || b === '' || c === '') {
+            continue;
+        }
+        if (a === b && b === c) {
+            rodadaGanhou = true;
+            break;
+        }
+    }
+
+    if (rodadaGanhou) {
+        statusText.innerHTML = `Jogador <span>${jogadorAtual}</span> Venceu! 🏆`;
+        jogoAtivo = false;
+        return;
+    }
+
+    // Checa se deu velha (empate)
+    let rodadaEmpate = !estadoDoJogo.includes("");
+    if (rodadaEmpate) {
+        statusText.innerHTML = `O Jogo deu <span>Velha</span>! 🤝`;
+        jogoAtivo = false;
+        return;
+    }
+
+    // Alterna o turno do jogador
+    jogadorAtual = jogadorAtual === "X" ? "O" : "X";
+    statusText.innerHTML = `Vez do Jogador: <span>${jogadorAtual}</span>`;
+}
+
+function reiniciarJogo() {
+    jogoAtivo = true;
+    jogadorAtual = "X";
+    estadoDoJogo = ["", "", "", "", "", "", "", "", ""];
+    statusText.innerHTML = `Vez do Jogador: <span>X</span>`;
+    
+    cells.forEach(cell => {
+        cell.innerHTML = "";
+        cell.classList.remove('x', 'o');
+    });
+}
 </script>
 
 </body>
