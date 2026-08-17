@@ -17,22 +17,25 @@
             cursor: pointer;
             border: none;
             font-size: 16px;
+            margin-bottom: 20px;
         }
         .btn-download:hover { background-color: #219150; }
         #documento {
             background: white;
             padding: 40px;
-            margin-top: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-size: 12pt;
+            font-size: 11pt;
             line-height: 1.5;
             color: #000;
         }
-        h1, h2, h3 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 20px; }
-        .section-title { font-weight: bold; margin-top: 15px; }
-        .signature-block { margin-top: 40px; page-break-inside: avoid; }
-        .signature-line { margin-top: 30px; border-top: 1px solid #000; width: 80%; margin-left: auto; margin-right: auto; text-align: center; padding-top: 5px; }
+        h1, h2 { text-align: center; font-size: 13pt; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
+        .section-title { font-weight: bold; margin-top: 15px; text-transform: uppercase; }
+        
+        .signature-block { margin-top: 30px; page-break-inside: avoid; }
+        .signature-group { margin-top: 45px; text-align: center; page-break-inside: avoid; }
+        .signature-line { border-top: 1px solid #000; width: 75%; margin: 0 auto 5px auto; }
+        
         .page-break { page-break-before: always; }
     </style>
 </head>
@@ -182,16 +185,36 @@
         <p>Guaramirim/SC, 17 de agosto de 2026.</p>
 
         <div class="signature-block">
-            <p><strong>VENDEDORES:</strong></p>
-            <div class="signature-line">ANDERSON FERRAZ DE ALCÂNTARA<br>CPF: 073.947.559-24</div>
-            <div class="signature-line">MAGALI DO SANTOS<br>CPF: 079.370.349-95</div>
+            <p style="text-align: center; font-weight: bold; margin-top: 20px;">VENDEDORES:</p>
+            
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>ANDERSON FERRAZ DE ALCÂNTARA</strong><br>CPF: 073.947.559-24
+            </div>
 
-            <p style="margin-top: 30px;"><strong>COMPRADORA:</strong></p>
-            <div class="signature-line">ZANETE LOPES DA CRUZ<br>CPF: 760.776.409-72</div>
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>MAGALI DO SANTOS</strong><br>CPF: 079.370.349-95
+            </div>
 
-            <p style="margin-top: 30px;"><strong>TESTEMUNHAS:</strong></p>
-            <div class="signature-line">1. Nome:<br>CPF:</div>
-            <div class="signature-line">2. Nome:<br>CPF:</div>
+            <p style="text-align: center; font-weight: bold; margin-top: 30px;">COMPRADORA:</p>
+            
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>ZANETE LOPES DA CRUZ</strong><br>CPF: 760.776.409-72
+            </div>
+
+            <p style="text-align: center; font-weight: bold; margin-top: 30px;">TESTEMUNHAS:</p>
+            
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                1. Nome:<br>CPF:
+            </div>
+
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                2. Nome:<br>CPF:
+            </div>
         </div>
 
         <div class="page-break"></div>
@@ -229,9 +252,20 @@
         <p>Após o recebimento integral do valor de R$ 40.000,00 (quarenta mil reais), os VENDEDORES declaram dar plena quitação à COMPRADORA quanto ao preço da presente compra e venda.</p>
 
         <div class="signature-block">
-            <div class="signature-line">ANDERSON FERRAZ DE ALCÂNTARA<br>CPF: 073.947.559-24</div>
-            <div class="signature-line">MAGALI DO SANTOS<br>CPF: 079.370.349-95</div>
-            <div class="signature-line">ZANETE LOPES DA CRUZ<br>CPF: 760.776.409-72</div>
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>ANDERSON FERRAZ DE ALCÂNTARA</strong><br>CPF: 073.947.559-24
+            </div>
+            
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>MAGALI DO SANTOS</strong><br>CPF: 079.370.349-95
+            </div>
+            
+            <div class="signature-group">
+                <div class="signature-line"></div>
+                <strong>ZANETE LOPES DA CRUZ</strong><br>CPF: 760.776.409-72
+            </div>
         </div>
     </div>
 
